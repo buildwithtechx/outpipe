@@ -144,7 +144,15 @@ func NewDatabaseDependencies(db *gorm.DB, cfg config.APIConfig) (Dependencies, e
 	var polarClient *billing.PolarClient
 
 	if cfg.Billing.PolarAccessToken != "" {
-		polarClient, err = billing.NewPolar(billing.PolarConfig{BaseURL: cfg.Billing.PolarBaseURL, AccessToken: cfg.Billing.PolarAccessToken})
+		polarClient, err = billing.NewPolar(billing.PolarConfig{
+			BaseURL:     cfg.Billing.PolarBaseURL,
+			AccessToken: cfg.Billing.PolarAccessToken,
+			ProductIDs: map[string]string{
+				"link":  cfg.Billing.PolarProductLink,
+				"route": cfg.Billing.PolarProductRoute,
+				"edge":  cfg.Billing.PolarProductEdge,
+			},
+		})
 
 		if err != nil {
 			return Dependencies{}, err

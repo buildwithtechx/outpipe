@@ -16,13 +16,20 @@ type PolarConfig struct {
 	BaseURL     string
 	AccessToken string
 	HTTPClient  *http.Client
+	ProductIDs  map[string]string
 }
 
 func (c *PolarClient) Checkout(ctx context.Context, plan models.Plan, organizationID string) (string, error) {
+	productID, err := c.productID(plan.Key)
+
+	if err != nil {
+		return "", err
+	}
+
 	var response struct {
 		URL string `json:"url"`
 	}
-	if err := c.Request(ctx, http.MethodPost, "/v1/checkouts", map[string]any{"product_id": plan.Key, "metadata": map[string]string{"organization_id": organizationID}}, &response); err != nil {
+	if err := c.Request(ctx, http.MethodPost, "/v1/checkouts", map[string]any{"product_id": productID, "metadata": map[string]string{"organization_id": organizationID}}, &response); err != nil {
 		return "", err
 	}
 
@@ -56,6 +63,7 @@ type PolarClient struct {
 	baseURL     string
 	accessToken string
 	httpClient  *http.Client
+	productIDs  map[string]string
 }
 
 func NewPolar(cfg PolarConfig) (*PolarClient, error) {
@@ -76,7 +84,17 @@ func NewPolar(cfg PolarConfig) (*PolarClient, error) {
 		client = http.DefaultClient
 	}
 
-	return &PolarClient{baseURL: baseURL, accessToken: cfg.AccessToken, httpClient: client}, nil
+	return &PolarClient{baseURL: baseURL, accessToken: cfg.AccessToken, httpClient: client, productIDs: cfg.ProductIDs}, nil
+}
+
+func (c *PolarClient) productID(planKey string) (string, error) {
+	productID := c.productIDs[planKey]
+
+	if productID == "" {
+		return "", fmt.Errorf("polar product is not configured for plan %q", planKey)
+	}
+
+	return productID, nil
 }
 
 func (c *PolarClient) Request(ctx context.Context, method string, path string, payload any, responseBody any) error {

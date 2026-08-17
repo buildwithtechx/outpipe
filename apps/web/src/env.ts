@@ -15,12 +15,6 @@ export const env = createEnv({
     VITE_OUTPIPE_API_BASE_URL: z.url().optional(),
     VITE_OUTPIPE_POSTHOG_KEY: z.string().optional(),
     VITE_OUTPIPE_POSTHOG_HOST: z.url().optional(),
-    VITE_OUTPIPE_POLAR_PRODUCT_LINK: z.string().optional(),
-    VITE_OUTPIPE_POLAR_PRODUCT_ROUTE: z.string().optional(),
-    VITE_OUTPIPE_POLAR_PRODUCT_EDGE: z.string().optional(),
-    VITE_OUTPIPE_POLAR_PRODUCT_LINK_YEARLY: z.string().optional(),
-    VITE_OUTPIPE_POLAR_PRODUCT_ROUTE_YEARLY: z.string().optional(),
-    VITE_OUTPIPE_POLAR_PRODUCT_EDGE_YEARLY: z.string().optional(),
   },
 
   runtimeEnv: import.meta.env,
