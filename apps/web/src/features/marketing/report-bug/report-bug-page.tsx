@@ -5,33 +5,33 @@ import {
   FileCode2,
   ShieldCheck,
   Terminal,
-} from "lucide-react";
-import { motion } from "motion/react";
-import { type FormEvent, useState } from "react";
-import { MarketingContainer } from "#/components/layout";
+} from 'lucide-react';
+import { motion } from 'motion/react';
+import { type FormEvent, useState } from 'react';
+import { MarketingContainer } from '#/components/layout';
 
 const categories = [
-  "CLI or desktop client",
-  "Tunnel connection",
-  "Dashboard or billing",
-  "SDK or framework integration",
-  "Other",
+  'CLI or desktop client',
+  'Tunnel connection',
+  'Dashboard or billing',
+  'SDK or framework integration',
+  'Other',
 ];
 
 const guidance = [
   {
-    label: "Useful context",
-    detail: "Include versions, commands, and the protocol involved.",
+    label: 'Useful context',
+    detail: 'Include versions, commands, and the protocol involved.',
     icon: Terminal,
   },
   {
-    label: "Reproducible steps",
-    detail: "A short path from setup to failure helps us reproduce it quickly.",
+    label: 'Reproducible steps',
+    detail: 'A short path from setup to failure helps us reproduce it quickly.',
     icon: FileCode2,
   },
   {
-    label: "Keep it safe",
-    detail: "Remove credentials, private URLs, and customer data from logs.",
+    label: 'Keep it safe',
+    detail: 'Remove credentials, private URLs, and customer data from logs.',
     icon: ShieldCheck,
   },
 ] as const;
@@ -42,29 +42,29 @@ export function ReportBugPage() {
   function openReport(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const data = new FormData(event.currentTarget);
-    const name = String(data.get("name") ?? "").trim();
-    const email = String(data.get("email") ?? "").trim();
-    const category = String(data.get("category") ?? "").trim();
-    const summary = String(data.get("summary") ?? "").trim();
-    const reproduction = String(data.get("reproduction") ?? "").trim();
-    const expected = String(data.get("expected") ?? "").trim();
-    const actual = String(data.get("actual") ?? "").trim();
+    const name = String(data.get('name') ?? '').trim();
+    const email = String(data.get('email') ?? '').trim();
+    const category = String(data.get('category') ?? '').trim();
+    const summary = String(data.get('summary') ?? '').trim();
+    const reproduction = String(data.get('reproduction') ?? '').trim();
+    const expected = String(data.get('expected') ?? '').trim();
+    const actual = String(data.get('actual') ?? '').trim();
     const subject = encodeURIComponent(`[Bug] ${summary}`);
     const body = encodeURIComponent(
       [
         `From: ${name}`,
         `Reply-to: ${email}`,
         `Category: ${category}`,
-        "",
-        "Steps to reproduce:",
+        '',
+        'Steps to reproduce:',
         reproduction,
-        "",
-        "Expected:",
+        '',
+        'Expected:',
         expected,
-        "",
-        "Actual:",
+        '',
+        'Actual:',
         actual,
-      ].join("\n"),
+      ].join('\n'),
     );
 
     setSubmitted(true);
