@@ -28,6 +28,7 @@ import { Route as MarketingContactRouteImport } from './routes/_marketing/contac
 import { Route as MarketingPluginsRouteImport } from './routes/_marketing/plugins'
 import { Route as MarketingPricingRouteImport } from './routes/_marketing/pricing'
 import { Route as MarketingPrivacyRouteImport } from './routes/_marketing/privacy'
+import { Route as MarketingReportBugRouteImport } from './routes/_marketing/report-bug'
 import { Route as MarketingTermsRouteImport } from './routes/_marketing/terms'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as AdminActionsRouteImport } from './routes/admin/actions'
@@ -143,6 +144,11 @@ const MarketingPricingRoute = MarketingPricingRouteImport.update({
 const MarketingPrivacyRoute = MarketingPrivacyRouteImport.update({
   id: '/privacy',
   path: '/privacy',
+  getParentRoute: () => MarketingRoute,
+} as any)
+const MarketingReportBugRoute = MarketingReportBugRouteImport.update({
+  id: '/report-bug',
+  path: '/report-bug',
   getParentRoute: () => MarketingRoute,
 } as any)
 const MarketingTermsRoute = MarketingTermsRouteImport.update({
@@ -277,6 +283,7 @@ export interface FileRoutesByFullPath {
   '/plugins': typeof MarketingPluginsRouteWithChildren
   '/pricing': typeof MarketingPricingRoute
   '/privacy': typeof MarketingPrivacyRoute
+  '/report-bug': typeof MarketingReportBugRoute
   '/terms': typeof MarketingTermsRoute
   '/admin/actions': typeof AdminActionsRoute
   '/admin/audit-logs': typeof AdminAuditLogsRoute
@@ -316,6 +323,7 @@ export interface FileRoutesByTo {
   '/contact': typeof MarketingContactRoute
   '/pricing': typeof MarketingPricingRoute
   '/privacy': typeof MarketingPrivacyRoute
+  '/report-bug': typeof MarketingReportBugRoute
   '/terms': typeof MarketingTermsRoute
   '/admin/actions': typeof AdminActionsRoute
   '/admin/audit-logs': typeof AdminAuditLogsRoute
@@ -360,6 +368,7 @@ export interface FileRoutesById {
   '/_marketing/plugins': typeof MarketingPluginsRouteWithChildren
   '/_marketing/pricing': typeof MarketingPricingRoute
   '/_marketing/privacy': typeof MarketingPrivacyRoute
+  '/_marketing/report-bug': typeof MarketingReportBugRoute
   '/_marketing/terms': typeof MarketingTermsRoute
   '/admin/actions': typeof AdminActionsRoute
   '/admin/audit-logs': typeof AdminAuditLogsRoute
@@ -405,6 +414,7 @@ export interface FileRouteTypes {
     | '/plugins'
     | '/pricing'
     | '/privacy'
+    | '/report-bug'
     | '/terms'
     | '/admin/actions'
     | '/admin/audit-logs'
@@ -444,6 +454,7 @@ export interface FileRouteTypes {
     | '/contact'
     | '/pricing'
     | '/privacy'
+    | '/report-bug'
     | '/terms'
     | '/admin/actions'
     | '/admin/audit-logs'
@@ -487,6 +498,7 @@ export interface FileRouteTypes {
     | '/_marketing/plugins'
     | '/_marketing/pricing'
     | '/_marketing/privacy'
+    | '/_marketing/report-bug'
     | '/_marketing/terms'
     | '/admin/actions'
     | '/admin/audit-logs'
@@ -672,6 +684,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MarketingPrivacyRouteImport
       parentRoute: typeof MarketingRoute
     }
+    '/_marketing/report-bug': {
+      id: '/_marketing/report-bug'
+      path: '/report-bug'
+      fullPath: '/report-bug'
+      preLoaderRoute: typeof MarketingReportBugRouteImport
+      parentRoute: typeof MarketingRoute
+    }
     '/_marketing/terms': {
       id: '/_marketing/terms'
       path: '/terms'
@@ -848,6 +867,7 @@ interface MarketingRouteChildren {
   MarketingPluginsRoute: typeof MarketingPluginsRouteWithChildren
   MarketingPricingRoute: typeof MarketingPricingRoute
   MarketingPrivacyRoute: typeof MarketingPrivacyRoute
+  MarketingReportBugRoute: typeof MarketingReportBugRoute
   MarketingTermsRoute: typeof MarketingTermsRoute
   MarketingIndexRoute: typeof MarketingIndexRoute
 }
@@ -858,6 +878,7 @@ const MarketingRouteChildren: MarketingRouteChildren = {
   MarketingPluginsRoute: MarketingPluginsRouteWithChildren,
   MarketingPricingRoute: MarketingPricingRoute,
   MarketingPrivacyRoute: MarketingPrivacyRoute,
+  MarketingReportBugRoute: MarketingReportBugRoute,
   MarketingTermsRoute: MarketingTermsRoute,
   MarketingIndexRoute: MarketingIndexRoute,
 }

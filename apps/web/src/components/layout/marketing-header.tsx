@@ -1,5 +1,12 @@
 import { Link } from '@tanstack/react-router';
-import { ChevronDown, ExternalLink, LifeBuoy, Menu, X } from 'lucide-react';
+import {
+  Bug,
+  ChevronDown,
+  ExternalLink,
+  LifeBuoy,
+  Menu,
+  X,
+} from 'lucide-react';
 import { useEffect, useState } from 'react';
 import {
   SiExpress,
@@ -18,6 +25,7 @@ const mobileLinks = [
   { label: 'Changelog', to: '/changelog' as const },
   { label: 'Plugins', to: '/plugins' as const },
   { label: 'Contact', to: '/contact' as const },
+  { label: 'Report a bug', to: '/report-bug' as const },
 ];
 
 const pluginLinks = [
@@ -118,6 +126,7 @@ export function MarketingHeader() {
             Changelog
           </Link>
           <DropdownButton
+            compact
             label="Help"
             open={helpOpen}
             onOpen={() => {
@@ -126,33 +135,40 @@ export function MarketingHeader() {
             }}
             onClose={() => setHelpOpen(false)}
           >
-            <div className="grid gap-1">
+            <div className="grid gap-0.5">
               <Link
                 to="/contact"
-                className="group flex items-center gap-3 rounded-lg px-3 py-3 text-sm text-white/70 transition-colors hover:bg-indigo-300/10 hover:text-indigo-300"
+                className="group flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-white/70 transition-colors hover:bg-indigo-300/10 hover:text-indigo-300"
               >
                 <LifeBuoy className="size-4 transition-colors group-hover:text-indigo-300" />
                 <span>
                   <strong className="block font-medium text-white transition-colors group-hover:text-indigo-300">
                     Contact us
                   </strong>
-                  <small className="text-white/40">
-                    Questions and feedback
-                  </small>
+                </span>
+              </Link>
+              <Link
+                to="/report-bug"
+                className="group flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-white/70 transition-colors hover:bg-indigo-300/10 hover:text-indigo-300"
+              >
+                <Bug className="size-4 transition-colors group-hover:text-indigo-300" />
+                <span>
+                  <strong className="block font-medium text-white transition-colors group-hover:text-indigo-300">
+                    Report a bug
+                  </strong>
                 </span>
               </Link>
               <a
                 href={githubRepositoryUrl}
                 target="_blank"
                 rel="noreferrer"
-                className="group flex items-center gap-3 rounded-lg px-3 py-3 text-sm text-white/70 transition-colors hover:bg-indigo-300/10 hover:text-indigo-300"
+                className="group flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-white/70 transition-colors hover:bg-indigo-300/10 hover:text-indigo-300"
               >
                 <SiGithub className="size-4" />
                 <span>
                   <strong className="block font-medium text-white transition-colors group-hover:text-indigo-300">
                     GitHub
                   </strong>
-                  <small className="text-white/40">Read the source</small>
                 </span>
                 <ExternalLink className="ml-auto size-3 text-white/30" />
               </a>
@@ -245,12 +261,14 @@ export function MarketingHeader() {
 }
 
 function DropdownButton({
+  compact = false,
   label,
   open,
   onOpen,
   onClose,
   children,
 }: {
+  compact?: boolean;
   label: string;
   open: boolean;
   onOpen: () => void;
@@ -278,8 +296,12 @@ function DropdownButton({
         />
       </button>
       {open && (
-        <div className="absolute left-1/2 top-full w-105 -translate-x-1/2 pt-5">
-          <div className="rounded-2xl border border-white/10 bg-[#0a0a0a] p-5 shadow-2xl shadow-black/60">
+        <div
+          className={`absolute left-1/2 top-full -translate-x-1/2 ${compact ? 'w-72 pt-3' : 'w-105 pt-5'}`}
+        >
+          <div
+            className={`border border-white/10 bg-[#0a0a0a] shadow-2xl shadow-black/60 ${compact ? 'rounded-xl p-2' : 'rounded-2xl p-5'}`}
+          >
             {children}
           </div>
         </div>

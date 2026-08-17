@@ -31,6 +31,7 @@ export function MarketingFooter() {
             <FooterLink to="/pricing">Pricing</FooterLink>
             <FooterLink to="/changelog">Changelog</FooterLink>
             <FooterLink to="/contact">Contact</FooterLink>
+            <FooterLink to="/report-bug">Report a bug</FooterLink>
           </FooterGroup>
           <FooterGroup title="Developers">
             <Link
