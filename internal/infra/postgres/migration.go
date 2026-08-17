@@ -9,34 +9,45 @@ import (
 )
 
 func Migrate(db *gorm.DB) error {
+
 	if db == nil {
 		return fmt.Errorf("postgres database is required")
 	}
 
 	err := db.Exec("CREATE TABLE IF NOT EXISTS schema_migrations (version BIGINT PRIMARY KEY, name VARCHAR(200) NOT NULL, applied_at TIMESTAMPTZ NOT NULL)").Error
+
 	if err != nil {
 		return fmt.Errorf("create schema migrations table: %w", err)
 	}
+
 	return db.Transaction(func(tx *gorm.DB) error {
 		var applied []int64
+
 		if err := tx.Raw("SELECT version FROM schema_migrations ORDER BY version").Scan(&applied).Error; err != nil {
 			return fmt.Errorf("read schema migrations: %w", err)
 		}
+
 		appliedVersions := make(map[int64]struct{}, len(applied))
+
 		for _, version := range applied {
 			appliedVersions[version] = struct{}{}
 		}
+
 		for _, migration := range migrations() {
+
 			if _, ok := appliedVersions[migration.version]; ok {
 				continue
 			}
+
 			if err := migration.up(tx); err != nil {
 				return fmt.Errorf("apply migration %d %s: %w", migration.version, migration.name, err)
 			}
+
 			if err := tx.Exec("INSERT INTO schema_migrations (version, name, applied_at) VALUES (?, ?, ?)", migration.version, migration.name, time.Now().UTC()).Error; err != nil {
 				return fmt.Errorf("record migration %d: %w", migration.version, err)
 			}
 		}
+
 		return nil
 	})
 }
@@ -91,11 +102,14 @@ func migrations() []migration {
 }
 
 func WithTransaction(db *gorm.DB, fn func(*gorm.DB) error) error {
+
 	if db == nil || fn == nil {
 		return fmt.Errorf("database and transaction function are required")
 	}
+
 	if err := db.Transaction(fn); err != nil {
 		return fmt.Errorf("run transaction: %w", err)
 	}
+
 	return nil
 }

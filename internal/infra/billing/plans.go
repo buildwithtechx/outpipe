@@ -47,12 +47,16 @@ func PlanByKey(key string) (Plan, bool) {
 func AllPlans() []Plan {
 	result := make([]Plan, 0, len(plans))
 	keys := make([]string, 0, len(plans))
+
 	for key := range plans {
 		keys = append(keys, key)
 	}
+
 	sort.Strings(keys)
+
 	for _, key := range keys {
 		result = append(result, plans[key])
 	}
+
 	return result
 }

@@ -10,17 +10,23 @@ import (
 )
 
 func NewToken(prefix string, size int) (string, error) {
+
 	if size < 32 {
 		return "", fmt.Errorf("token size must be at least 32 bytes")
 	}
+
 	value := make([]byte, size)
+
 	if _, err := rand.Read(value); err != nil {
 		return "", fmt.Errorf("generate token: %w", err)
 	}
+
 	encoded := base64.RawURLEncoding.EncodeToString(value)
+
 	if prefix == "" {
 		return encoded, nil
 	}
+
 	return prefix + "_" + encoded, nil
 }
 

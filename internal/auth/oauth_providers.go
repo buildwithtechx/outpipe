@@ -30,15 +30,19 @@ type provider struct {
 func NewOAuthProviders(cfg OAuthConfig) map[string]OAuthProvider {
 	providers := make(map[string]OAuthProvider)
 	client := cfg.HTTPClient
+
 	if client == nil {
 		client = http.DefaultClient
 	}
+
 	if cfg.GoogleClientID != "" && cfg.GoogleClientSecret != "" {
 		providers["google"] = &provider{name: "google", config: &oauth2.Config{ClientID: cfg.GoogleClientID, ClientSecret: cfg.GoogleClientSecret, Endpoint: google.Endpoint, Scopes: []string{"openid", "email", "profile"}}, profile: "https://openidconnect.googleapis.com/v1/userinfo", identity: googleProfile(client)}
 	}
+
 	if cfg.GitHubClientID != "" && cfg.GitHubClientSecret != "" {
 		providers["github"] = &provider{name: "github", config: &oauth2.Config{ClientID: cfg.GitHubClientID, ClientSecret: cfg.GitHubClientSecret, Endpoint: github.Endpoint, Scopes: []string{"read:user", "user:email"}}, profile: "https://api.github.com/user", identity: githubProfile(client)}
 	}
+
 	return providers
 }
 
@@ -54,19 +58,25 @@ func (p *provider) Exchange(ctx context.Context, code, redirectURI, verifier str
 	config := *p.config
 	config.RedirectURL = redirectURI
 	token, err := config.Exchange(ctx, code, oauth2.SetAuthURLParam("code_verifier", verifier))
+
 	if err != nil {
 		return OAuthProfile{}, fmt.Errorf("exchange %s oauth code: %w", p.name, err)
 	}
+
 	profile, err := p.identity(ctx, token)
+
 	if err != nil {
 		return OAuthProfile{}, err
 	}
+
 	profile.Provider = p.name
 	profile.AccessToken = token.AccessToken
 	profile.RefreshToken = token.RefreshToken
+
 	if !token.Expiry.IsZero() {
 		profile.TokenExpiresAt = &token.Expiry
 	}
+
 	return profile, nil
 }
 
@@ -81,6 +91,7 @@ func googleProfile(client *http.Client) func(context.Context, *oauth2.Token) (OA
 		if err := fetchProfile(ctx, client, "https://openidconnect.googleapis.com/v1/userinfo", token, &body); err != nil {
 			return OAuthProfile{}, err
 		}
+
 		return OAuthProfile{Subject: body.Subject, Email: strings.ToLower(body.Email), Name: body.Name, EmailVerified: body.Valid}, nil
 	}
 }
@@ -96,8 +107,10 @@ func githubProfile(client *http.Client) func(context.Context, *oauth2.Token) (OA
 		if err := fetchProfile(ctx, client, "https://api.github.com/user", token, &user); err != nil {
 			return OAuthProfile{}, err
 		}
+
 		email := user.Email
 		verified := email != ""
+
 		if email == "" {
 			var emails []struct {
 				Email    string `json:"email"`
@@ -107,38 +120,50 @@ func githubProfile(client *http.Client) func(context.Context, *oauth2.Token) (OA
 			if err := fetchProfile(ctx, client, "https://api.github.com/user/emails", token, &emails); err != nil {
 				return OAuthProfile{}, err
 			}
+
 			for _, candidate := range emails {
+
 				if candidate.Primary && candidate.Verified {
 					email, verified = candidate.Email, true
 					break
 				}
 			}
 		}
+
 		name := user.Name
+
 		if name == "" {
 			name = user.Login
 		}
+
 		return OAuthProfile{Subject: fmt.Sprint(user.ID), Email: strings.ToLower(email), Name: name, EmailVerified: verified}, nil
 	}
 }
 
 func fetchProfile(ctx context.Context, client *http.Client, endpoint string, token *oauth2.Token, target any) error {
 	request, err := http.NewRequestWithContext(ctx, http.MethodGet, endpoint, nil)
+
 	if err != nil {
 		return fmt.Errorf("create oauth profile request: %w", err)
 	}
+
 	token.SetAuthHeader(request)
 	request.Header.Set("Accept", "application/json")
 	response, err := client.Do(request)
+
 	if err != nil {
 		return fmt.Errorf("fetch oauth profile: %w", err)
 	}
+
 	defer response.Body.Close()
+
 	if response.StatusCode != http.StatusOK {
 		return fmt.Errorf("oauth profile returned status %d", response.StatusCode)
 	}
+
 	if err := json.NewDecoder(response.Body).Decode(target); err != nil {
 		return fmt.Errorf("decode oauth profile: %w", err)
 	}
+
 	return nil
 }

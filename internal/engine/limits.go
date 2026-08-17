@@ -15,21 +15,27 @@ func NewBandwidthLimiter() *BandwidthLimiter {
 }
 
 func (l *BandwidthLimiter) Consume(key string, limit int64, bytes int64) error {
+
 	if key == "" {
 		return fmt.Errorf("bandwidth key is required")
 	}
+
 	if bytes < 0 {
 		return fmt.Errorf("bandwidth bytes cannot be negative")
 	}
+
 	if limit <= 0 {
 		return nil
 	}
+
 	l.mu.Lock()
 	defer l.mu.Unlock()
 	current := l.usage[key]
+
 	if current > limit-bytes {
 		return fmt.Errorf("bandwidth limit exceeded")
 	}
+
 	l.usage[key] = current + bytes
 	return nil
 }

@@ -57,23 +57,30 @@ const (
 )
 
 func Encode(message Envelope) ([]byte, error) {
+
 	if message.Version == 0 {
 		message.Version = Version
 	}
+
 	if message.Type == "" {
 		return nil, fmt.Errorf("protocol message type is required")
 	}
+
 	data, err := json.Marshal(message)
+
 	if err != nil {
 		return nil, fmt.Errorf("encode protocol message: %w", err)
 	}
+
 	if int64(len(data)) > AbsoluteMaxFrameSize {
 		return nil, fmt.Errorf("frame size %d exceeds max frame size %d", len(data), AbsoluteMaxFrameSize)
 	}
+
 	return data, nil
 }
 
 func IsValidMessageType(t MessageType) bool {
+
 	switch t {
 	case MessageTypeAuth, MessageTypeAuthResponse, MessageTypeVersionNegotiate, MessageTypeVersionNegotiateAck, MessageTypeFlowControl, MessageTypeOpenTunnel, MessageTypeOpenTunnelAck, MessageTypeCloseTunnel, MessageTypeData, MessageTypeHeartbeat, MessageTypeError, MessageTypeHTTPRequest, MessageTypeHTTPResponse, MessageTypeTCPData, MessageTypeTCPClose, MessageTypeUDPData, MessageTypeUDPResponse:
 		return true
@@ -83,30 +90,40 @@ func IsValidMessageType(t MessageType) bool {
 }
 
 func Decode(data []byte) (Envelope, error) {
+
 	if int64(len(data)) > AbsoluteMaxFrameSize {
 		return Envelope{}, fmt.Errorf("frame size %d exceeds max frame size %d", len(data), AbsoluteMaxFrameSize)
 	}
+
 	var message Envelope
+
 	if err := json.Unmarshal(data, &message); err != nil {
 		return Envelope{}, fmt.Errorf("decode protocol message: %w", err)
 	}
+
 	if message.Version < MinSupportedVersion || message.Version > MaxSupportedVersion {
 		return Envelope{}, fmt.Errorf("unsupported protocol version %d", message.Version)
 	}
+
 	if !IsValidMessageType(message.Type) {
 		return Envelope{}, fmt.Errorf("invalid protocol message type %q", message.Type)
 	}
+
 	return message, nil
 }
 
 func NegotiateVersion(req VersionNegotiate) (VersionNegotiateAck, error) {
+
 	if req.MaxVersion < MinSupportedVersion || req.MinVersion > MaxSupportedVersion {
 		return VersionNegotiateAck{}, fmt.Errorf("no compatible protocol version: requested range %d-%d, supported range %d-%d", req.MinVersion, req.MaxVersion, MinSupportedVersion, MaxSupportedVersion)
 	}
+
 	negotiated := req.MaxVersion
+
 	if negotiated > MaxSupportedVersion {
 		negotiated = MaxSupportedVersion
 	}
+
 	return VersionNegotiateAck{
 		NegotiatedVersion: negotiated,
 		SupportedVersions: []int{1},
@@ -117,15 +134,19 @@ func NegotiateVersion(req VersionNegotiate) (VersionNegotiateAck, error) {
 
 func EncodePayload(messageType MessageType, requestID string, payload any) ([]byte, error) {
 	body, err := json.Marshal(payload)
+
 	if err != nil {
 		return nil, fmt.Errorf("encode protocol payload: %w", err)
 	}
+
 	return Encode(Envelope{Type: messageType, RequestID: requestID, Payload: body})
 }
 
 func DecodePayload(message Envelope, target any) error {
+
 	if err := json.Unmarshal(message.Payload, target); err != nil {
 		return fmt.Errorf("decode protocol payload: %w", err)
 	}
+
 	return nil
 }

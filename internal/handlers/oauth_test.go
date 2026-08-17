@@ -19,15 +19,19 @@ func TestValidatedReturnPath(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			got, err := validatedReturnPath(test.input)
+
 			if test.valid && err != nil {
 				t.Fatalf("validatedReturnPath(%q) returned error: %v", test.input, err)
 			}
+
 			if !test.valid && err == nil {
 				t.Fatalf("validatedReturnPath(%q) succeeded", test.input)
 			}
+
 			if got != test.want {
 				t.Fatalf("validatedReturnPath(%q) = %q, want %q", test.input, got, test.want)
 			}
+
 		})
 	}
 }

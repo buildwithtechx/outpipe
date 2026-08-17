@@ -52,32 +52,40 @@ type DeviceLoginRepository interface {
 type GormUserRepository struct{ db *gorm.DB }
 
 func NewUserRepository(db *gorm.DB) (*GormUserRepository, error) {
+
 	if db == nil {
 		return nil, fmt.Errorf("database is required")
 	}
+
 	return &GormUserRepository{db: db}, nil
 }
 
 func (r *GormUserRepository) FindByID(ctx context.Context, id string) (models.User, error) {
 	var user models.User
+
 	if err := r.db.WithContext(ctx).Where("id = ? AND deleted_at IS NULL", id).First(&user).Error; err != nil {
 		return models.User{}, mapError(err)
 	}
+
 	return user, nil
 }
 
 func (r *GormUserRepository) FindByEmail(ctx context.Context, email string) (models.User, error) {
 	var user models.User
+
 	if err := r.db.WithContext(ctx).Where("lower(email) = ? AND deleted_at IS NULL", strings.ToLower(strings.TrimSpace(email))).First(&user).Error; err != nil {
 		return models.User{}, mapError(err)
 	}
+
 	return user, nil
 }
 
 func (r *GormUserRepository) Create(ctx context.Context, user *models.User) error {
+
 	if user == nil {
 		return fmt.Errorf("user is required")
 	}
+
 	return wrap(r.db.WithContext(ctx).Create(user).Error, "create user")
 }
 
@@ -87,52 +95,66 @@ func (r *GormUserRepository) UpdateLastLogin(ctx context.Context, id string, at 
 
 func (r *GormUserRepository) Delete(ctx context.Context, id string, at time.Time) error {
 	result := r.db.WithContext(ctx).Model(&models.User{}).Where("id = ? AND deleted_at IS NULL", id).Update("deleted_at", at)
+
 	if result.Error != nil {
 		return fmt.Errorf("delete user: %w", result.Error)
 	}
+
 	if result.RowsAffected != 1 {
 		return ErrNotFound
 	}
+
 	return nil
 }
 
 type GormOAuthIdentityRepository struct{ db *gorm.DB }
 
 func NewOAuthIdentityRepository(db *gorm.DB) (*GormOAuthIdentityRepository, error) {
+
 	if db == nil {
 		return nil, fmt.Errorf("database is required")
 	}
+
 	return &GormOAuthIdentityRepository{db: db}, nil
 }
 
 func (r *GormOAuthIdentityRepository) Find(ctx context.Context, provider string, subject string) (models.OAuthIdentity, error) {
 	var identity models.OAuthIdentity
+
 	if err := r.db.WithContext(ctx).Where("provider = ? AND subject = ?", provider, subject).First(&identity).Error; err != nil {
 		return models.OAuthIdentity{}, mapError(err)
 	}
+
 	return identity, nil
 }
 
 func (r *GormOAuthIdentityRepository) Save(ctx context.Context, identity *models.OAuthIdentity) error {
+
 	if identity == nil {
 		return fmt.Errorf("oauth identity is required")
 	}
+
 	return wrap(r.db.WithContext(ctx).Save(identity).Error, "save oauth identity")
 }
 
 func mapError(err error) error {
+
 	if err == nil {
 		return nil
 	}
+
 	if err == gorm.ErrRecordNotFound {
 		return ErrNotFound
 	}
+
 	return err
 }
 
 func wrap(err error, operation string) error {
+
 	if err == nil {
 		return nil
 	}
+
 	return fmt.Errorf("%s: %w", operation, err)
 }

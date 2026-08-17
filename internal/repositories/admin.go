@@ -39,9 +39,11 @@ type AdminUsage struct {
 type GormAdminRepository struct{ db *gorm.DB }
 
 func NewAdminRepository(db *gorm.DB) (*GormAdminRepository, error) {
+
 	if db == nil {
 		return nil, fmt.Errorf("database is required")
 	}
+
 	return &GormAdminRepository{db: db}, nil
 }
 
@@ -50,18 +52,22 @@ func (r *GormAdminRepository) CountPlatformAdmins(ctx context.Context) (int64, e
 }
 
 func (r *GormAdminRepository) CreatePlatformAdmin(ctx context.Context, admin *models.PlatformAdmin) error {
+
 	if admin == nil || admin.UserID == "" {
 		return fmt.Errorf("platform admin user is required")
 	}
+
 	return wrap(r.db.WithContext(ctx).Create(admin).Error, "create platform admin")
 }
 
 func (r *GormAdminRepository) IsPlatformAdmin(ctx context.Context, userID string) (bool, error) {
 	var count int64
 	err := r.db.WithContext(ctx).Model(&models.PlatformAdmin{}).Where("user_id = ? AND active = true", userID).Count(&count).Error
+
 	if err != nil {
 		return false, fmt.Errorf("check platform admin: %w", err)
 	}
+
 	return count == 1, nil
 }
 
@@ -77,12 +83,15 @@ func (r *GormAdminRepository) CountUsers(ctx context.Context) (int64, error) {
 
 func (r *GormAdminRepository) SetUserStatus(ctx context.Context, userID string, status models.UserStatus) error {
 	result := r.db.WithContext(ctx).Model(&models.User{}).Where("id = ? AND deleted_at IS NULL", userID).Update("status", status)
+
 	if result.Error != nil {
 		return fmt.Errorf("set user status: %w", result.Error)
 	}
+
 	if result.RowsAffected != 1 {
 		return ErrNotFound
 	}
+
 	return nil
 }
 
@@ -134,8 +143,10 @@ func (r *GormAdminRepository) Usage(ctx context.Context) (AdminUsage, error) {
 
 func (r *GormAdminRepository) count(ctx context.Context, model any, query, operation string) (int64, error) {
 	var count int64
+
 	if err := r.db.WithContext(ctx).Model(model).Where(query).Count(&count).Error; err != nil {
 		return 0, fmt.Errorf("%s: %w", operation, err)
 	}
+
 	return count, nil
 }

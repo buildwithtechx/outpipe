@@ -20,9 +20,11 @@ func NewClientErrorf(format string, args ...any) error {
 }
 
 func NewAuthorizationError(err error) error {
+
 	if err == nil {
 		return nil
 	}
+
 	return AuthorizationError{Err: err}
 }
 

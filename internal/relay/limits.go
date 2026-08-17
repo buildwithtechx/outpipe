@@ -13,6 +13,7 @@ import (
 func (h *Handler) setOrganizationLimit(organizationID string, limit int) {
 	h.mu.Lock()
 	defer h.mu.Unlock()
+
 	if limit > 0 {
 		h.orgLimits[organizationID] = limit
 	}
@@ -20,9 +21,11 @@ func (h *Handler) setOrganizationLimit(organizationID string, limit int) {
 
 func (h *Handler) allowConnection(tunnelID string) bool {
 	organizationID, ok := h.router.OrganizationID(tunnelID)
+
 	if !ok {
 		return false
 	}
+
 	h.mu.Lock()
 	defer h.mu.Unlock()
 	limit := h.orgLimits[organizationID]
@@ -33,6 +36,7 @@ func (h *Handler) updateOrganizationConnections(organizationID string, delta int
 	h.mu.Lock()
 	defer h.mu.Unlock()
 	h.orgConnections[organizationID] += delta
+
 	if h.orgConnections[organizationID] <= 0 {
 		delete(h.orgConnections, organizationID)
 	}
@@ -40,32 +44,41 @@ func (h *Handler) updateOrganizationConnections(organizationID string, delta int
 
 func splitOrigins(value string) []string {
 	var origins []string
+
 	for _, item := range strings.Split(value, ",") {
+
 		if item = strings.TrimSpace(item); item != "" {
 			origins = append(origins, item)
 		}
 	}
+
 	return origins
 }
 
 func (h *Handler) originAllowed(origin string) bool {
+
 	if origin == "" || len(h.allowedOrigins) == 0 {
 		return true
 	}
+
 	for _, allowed := range h.allowedOrigins {
+
 		if origin == allowed {
 			return true
 		}
 	}
+
 	return false
 }
 
 func (h *Handler) acquireConnection() bool {
 	h.mu.Lock()
 	defer h.mu.Unlock()
+
 	if h.connections >= h.maxSessions {
 		return false
 	}
+
 	h.connections++
 	return true
 }
@@ -79,7 +92,9 @@ func (h *Handler) releaseConnection() {
 func (h *Handler) sendHeartbeats(ctx context.Context, connection *websocket.Conn, organizationID string) {
 	ticker := time.NewTicker(h.heartbeat)
 	defer ticker.Stop()
+
 	for {
+
 		select {
 		case <-ctx.Done():
 			return
@@ -88,7 +103,9 @@ func (h *Handler) sendHeartbeats(ctx context.Context, connection *websocket.Conn
 				_ = connection.Close()
 				return
 			}
+
 			for _, session := range h.sessions.Snapshot() {
+
 				if session.OrganizationID == organizationID {
 					h.sessions.Touch(session.TunnelID)
 				}

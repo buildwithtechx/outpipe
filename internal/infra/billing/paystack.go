@@ -50,17 +50,23 @@ type Transaction struct {
 }
 
 func NewPaystack(cfg PaystackConfig) (*PaystackClient, error) {
+
 	if cfg.SecretKey == "" {
 		return nil, fmt.Errorf("paystack secret key is required")
 	}
+
 	baseURL := strings.TrimRight(cfg.BaseURL, "/")
+
 	if baseURL == "" {
 		baseURL = "https://api.paystack.co"
 	}
+
 	client := cfg.HTTPClient
+
 	if client == nil {
 		client = http.DefaultClient
 	}
+
 	return &PaystackClient{baseURL: baseURL, secretKey: cfg.SecretKey, httpClient: client}, nil
 }
 
@@ -85,31 +91,41 @@ func (c *PaystackClient) VerifyWebhook(payload []byte, signature string) bool {
 	hasher := hmac.New(sha512.New, []byte(c.secretKey))
 	_, _ = hasher.Write(payload)
 	expected, err := hex.DecodeString(signature)
+
 	if err != nil {
 		return false
 	}
+
 	return hmac.Equal(hasher.Sum(nil), expected)
 }
 
 func (c *PaystackClient) request(ctx context.Context, method string, path string, payload any) (Transaction, error) {
 	var body io.Reader
+
 	if payload != nil {
 		encoded, err := json.Marshal(payload)
+
 		if err != nil {
 			return Transaction{}, fmt.Errorf("encode paystack request: %w", err)
 		}
+
 		body = bytes.NewReader(encoded)
 	}
+
 	request, err := http.NewRequestWithContext(ctx, method, c.baseURL+path, body)
+
 	if err != nil {
 		return Transaction{}, fmt.Errorf("create paystack request: %w", err)
 	}
+
 	request.Header.Set("Authorization", "Bearer "+c.secretKey)
 	request.Header.Set("Content-Type", "application/json")
 	response, err := c.httpClient.Do(request)
+
 	if err != nil {
 		return Transaction{}, fmt.Errorf("send paystack request: %w", err)
 	}
+
 	defer response.Body.Close()
 	var envelope struct {
 		Status  bool        `json:"status"`
@@ -119,8 +135,10 @@ func (c *PaystackClient) request(ctx context.Context, method string, path string
 	if err := json.NewDecoder(response.Body).Decode(&envelope); err != nil {
 		return Transaction{}, fmt.Errorf("decode paystack response: %w", err)
 	}
+
 	if response.StatusCode < http.StatusOK || response.StatusCode >= http.StatusMultipleChoices || !envelope.Status {
 		return Transaction{}, fmt.Errorf("paystack request failed: %s", envelope.Message)
 	}
+
 	return envelope.Data, nil
 }

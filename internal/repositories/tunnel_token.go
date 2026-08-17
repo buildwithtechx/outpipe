@@ -20,24 +20,30 @@ type TunnelTokenRepository interface {
 type GormTunnelTokenRepository struct{ db *gorm.DB }
 
 func NewTunnelTokenRepository(db *gorm.DB) (*GormTunnelTokenRepository, error) {
+
 	if db == nil {
 		return nil, fmt.Errorf("database is required")
 	}
+
 	return &GormTunnelTokenRepository{db: db}, nil
 }
 
 func (r *GormTunnelTokenRepository) Create(ctx context.Context, token *models.TunnelToken) error {
+
 	if token == nil {
 		return fmt.Errorf("tunnel token is required")
 	}
+
 	return wrap(r.db.WithContext(ctx).Create(token).Error, "create tunnel token")
 }
 
 func (r *GormTunnelTokenRepository) FindByPrefix(ctx context.Context, prefix string) (models.TunnelToken, error) {
 	var token models.TunnelToken
+
 	if err := r.db.WithContext(ctx).Where("prefix = ?", prefix).First(&token).Error; err != nil {
 		return models.TunnelToken{}, mapError(err)
 	}
+
 	return token, nil
 }
 

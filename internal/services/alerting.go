@@ -21,13 +21,16 @@ type AlertService struct {
 }
 
 func NewAlertService(reporter telemetry.Reporter) (*AlertService, error) {
+
 	if reporter == nil {
 		reporter = telemetry.NopReporter{}
 	}
+
 	return &AlertService{reporter: reporter}, nil
 }
 
 func (s *AlertService) AlertFailedWebhook(ctx context.Context, provider, eventID, reason string) error {
+
 	if err := s.reporter.Report(ctx, telemetry.Event{
 		Name: string(AlertFailedWebhook),
 		Properties: map[string]any{
@@ -38,10 +41,12 @@ func (s *AlertService) AlertFailedWebhook(ctx context.Context, provider, eventID
 	}); err != nil {
 		return fmt.Errorf("report webhook failure alert: %w", err)
 	}
+
 	return nil
 }
 
 func (s *AlertService) AlertRepeatedPaymentFailure(ctx context.Context, organizationID, subscriptionID string, failureCount int) error {
+
 	if err := s.reporter.Report(ctx, telemetry.Event{
 		Name: string(AlertRepeatedPaymentFailure),
 		Properties: map[string]any{
@@ -52,10 +57,12 @@ func (s *AlertService) AlertRepeatedPaymentFailure(ctx context.Context, organiza
 	}); err != nil {
 		return fmt.Errorf("report payment failure alert: %w", err)
 	}
+
 	return nil
 }
 
 func (s *AlertService) AlertStalePresenceGrowth(ctx context.Context, organizationID string, staleCount int) error {
+
 	if err := s.reporter.Report(ctx, telemetry.Event{
 		Name: string(AlertStalePresenceGrowth),
 		Properties: map[string]any{
@@ -65,10 +72,12 @@ func (s *AlertService) AlertStalePresenceGrowth(ctx context.Context, organizatio
 	}); err != nil {
 		return fmt.Errorf("report stale presence alert: %w", err)
 	}
+
 	return nil
 }
 
 func (s *AlertService) AlertQuotaInconsistency(ctx context.Context, organizationID string, used, allowed int64) error {
+
 	if err := s.reporter.Report(ctx, telemetry.Event{
 		Name: string(AlertQuotaInconsistency),
 		Properties: map[string]any{
@@ -79,5 +88,6 @@ func (s *AlertService) AlertQuotaInconsistency(ctx context.Context, organization
 	}); err != nil {
 		return fmt.Errorf("report quota inconsistency alert: %w", err)
 	}
+
 	return nil
 }

@@ -12,24 +12,30 @@ import (
 type GormAPIKeyRepository struct{ db *gorm.DB }
 
 func NewAPIKeyRepository(db *gorm.DB) (*GormAPIKeyRepository, error) {
+
 	if db == nil {
 		return nil, fmt.Errorf("database is required")
 	}
+
 	return &GormAPIKeyRepository{db: db}, nil
 }
 
 func (r *GormAPIKeyRepository) Create(ctx context.Context, key *models.APIKey) error {
+
 	if key == nil {
 		return fmt.Errorf("api key is required")
 	}
+
 	return wrap(r.db.WithContext(ctx).Create(key).Error, "create api key")
 }
 
 func (r *GormAPIKeyRepository) FindByPrefix(ctx context.Context, prefix string) (models.APIKey, error) {
 	var key models.APIKey
+
 	if err := r.db.WithContext(ctx).Where("prefix = ?", prefix).First(&key).Error; err != nil {
 		return models.APIKey{}, mapError(err)
 	}
+
 	return key, nil
 }
 

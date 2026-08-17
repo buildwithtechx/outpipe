@@ -16,15 +16,19 @@ type RouterOptions struct {
 }
 
 func RegisterRoutes(app *fiber.App, handlers Handlers, options RouterOptions) error {
+
 	if app == nil {
 		return fmt.Errorf("fiber app is required")
 	}
+
 	if handlers.Health == nil || handlers.Auth == nil {
 		return fmt.Errorf("health and auth handlers are required")
 	}
+
 	if handlers.Billing != nil {
 		handlers.Billing.SetWebhookSecret(options.BillingWebhookSecret)
 	}
+
 	app.Use(securityHeadersMiddleware(options.CookieSecure))
 	app.Get("/healthz", handlers.Health.Liveness)
 	app.Get("/readyz", handlers.Health.Readiness)
@@ -35,13 +39,16 @@ func RegisterRoutes(app *fiber.App, handlers Handlers, options RouterOptions) er
 	authLimiter := requestRateLimit(10, time.Minute)
 	app.Post("/api/v1/auth/device/start", authLimiter, handlers.Auth.StartDeviceLogin)
 	app.Get("/api/v1/auth/device/poll", authLimiter, handlers.Auth.PollDeviceLogin)
+
 	if handlers.Billing != nil {
 		app.Post("/api/v1/billing/webhooks/:provider", handlers.Billing.Webhook)
 	}
+
 	if handlers.OAuth != nil {
 		app.Get("/api/v1/auth/oauth/:provider", handlers.OAuth.Start)
 		app.Get("/api/v1/auth/oauth/:provider/callback", handlers.OAuth.Callback)
 	}
+
 	app.Get("/api/v1/auth/session", handlers.Auth.Session)
 	app.Post("/api/v1/auth/logout", handlers.Auth.Logout)
 
@@ -91,5 +98,6 @@ func RegisterRoutes(app *fiber.App, handlers Handlers, options RouterOptions) er
 		app.Post("/internal/tunnels/:tunnelID/password", internalSecretRequired(options.InternalAPISecret), requestRateLimitBy(10, time.Minute, func(c *fiber.Ctx) string { return c.IP() + ":" + c.Params("tunnelID") }), handlers.Tunnels.VerifyPassword)
 		app.Post("/internal/usage", internalSecretRequired(options.InternalAPISecret), handlers.Usage.Ingest)
 	}
+
 	return nil
 }

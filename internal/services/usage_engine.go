@@ -12,9 +12,11 @@ type EngineUsageRecorder struct {
 }
 
 func NewEngineUsageRecorder(usage *UsageService) (*EngineUsageRecorder, error) {
+
 	if usage == nil {
 		return nil, ErrUsageServiceRequired
 	}
+
 	return &EngineUsageRecorder{usage: usage}, nil
 }
 
@@ -23,8 +25,10 @@ func (r *EngineUsageRecorder) Record(ctx context.Context, measurement engine.Usa
 }
 
 func stringPointer(value string) *string {
+
 	if value == "" {
 		return nil
 	}
+
 	return &value
 }

@@ -17,6 +17,7 @@ func FuzzProtocolDecode(f *testing.F) {
 	for _, seed := range seeds {
 		f.Add(seed)
 	}
+
 	f.Fuzz(func(t *testing.T, data []byte) {
 		_, _ = protocol.Decode(data)
 	})

@@ -15,6 +15,7 @@ func suppressSQLiteUnused(err *sqlite.Error) {}
 
 func TestGormTimeSeriesUsageRepository(t *testing.T) {
 	db, err := gorm.Open(sqliteGorm.Open(":memory:"), &gorm.Config{})
+
 	if err != nil {
 		t.Fatalf("open sqlite: %v", err)
 	}
@@ -33,11 +34,13 @@ func TestGormTimeSeriesUsageRepository(t *testing.T) {
 			occurred_at DATETIME NOT NULL
 		);
 	`).Error
+
 	if err != nil {
 		t.Fatalf("create table: %v", err)
 	}
 
 	repo, err := NewGormTimeSeriesUsageRepository(db)
+
 	if err != nil {
 		t.Fatalf("create repo: %v", err)
 	}
@@ -56,6 +59,7 @@ func TestGormTimeSeriesUsageRepository(t *testing.T) {
 	}
 
 	snapshot, err := repo.AggregateTimeSeries(context.Background(), "org-ts-1", now.Add(-1*time.Hour), now.Add(1*time.Hour))
+
 	if err != nil {
 		t.Fatalf("AggregateTimeSeries failed: %v", err)
 	}
@@ -63,6 +67,7 @@ func TestGormTimeSeriesUsageRepository(t *testing.T) {
 	if snapshot.BandwidthBytes != 2048 {
 		t.Fatalf("expected 2048 bandwidth bytes, got %d", snapshot.BandwidthBytes)
 	}
+
 	if snapshot.RequestCount != 1 {
 		t.Fatalf("expected 1 request count, got %d", snapshot.RequestCount)
 	}

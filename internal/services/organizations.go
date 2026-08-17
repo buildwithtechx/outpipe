@@ -22,90 +22,120 @@ type OrganizationService struct {
 func (s *OrganizationService) SetBilling(billing *BillingService) { s.billing = billing }
 
 func NewOrganizationService(organizations repositories.OrganizationRepository) (*OrganizationService, error) {
+
 	if organizations == nil {
 		return nil, fmt.Errorf("organization repository is required")
 	}
+
 	return &OrganizationService{organizations: organizations}, nil
 }
 
 func (s *OrganizationService) Create(ctx context.Context, ownerID, name, slug string) (models.Organization, error) {
 	name = strings.TrimSpace(name)
 	slug = strings.ToLower(strings.TrimSpace(slug))
+
 	if ownerID == "" || name == "" || !slugPattern.MatchString(slug) {
 		return models.Organization{}, fmt.Errorf("owner, name, and valid slug are required")
 	}
+
 	organization := models.Organization{Name: name, Slug: slug, OwnerID: ownerID, Settings: `{}`}
+
 	if err := s.organizations.Create(ctx, &organization); err != nil {
 		return models.Organization{}, fmt.Errorf("create organization: %w", err)
 	}
+
 	member := models.OrganizationMember{OrganizationID: organization.ID, UserID: ownerID, Role: models.MemberRoleOwner}
+
 	if err := s.organizations.AddMember(ctx, &member); err != nil {
 		return models.Organization{}, fmt.Errorf("add organization owner: %w", err)
 	}
+
 	return organization, nil
 }
 
 func (s *OrganizationService) ListForUser(ctx context.Context, userID string) ([]models.Organization, error) {
 	userID = strings.TrimSpace(userID)
+
 	if userID == "" {
 		return nil, fmt.Errorf("user id is required")
 	}
+
 	organizations, err := s.organizations.ListForUser(ctx, userID)
+
 	if err != nil {
 		return nil, fmt.Errorf("list user organizations: %w", err)
 	}
+
 	return organizations, nil
 }
 
 func (s *OrganizationService) IsSlugAvailable(ctx context.Context, slug string) (bool, error) {
 	slug = strings.ToLower(strings.TrimSpace(slug))
+
 	if !slugPattern.MatchString(slug) {
 		return false, fmt.Errorf("slug must use lowercase letters, numbers, and single hyphens")
 	}
+
 	available, err := s.organizations.IsSlugAvailable(ctx, slug)
+
 	if err != nil {
 		return false, fmt.Errorf("check organization slug: %w", err)
 	}
+
 	return available, nil
 }
 
 func (s *OrganizationService) AddMember(ctx context.Context, organizationID, userID string, role models.MemberRole) error {
+
 	if organizationID == "" || userID == "" || !validMemberRole(role) {
 		return fmt.Errorf("organization, user, and valid role are required")
 	}
+
 	member := &models.OrganizationMember{OrganizationID: organizationID, UserID: userID, Role: role}
 	limit, err := s.memberLimit(ctx, organizationID)
+
 	if err != nil {
 		return err
 	}
+
 	if err := s.organizations.AddMemberWithLimit(ctx, member, limit); err != nil {
 		return fmt.Errorf("add organization member: %w", err)
 	}
+
 	return nil
 }
 
 func (s *OrganizationService) memberLimit(ctx context.Context, organizationID string) (int64, error) {
+
 	if s.billing == nil {
 		return 0, nil
 	}
+
 	plan, _, err := s.billing.Entitlements(ctx, organizationID)
+
 	if err != nil {
 		return 0, fmt.Errorf("check member entitlement: %w", err)
 	}
+
 	return int64(plan.MaxMembers), nil
 }
 
 func (s *OrganizationService) Authorize(ctx context.Context, organizationID, userID string, required models.MemberRole) error {
 	member, err := s.organizations.FindMember(ctx, organizationID, userID)
+
 	if err != nil {
+
 		if errors.Is(err, repositories.ErrNotFound) {
 			return utils.NewAuthorizationError(fmt.Errorf("organization membership required"))
 		}
+
 		return fmt.Errorf("find organization membership: %w", err)
 	}
+
 	if memberRoleRank(member.Role) < memberRoleRank(required) {
 		return utils.NewAuthorizationError(fmt.Errorf("insufficient organization role"))
 	}
+
 	return nil
 }
 
@@ -114,6 +144,7 @@ func validMemberRole(role models.MemberRole) bool {
 }
 
 func memberRoleRank(role models.MemberRole) int {
+
 	switch role {
 	case models.MemberRoleOwner:
 		return 4

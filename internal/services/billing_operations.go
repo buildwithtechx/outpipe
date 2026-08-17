@@ -17,60 +17,83 @@ type BillingGateway interface {
 func (s *BillingService) SetGateway(gateway BillingGateway) { s.gateway = gateway }
 
 func (s *BillingService) Checkout(ctx context.Context, organizationID, planKey string) (string, error) {
+
 	if s.gateway == nil {
 		return "", fmt.Errorf("billing gateway is not configured")
 	}
+
 	plan, err := s.billing.FindPlan(ctx, planKey)
+
 	if err != nil {
 		return "", fmt.Errorf("find checkout plan: %w", err)
 	}
+
 	url, err := s.gateway.Checkout(ctx, plan, organizationID)
+
 	if err != nil {
 		return "", fmt.Errorf("create checkout: %w", err)
 	}
+
 	return url, nil
 }
 
 func (s *BillingService) Portal(ctx context.Context, organizationID string) (string, error) {
+
 	if s.gateway == nil {
 		return "", fmt.Errorf("billing gateway is not configured")
 	}
+
 	subscription, err := s.billing.FindSubscription(ctx, organizationID)
+
 	if err != nil {
 		return "", fmt.Errorf("find subscription for portal: %w", err)
 	}
+
 	customerID := subscription.ProviderCustomerID
+
 	if s.billingSecrets != nil && customerID != "" {
 		customerID, err = s.billingSecrets.Open(customerID)
+
 		if err != nil {
 			return "", fmt.Errorf("decrypt billing customer: %w", err)
 		}
 	}
+
 	url, err := s.gateway.Portal(ctx, subscription.Provider, customerID)
+
 	if err != nil {
 		return "", fmt.Errorf("create billing portal: %w", err)
 	}
+
 	return url, nil
 }
 
 func (s *BillingService) Cancel(ctx context.Context, organizationID string) error {
+
 	if s.gateway == nil {
 		return fmt.Errorf("billing gateway is not configured")
 	}
+
 	subscription, err := s.billing.FindSubscription(ctx, organizationID)
+
 	if err != nil {
 		return fmt.Errorf("find subscription to cancel: %w", err)
 	}
+
 	return s.gateway.Cancel(ctx, subscription.Provider, subscription.ProviderSubID)
 }
 
 func (s *BillingService) Resume(ctx context.Context, organizationID string) error {
+
 	if s.gateway == nil {
 		return fmt.Errorf("billing gateway is not configured")
 	}
+
 	subscription, err := s.billing.FindSubscription(ctx, organizationID)
+
 	if err != nil {
 		return fmt.Errorf("find subscription to resume: %w", err)
 	}
+
 	return s.gateway.Resume(ctx, subscription.Provider, subscription.ProviderSubID)
 }
