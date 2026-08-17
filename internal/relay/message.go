@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	"codedock.run/codedock-tunnel/pkg/protocol"
 	"github.com/gofiber/contrib/websocket"
+	"outpipe.dev/outpipe/pkg/protocol"
 )
 
 func (h *Handler) handleMessage(ctx context.Context, connection *websocket.Conn, identity AgentIdentity, message protocol.Envelope, owned map[string]string, states ...*connectionState) error {

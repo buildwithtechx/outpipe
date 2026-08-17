@@ -27,7 +27,7 @@ func (m *AccountMailer) SendAccountUpdate(ctx context.Context, email, event stri
 	if err != nil {
 		return err
 	}
-	return m.client.Send(ctx, Message{To: email, Subject: "Codedock Tunnel account update", HTML: html})
+	return m.client.Send(ctx, Message{To: email, Subject: "Outpipe account update", HTML: html})
 }
 
 func (m *AccountMailer) SendWelcome(ctx context.Context, email, name string) error {
@@ -35,7 +35,7 @@ func (m *AccountMailer) SendWelcome(ctx context.Context, email, name string) err
 	if err != nil {
 		return err
 	}
-	return m.client.Send(ctx, Message{To: email, Subject: "Welcome to Codedock Tunnel", HTML: html})
+	return m.client.Send(ctx, Message{To: email, Subject: "Welcome to Outpipe", HTML: html})
 }
 
 func (m *AccountMailer) SendOrganizationInvite(ctx context.Context, email, inviterName, organizationName, role, invitationLink string) error {
@@ -43,6 +43,6 @@ func (m *AccountMailer) SendOrganizationInvite(ctx context.Context, email, invit
 	if err != nil {
 		return err
 	}
-	subject := "You’re invited to join " + organizationName + " on Codedock Tunnel"
+	subject := "You’re invited to join " + organizationName + " on Outpipe"
 	return m.client.Send(ctx, Message{To: email, Subject: subject, HTML: html})
 }

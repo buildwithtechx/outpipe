@@ -1,10 +1,10 @@
-# Codedock Tunnel
+# Outpipe
 
-Codedock Tunnel is an independent tunneling platform. It exposes local and private services through secure public endpoints and works with hosted or self-hosted tunnel servers.
+Outpipe is an independent tunneling platform. It exposes local and private services through secure public endpoints and works with hosted or self-hosted tunnel servers.
 
 ## Product boundary
 
-The tunnel core must not depend on Codedock. Codedock support is an optional adapter under `integrations/codedock/` that uses the public tunnel API.
+The tunnel core must not depend on Outpipe. Outpipe support is an optional adapter under `integrations/outpipe/` that uses the public tunnel API.
 
 ## Repository
 

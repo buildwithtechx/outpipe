@@ -3,7 +3,7 @@ package relay
 import (
 	"fmt"
 
-	"codedock.run/codedock-tunnel/pkg/protocol"
+	"outpipe.dev/outpipe/pkg/protocol"
 )
 
 func isDataMessage(messageType protocol.MessageType) bool {

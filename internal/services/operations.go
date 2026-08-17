@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"codedock.run/codedock-tunnel/internal/repositories"
+	"outpipe.dev/outpipe/internal/repositories"
 )
 
 type OperationalStore interface {

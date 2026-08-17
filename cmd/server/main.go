@@ -7,13 +7,13 @@ import (
 	"os/signal"
 	"syscall"
 
-	"codedock.run/codedock-tunnel/internal/auth"
-	"codedock.run/codedock-tunnel/internal/config"
-	tunnelhttp "codedock.run/codedock-tunnel/internal/http"
-	"codedock.run/codedock-tunnel/internal/infra/postgres"
-	"codedock.run/codedock-tunnel/internal/infra/redis"
-	"codedock.run/codedock-tunnel/internal/infra/storage"
-	"codedock.run/codedock-tunnel/internal/services"
+	"outpipe.dev/outpipe/internal/auth"
+	"outpipe.dev/outpipe/internal/config"
+	tunnelhttp "outpipe.dev/outpipe/internal/http"
+	"outpipe.dev/outpipe/internal/infra/postgres"
+	"outpipe.dev/outpipe/internal/infra/redis"
+	"outpipe.dev/outpipe/internal/infra/storage"
+	"outpipe.dev/outpipe/internal/services"
 )
 
 func main() {

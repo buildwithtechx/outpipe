@@ -1,6 +1,6 @@
 ---
 title: Installation
-description: Install the Codedock Tunnel CLI or desktop application.
+description: Install the Outpipe CLI or desktop application.
 icon: Download
 ---
 
@@ -14,22 +14,22 @@ the same tunnel protocol.
 ### Linux and macOS
 
 ```sh
-curl -fsSL https://cli.codedock-tunnel.dev | bash
+curl -fsSL https://cli.outpipe.dev | bash
 ```
 
-The installer places `codedock-tunnel` in `$HOME/.local/bin` by default. Make
+The installer places `outpipe` in `$HOME/.local/bin` by default. Make
 sure that directory is on your `PATH`.
 
 ### Windows
 
 Download the Windows release archive from the CLI release page, extract
-`codedock-tunnel.exe`, and place it in a directory on `PATH`.
+`outpipe.exe`, and place it in a directory on `PATH`.
 
 ### Verify the CLI
 
 ```sh
-codedock-tunnel version
-codedock-tunnel health --api-url https://api.codedock-tunnel.dev
+outpipe version
+outpipe health --api-url https://api.outpipe.dev
 ```
 
 ## Desktop installation
@@ -37,7 +37,7 @@ codedock-tunnel health --api-url https://api.codedock-tunnel.dev
 Download the installer for your operating system from:
 
 ```text
-https://desktop.codedock-tunnel.dev
+https://desktop.outpipe.dev
 ```
 
 Use the `.deb` or `.rpm` package on Linux, the `.dmg` application on macOS,
@@ -45,7 +45,7 @@ or the Windows installer on Windows. Launch the application after installation
 and sign in through the browser-based account flow.
 
 The desktop app supervises the Go tunnel client. It does not replace the CLI,
-and installing the desktop app does not add a `codedock-tunnel` command to
+and installing the desktop app does not add a `outpipe` command to
 your terminal.
 
 ## Private or local installations

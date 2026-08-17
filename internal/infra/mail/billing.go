@@ -32,7 +32,7 @@ func (m *BillingMailer) SendBillingUpdate(ctx context.Context, organizationID, s
 	if err != nil {
 		return err
 	}
-	return m.client.Send(ctx, Message{To: to, Subject: "Codedock Tunnel subscription update", HTML: html})
+	return m.client.Send(ctx, Message{To: to, Subject: "Outpipe subscription update", HTML: html})
 }
 
 func (m *BillingMailer) SendPaymentFailed(ctx context.Context, email, name, planName, amount, billingURL string, attemptsRemaining int, attemptsKnown bool) error {
@@ -40,7 +40,7 @@ func (m *BillingMailer) SendPaymentFailed(ctx context.Context, email, name, plan
 	if err != nil {
 		return err
 	}
-	return m.client.Send(ctx, Message{To: email, Subject: "Action required: Codedock Tunnel payment failed", HTML: html})
+	return m.client.Send(ctx, Message{To: email, Subject: "Action required: Outpipe payment failed", HTML: html})
 }
 
 func (m *BillingMailer) SendSubscriptionReset(ctx context.Context, email, name, organizationName, previousPlan, dashboardURL string) error {

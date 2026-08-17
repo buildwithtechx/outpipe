@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"time"
 
-	"codedock.run/codedock-tunnel/internal/config"
+	"outpipe.dev/outpipe/internal/config"
 )
 
 var version = "dev"

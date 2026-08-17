@@ -3,7 +3,7 @@ import {
   type OpenTunnelAck,
   RelayConnection,
   type RelayConnectionOptions,
-} from '@codedock/sdk';
+} from '@outpipe/sdk';
 import {
   createContext,
   type PropsWithChildren,

@@ -1,14 +1,14 @@
 ---
 title: Tunnel Protocol
-description: The versioned wire contract shared by Codedock Tunnel clients and relays.
+description: The versioned wire contract shared by Outpipe clients and relays.
 icon: Brackets
 ---
 
-Codedock Tunnel uses a versioned JSON message protocol over a persistent
+Outpipe uses a versioned JSON message protocol over a persistent
 WebSocket connection. The Go CLI, relay, desktop bridge, and TypeScript SDK
 all use the same envelope and message types.
 
-The source of truth is [`protocol/schema/messages.json`](https://github.com/buildwithtechx/codedock-tunnel/blob/main/protocol/schema/messages.json).
+The source of truth is [`protocol/schema/messages.json`](https://github.com/buildwithtechx/outpipe/blob/main/protocol/schema/messages.json).
 Generated Go and TypeScript bindings are kept in the repository so consumers
 do not need to recreate message shapes by hand.
 
@@ -64,7 +64,7 @@ compatible version within that range.
   "payload": {
     "min_version": 1,
     "max_version": 1,
-    "client_name": "codedock-tunnel",
+    "client_name": "outpipe",
     "client_version": "0.1.0"
   }
 }
@@ -124,7 +124,7 @@ hostname, password policy, and connection limits before returning:
   "request_id": "req_open_01",
   "payload": {
     "tunnel_id": "tun_01",
-    "public_url": "https://preview.tunnel.codedock-tunnel.dev"
+    "public_url": "https://preview.tunnel.outpipe.dev"
   }
 }
 ```
@@ -210,11 +210,11 @@ fixtures before updating the protocol version.
 Use the generated packages in application code:
 
 ```go
-import "codedock.run/codedock-tunnel/pkg/protocol"
+import "outpipe.dev/outpipe/pkg/protocol"
 
 message, err := protocol.Decode(frame)
 ```
 
-The TypeScript bindings are used internally by `@codedock/sdk` and its
+The TypeScript bindings are used internally by `@outpipe/sdk` and its
 framework adapters. Application code should use the SDK rather than depend on
 the protocol package directly.

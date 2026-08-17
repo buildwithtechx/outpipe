@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	"codedock.run/codedock-tunnel/internal/handlers"
-	"codedock.run/codedock-tunnel/internal/services"
+	"outpipe.dev/outpipe/internal/handlers"
+	"outpipe.dev/outpipe/internal/services"
 )
 
 type Dependencies struct {

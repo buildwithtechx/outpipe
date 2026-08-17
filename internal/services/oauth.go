@@ -8,8 +8,8 @@ import (
 	"log/slog"
 	"strings"
 
-	"codedock.run/codedock-tunnel/internal/auth"
-	"codedock.run/codedock-tunnel/internal/models"
+	"outpipe.dev/outpipe/internal/auth"
+	"outpipe.dev/outpipe/internal/models"
 )
 
 type OAuthService struct {

@@ -8,9 +8,9 @@ import (
 	"sync"
 	"time"
 
-	"codedock.run/codedock-tunnel/internal/models"
-	"codedock.run/codedock-tunnel/internal/services"
 	"github.com/gofiber/fiber/v2"
+	"outpipe.dev/outpipe/internal/models"
+	"outpipe.dev/outpipe/internal/services"
 )
 
 func auditRequest(audit *services.AuditService) fiber.Handler {

@@ -9,8 +9,8 @@ import (
 	"os"
 	"time"
 
-	"codedock.run/codedock-tunnel/internal/config"
-	"codedock.run/codedock-tunnel/pkg/client"
+	"outpipe.dev/outpipe/internal/config"
+	"outpipe.dev/outpipe/pkg/client"
 )
 
 func runLogin(cfg config.CLIConfig) {

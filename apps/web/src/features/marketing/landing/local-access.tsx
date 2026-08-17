@@ -61,11 +61,11 @@ export function LocalAccessSection() {
             </div>
             <div className="space-y-4 p-6 font-mono text-sm">
               <p className="text-white/60">
-                <span className="text-emerald-300">$</span> codedock-tunnel 3000
+                <span className="text-emerald-300">$</span> outpipe 3000
                 --password
               </p>
               <p className="text-indigo-300">
-                Tunnel: https://preview.codedock-tunnel.dev
+                Tunnel: https://preview.outpipe.dev
               </p>
               <p className="text-cyan-300">Protection: password required</p>
               <p className="text-white/35">

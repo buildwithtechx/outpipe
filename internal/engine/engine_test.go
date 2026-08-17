@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"codedock.run/codedock-tunnel/pkg/protocol"
+	"outpipe.dev/outpipe/pkg/protocol"
 )
 
 func TestPortAllocatorHonorsRequestedPorts(t *testing.T) {

@@ -1,4 +1,4 @@
-module codedock.run/codedock-tunnel
+module outpipe.dev/outpipe
 
 go 1.25.0
 

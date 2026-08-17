@@ -1,8 +1,8 @@
 [package]
-name = "codedock-tunnel-desktop"
+name = "outpipe-desktop"
 version = "0.1.0"
-description = "Codedock Tunnel Desktop Application"
-authors = ["Codedock Tunnel Team"]
+description = "Outpipe Desktop Application"
+authors = ["Outpipe Team"]
 edition = "2021"
 
 [build-dependencies]

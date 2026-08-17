@@ -3,7 +3,7 @@ import { MarketingContainer } from '#/components/layout';
 const terms = [
   [
     'Using the service',
-    'Codedock Tunnel provides network tunneling and related developer tools. You are responsible for the services you expose, the traffic you send, and the credentials you use to connect.',
+    'Outpipe provides network tunneling and related developer tools. You are responsible for the services you expose, the traffic you send, and the credentials you use to connect.',
   ],
   [
     'Acceptable use',
@@ -77,7 +77,7 @@ export function TermsPage() {
   return (
     <LegalPage
       title="Terms of service"
-      intro="The rules for using Codedock Tunnel responsibly and safely."
+      intro="The rules for using Outpipe responsibly and safely."
       sections={terms}
     />
   );

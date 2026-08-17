@@ -20,7 +20,7 @@ export function BrandLockup({
       onClick={onClick}
     >
       <img src="/favicon.svg" alt="" className={iconClassName} />
-      <span className={nameClassName}>Codedock Tunnel</span>
+      <span className={nameClassName}>Outpipe</span>
     </Link>
   );
 }

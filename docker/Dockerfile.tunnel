@@ -15,12 +15,12 @@ RUN CGO_ENABLED=0 go build -ldflags="-s -w -X main.version=${VERSION}" -o /out/t
 # Run as a non-root user.
 FROM alpine:3.22
 
-RUN addgroup -S codedock && adduser -S -G codedock codedock
+RUN addgroup -S outpipe && adduser -S -G outpipe outpipe
 
 WORKDIR /app
 COPY --from=build /out/tunnel /app/tunnel
 
-USER codedock
+USER outpipe
 
 EXPOSE 8080
 STOPSIGNAL SIGTERM

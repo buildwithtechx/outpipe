@@ -57,8 +57,8 @@ func (m *MetricsExporter) ExportPrometheus() string {
 	defer m.mu.RUnlock()
 
 	var sb strings.Builder
-	sb.WriteString("# HELP codedock_tunnel_metrics System operational metrics\n")
-	sb.WriteString("# TYPE codedock_tunnel_metrics counter\n")
+	sb.WriteString("# HELP outpipe_metrics System operational metrics\n")
+	sb.WriteString("# TYPE outpipe_metrics counter\n")
 
 	for name, ptr := range m.counters {
 		sb.WriteString(fmt.Sprintf("%s %d\n", name, atomic.LoadInt64(ptr)))

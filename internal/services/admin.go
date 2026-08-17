@@ -4,9 +4,9 @@ import (
 	"context"
 	"fmt"
 
-	"codedock.run/codedock-tunnel/internal/models"
-	"codedock.run/codedock-tunnel/internal/repositories"
-	"codedock.run/codedock-tunnel/pkg/utils"
+	"outpipe.dev/outpipe/internal/models"
+	"outpipe.dev/outpipe/internal/repositories"
+	"outpipe.dev/outpipe/pkg/utils"
 )
 
 type AdminService struct{ admin repositories.AdminRepository }

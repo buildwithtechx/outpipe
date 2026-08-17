@@ -17,7 +17,7 @@ fn main() {
             tunnel_version
         ])
         .build(tauri::generate_context!())
-        .expect("error while building Codedock Tunnel desktop application")
+        .expect("error while building Outpipe desktop application")
         .run(|app, event| {
             if let tauri::RunEvent::Exit = event {
                 if let Ok(mut child) = app.state::<TunnelState>().child.lock() {

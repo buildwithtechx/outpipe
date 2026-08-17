@@ -9,7 +9,7 @@ import (
 
 func TestBackupManagerBuildsSafeCommands(t *testing.T) {
 	root := t.TempDir()
-	backup := filepath.Join(root, "daily", "codedock.dump")
+	backup := filepath.Join(root, "daily", "outpipe.dump")
 	var name string
 	var args []string
 	manager, err := NewBackupManager("postgres://database")

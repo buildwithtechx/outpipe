@@ -10,14 +10,14 @@ const connectionSteps = [
     color: 'text-amber-300',
   },
   {
-    title: 'Codedock relay',
+    title: 'Outpipe relay',
     detail: 'encrypted session',
     icon: Server,
     color: 'text-indigo-300',
   },
   {
     title: 'Public endpoint',
-    detail: 'preview.codedock-tunnel.dev',
+    detail: 'preview.outpipe.dev',
     icon: Globe2,
     color: 'text-cyan-300',
   },
@@ -39,7 +39,7 @@ export function NetworkDiagram() {
         </div>
         <div className="mx-auto mt-10 max-w-5xl rounded-3xl border border-white/10 bg-white/[0.025] p-4 sm:p-6">
           <div className="flex items-center justify-between border-b border-white/10 pb-4 font-mono text-xs text-white/35">
-            <span>codedock-tunnel 3000</span>
+            <span>outpipe 3000</span>
             <span className="flex items-center gap-2 text-emerald-300">
               <span className="size-2 rounded-full bg-emerald-300" /> session
               active

@@ -6,8 +6,8 @@ import (
 	"strings"
 	"time"
 
-	"codedock.run/codedock-tunnel/pkg/protocol"
 	"github.com/gofiber/contrib/websocket"
+	"outpipe.dev/outpipe/pkg/protocol"
 )
 
 func (h *Handler) setOrganizationLimit(organizationID string, limit int) {

@@ -7,8 +7,8 @@ import (
 	"sync"
 	"time"
 
-	"codedock.run/codedock-tunnel/pkg/protocol"
 	"github.com/google/uuid"
+	"outpipe.dev/outpipe/pkg/protocol"
 )
 
 type RequestRouter struct {

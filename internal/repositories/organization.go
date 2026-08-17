@@ -4,9 +4,9 @@ import (
 	"context"
 	"fmt"
 
-	"codedock.run/codedock-tunnel/internal/models"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
+	"outpipe.dev/outpipe/internal/models"
 )
 
 type OrganizationRepository interface {

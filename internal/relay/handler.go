@@ -8,10 +8,10 @@ import (
 	"sync"
 	"time"
 
-	"codedock.run/codedock-tunnel/internal/engine"
-	"codedock.run/codedock-tunnel/pkg/protocol"
 	"github.com/gofiber/contrib/websocket"
 	"github.com/gofiber/fiber/v2"
+	"outpipe.dev/outpipe/internal/engine"
+	"outpipe.dev/outpipe/pkg/protocol"
 )
 
 type AgentIdentity struct {
@@ -103,7 +103,7 @@ type HandlerOptions struct {
 }
 
 func NewHandler(authenticator AgentAuthenticator, sessions *engine.SessionRegistry, router *engine.RequestRouter, tcp *TCPManager, udp *UDPManager, maxSessions int) (*Handler, error) {
-	return NewHandlerWithOptions(authenticator, sessions, router, tcp, udp, HandlerOptions{MaxConnections: maxSessions, MaxTunnels: maxSessions, Heartbeat: 20 * time.Second, ReadTimeout: 90 * time.Second, MaxFrameBytes: 16 << 20, PublicDomain: "tunnel.codedock-tunnel.dev"})
+	return NewHandlerWithOptions(authenticator, sessions, router, tcp, udp, HandlerOptions{MaxConnections: maxSessions, MaxTunnels: maxSessions, Heartbeat: 20 * time.Second, ReadTimeout: 90 * time.Second, MaxFrameBytes: 16 << 20, PublicDomain: "tunnel.outpipe.dev"})
 }
 
 func NewHandlerWithOptions(authenticator AgentAuthenticator, sessions *engine.SessionRegistry, router *engine.RequestRouter, tcp *TCPManager, udp *UDPManager, options HandlerOptions) (*Handler, error) {

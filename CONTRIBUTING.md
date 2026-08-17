@@ -29,11 +29,11 @@ npm run test
 
 ## Project boundaries
 
-- Keep the tunnel core independent from Codedock.
+- Keep the tunnel core independent from Outpipe.
 - Put Go server code in the appropriate `internal/` layer.
 - Keep reusable public Go APIs under `pkg/`.
 - Keep reusable TypeScript packages under `packages/`.
-- Treat Codedock support as an optional integration.
+- Treat Outpipe support as an optional integration.
 - Do not edit generated route or protocol files by hand.
 
 ## Pull requests

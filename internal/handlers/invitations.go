@@ -4,11 +4,11 @@ import (
 	"fmt"
 	"strings"
 
-	"codedock.run/codedock-tunnel/internal/models"
-	"codedock.run/codedock-tunnel/internal/services"
-	"codedock.run/codedock-tunnel/internal/validation"
-	"codedock.run/codedock-tunnel/pkg/utils"
 	"github.com/gofiber/fiber/v2"
+	"outpipe.dev/outpipe/internal/models"
+	"outpipe.dev/outpipe/internal/services"
+	"outpipe.dev/outpipe/internal/validation"
+	"outpipe.dev/outpipe/pkg/utils"
 )
 
 type InvitationHandler struct{ invitations *services.InvitationService }

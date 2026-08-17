@@ -1,12 +1,12 @@
-import { RelayConnection } from '@codedock/sdk';
+import { RelayConnection } from '@outpipe/sdk';
 import type { Plugin, ViteDevServer } from 'vite';
-import type { CodedockTunnelPluginOptions } from '../interfaces/options';
+import type { OutpipePluginOptions } from '../interfaces/options';
 
-export function codedockTunnel(options: CodedockTunnelPluginOptions): Plugin {
+export function outpipeTunnel(options: OutpipePluginOptions): Plugin {
   let connection: RelayConnection | undefined;
 
   return {
-    name: 'codedock-tunnel',
+    name: 'outpipe',
     apply: 'serve',
     configureServer(server: ViteDevServer) {
       if (options.enabled === false) {
@@ -18,28 +18,22 @@ export function codedockTunnel(options: CodedockTunnelPluginOptions): Plugin {
         });
       if (server.httpServer?.listening) {
         void start().catch((error: unknown) => {
-          server.config.logger.error(
-            `Codedock Tunnel failed: ${String(error)}`,
-          );
+          server.config.logger.error(`Outpipe failed: ${String(error)}`);
         });
       } else if (server.httpServer) {
         server.httpServer.once('listening', () => {
           void start().catch((error: unknown) => {
-            server.config.logger.error(
-              `Codedock Tunnel failed: ${String(error)}`,
-            );
+            server.config.logger.error(`Outpipe failed: ${String(error)}`);
           });
         });
       } else {
         if (options.localPort) {
           void start().catch((error: unknown) => {
-            server.config.logger.error(
-              `Codedock Tunnel failed: ${String(error)}`,
-            );
+            server.config.logger.error(`Outpipe failed: ${String(error)}`);
           });
         } else {
           server.config.logger.warn(
-            'Codedock Tunnel requires localPort when Vite has no HTTP server',
+            'Outpipe requires localPort when Vite has no HTTP server',
           );
         }
       }
@@ -53,7 +47,7 @@ export function codedockTunnel(options: CodedockTunnelPluginOptions): Plugin {
 
 async function startTunnel(
   server: ViteDevServer,
-  options: CodedockTunnelPluginOptions,
+  options: OutpipePluginOptions,
   assign: (connection: RelayConnection) => void,
 ): Promise<void> {
   const localPort = resolveLocalPort(server, options);
@@ -66,7 +60,7 @@ async function startTunnel(
       subdomain: options.subdomain,
       password: options.password,
     });
-    server.config.logger.info(`Codedock Tunnel: ${tunnel.public_url}`);
+    server.config.logger.info(`Outpipe: ${tunnel.public_url}`);
     server.httpServer?.once('close', () => connection.close());
   } catch (error) {
     connection.close();
@@ -76,7 +70,7 @@ async function startTunnel(
 
 function resolveLocalPort(
   server: ViteDevServer,
-  options: CodedockTunnelPluginOptions,
+  options: OutpipePluginOptions,
 ): number {
   if (options.localPort) {
     return options.localPort;

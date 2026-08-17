@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	generated "codedock.run/codedock-tunnel/protocol/generated/go"
+	generated "outpipe.dev/outpipe/protocol/generated/go"
 )
 
 const Version = generated.Version
@@ -110,7 +110,7 @@ func NegotiateVersion(req VersionNegotiate) (VersionNegotiateAck, error) {
 	return VersionNegotiateAck{
 		NegotiatedVersion: negotiated,
 		SupportedVersions: []int{1},
-		ServerName:        "codedock-tunnel",
+		ServerName:        "outpipe",
 		ServerVersion:     "0.1.0",
 	}, nil
 }

@@ -7,7 +7,7 @@ import (
 	"sync"
 	"time"
 
-	"codedock.run/codedock-tunnel/pkg/protocol"
+	"outpipe.dev/outpipe/pkg/protocol"
 )
 
 type Session struct {

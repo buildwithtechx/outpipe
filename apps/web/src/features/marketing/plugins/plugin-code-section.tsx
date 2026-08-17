@@ -79,7 +79,7 @@ function CodePanel({ plugin }: { plugin: PluginDefinition }) {
         <span>
           <b className="font-normal text-emerald-300">➜</b> Tunnel:{' '}
           <b className="font-normal text-cyan-300">
-            https://preview.codedock-tunnel.dev
+            https://preview.outpipe.dev
           </b>
         </span>
       </div>

@@ -1,1 +1,1 @@
-export type { CodedockTunnelPluginOptions } from './options';
+export type { OutpipePluginOptions } from './options';

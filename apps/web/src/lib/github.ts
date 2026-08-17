@@ -1,4 +1,4 @@
-export const githubRepository = 'buildwithtechx/codedock-tunnel';
+export const githubRepository = 'buildwithtechx/outpipe';
 export const githubRepositoryUrl = `https://github.com/${githubRepository}`;
 
 interface GitHubRepositoryResponse {

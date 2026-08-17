@@ -5,12 +5,12 @@ import (
 	"fmt"
 	"strings"
 
-	"codedock.run/codedock-tunnel/internal/engine"
-	"codedock.run/codedock-tunnel/internal/models"
-	"codedock.run/codedock-tunnel/internal/security"
-	"codedock.run/codedock-tunnel/pkg/protocol"
 	"github.com/gofiber/contrib/websocket"
 	"github.com/google/uuid"
+	"outpipe.dev/outpipe/internal/engine"
+	"outpipe.dev/outpipe/internal/models"
+	"outpipe.dev/outpipe/internal/security"
+	"outpipe.dev/outpipe/pkg/protocol"
 )
 
 func (h *Handler) openTunnel(ctx context.Context, connection *websocket.Conn, identity AgentIdentity, message protocol.Envelope, owned map[string]string, state *connectionState) error {

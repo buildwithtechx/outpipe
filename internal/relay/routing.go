@@ -3,7 +3,7 @@ package relay
 import (
 	"strings"
 
-	"codedock.run/codedock-tunnel/pkg/protocol"
+	"outpipe.dev/outpipe/pkg/protocol"
 )
 
 func bearerToken(value string) string {

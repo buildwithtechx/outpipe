@@ -16,20 +16,19 @@ export class ApiError extends Error {
 
 export function getApiBaseURL(): string {
   if (typeof window !== 'undefined') {
-    const configured = window.localStorage.getItem('codedock_tunnel_api_url');
+    const configured = window.localStorage.getItem('outpipe_api_url');
     if (configured) return normalizeApiBaseURL(configured);
   }
   return normalizeApiBaseURL(
-    env.VITE_CODEDOCK_API_BASE_URL ?? 'http://localhost:8080',
+    env.VITE_OUTPIPE_API_BASE_URL ?? 'http://localhost:8080',
   );
 }
 
 export function setApiBaseURL(url: string): void {
   const normalized = normalizeApiBaseURL(url);
   if (typeof window !== 'undefined') {
-    if (normalized)
-      window.localStorage.setItem('codedock_tunnel_api_url', normalized);
-    else window.localStorage.removeItem('codedock_tunnel_api_url');
+    if (normalized) window.localStorage.setItem('outpipe_api_url', normalized);
+    else window.localStorage.removeItem('outpipe_api_url');
   }
   axiosClient.defaults.baseURL = normalized || getApiBaseURL();
 }

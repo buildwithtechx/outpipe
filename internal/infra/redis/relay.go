@@ -21,7 +21,7 @@ func (a *RelayAffinity) Claim(ctx context.Context, tunnelID, relayID string, ttl
 	if tunnelID == "" || relayID == "" || ttl <= 0 {
 		return false, fmt.Errorf("tunnel, relay, and positive ttl are required")
 	}
-	key := "codedock-tunnel:relay-owner:" + tunnelID
+	key := "outpipe:relay-owner:" + tunnelID
 	owner, err := a.client.Raw().Get(ctx, key).Result()
 	if err == nil && owner != relayID {
 		return false, nil
@@ -40,7 +40,7 @@ func (a *RelayAffinity) Claim(ctx context.Context, tunnelID, relayID string, ttl
 }
 
 func (a *RelayAffinity) Release(ctx context.Context, tunnelID, relayID string) error {
-	key := "codedock-tunnel:relay-owner:" + tunnelID
+	key := "outpipe:relay-owner:" + tunnelID
 	owner, err := a.client.Raw().Get(ctx, key).Result()
 	if err == redis.Nil || owner != relayID {
 		return nil

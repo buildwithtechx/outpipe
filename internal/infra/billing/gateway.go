@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"codedock.run/codedock-tunnel/internal/models"
+	"outpipe.dev/outpipe/internal/models"
 )
 
 type GatewayConfig struct {

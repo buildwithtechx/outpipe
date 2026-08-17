@@ -17,7 +17,7 @@ export function LoginPage() {
       description="Sign in to manage your tunnels, domains, and organization."
       footer={
         <>
-          New to Codedock Tunnel?{' '}
+          New to Outpipe?{' '}
           <Link
             to="/signup"
             className="font-medium text-indigo-300 hover:text-indigo-200"

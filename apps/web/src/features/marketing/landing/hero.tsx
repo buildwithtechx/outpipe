@@ -34,7 +34,7 @@ export function Hero() {
 
   async function copyCommand() {
     await navigator.clipboard.writeText(
-      'curl -fsSL https://codedock-tunnel.dev/install.sh | bash',
+      'curl -fsSL https://outpipe.dev/install.sh | bash',
     );
     setCopied(true);
     setTimeout(() => setCopied(false), 1800);
@@ -97,8 +97,8 @@ export function Hero() {
           <span className="block">to the internet</span>
         </h1>
         <p className="mt-8 max-w-2xl text-center text-lg leading-8 text-white/55 sm:text-xl">
-          Codedock Tunnel gives your local apps a secure, observable public
-          endpoint for previews, webhooks, OAuth callbacks, and CI workflows.
+          Outpipe gives your local apps a secure, observable public endpoint for
+          previews, webhooks, OAuth callbacks, and CI workflows.
         </p>
         <div className="mt-9 flex w-full flex-col items-center justify-center gap-3 sm:flex-row">
           <Link
@@ -135,18 +135,18 @@ function TerminalWindow() {
         <span className="size-3 rounded-full bg-amber-300/80" />
         <span className="size-3 rounded-full bg-emerald-400/80" />
         <span className="ml-auto mr-auto text-xs text-white/30">
-          user@codedock-cli
+          user@outpipe-cli
         </span>
       </div>
       <div className="grid gap-2 p-6 text-xs leading-6 sm:text-sm">
         <p>
           <span className="text-emerald-300">➜</span>{' '}
-          <span className="text-cyan-300">~</span> codedock-tunnel 3000
+          <span className="text-cyan-300">~</span> outpipe 3000
         </p>
-        <p className="text-cyan-300">Connecting to Codedock Tunnel...</p>
+        <p className="text-cyan-300">Connecting to Outpipe...</p>
         <p className="text-emerald-300">Linked to local port 3000</p>
         <p className="text-fuchsia-300">
-          Tunnel ready: https://quiet-moon.codedock-tunnel.dev
+          Tunnel ready: https://quiet-moon.outpipe.dev
         </p>
         <p className="text-amber-300">
           Keep this process running to keep the tunnel active.

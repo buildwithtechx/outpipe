@@ -1,20 +1,17 @@
-import { type OpenTunnelAck, RelayConnection } from '@codedock/sdk';
 import type { OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import { Inject, Injectable } from '@nestjs/common';
-import {
-  CODEDOCK_TUNNEL_OPTIONS,
-  type NestTunnelOptions,
-} from '../interfaces/options';
+import { type OpenTunnelAck, RelayConnection } from '@outpipe/sdk';
+import { type NestTunnelOptions, OUTPIPE_OPTIONS } from '../interfaces/options';
 
 @Injectable()
-export class CodedockTunnelService implements OnModuleInit, OnModuleDestroy {
+export class OutpipeService implements OnModuleInit, OnModuleDestroy {
   private readonly connection: RelayConnection;
   private tunnel?: OpenTunnelAck;
   private startPromise?: Promise<OpenTunnelAck>;
   private generation = 0;
 
   constructor(
-    @Inject(CODEDOCK_TUNNEL_OPTIONS)
+    @Inject(OUTPIPE_OPTIONS)
     private readonly options: NestTunnelOptions,
   ) {
     this.connection = new RelayConnection(options);

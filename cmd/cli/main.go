@@ -12,9 +12,9 @@ import (
 	"syscall"
 	"time"
 
-	"codedock.run/codedock-tunnel/internal/config"
-	"codedock.run/codedock-tunnel/pkg/client"
-	"codedock.run/codedock-tunnel/pkg/protocol"
+	"outpipe.dev/outpipe/internal/config"
+	"outpipe.dev/outpipe/pkg/client"
+	"outpipe.dev/outpipe/pkg/protocol"
 )
 
 var version = "dev"
@@ -25,10 +25,10 @@ func main() {
 		log.Fatal(err)
 	}
 	if stored, loadErr := config.LoadCLIFile(cfg.ConfigPath); loadErr == nil {
-		if _, ok := os.LookupEnv("CODEDOCK_TUNNEL_API_KEY"); !ok {
+		if _, ok := os.LookupEnv("OUTPIPE_API_KEY"); !ok {
 			cfg.APIKey = stored.APIKey
 		}
-		if _, ok := os.LookupEnv("CODEDOCK_TUNNEL_AGENT_TOKEN"); !ok {
+		if _, ok := os.LookupEnv("OUTPIPE_AGENT_TOKEN"); !ok {
 			cfg.AgentToken = stored.AgentToken
 		}
 	}
@@ -163,7 +163,7 @@ func openTunnel(cfg config.CLIConfig, cmdName string, args []string) {
 
 func resolveManagedTunnel(ctx context.Context, cfg config.CLIConfig, tunnelID, requestedSubdomain string) (string, error) {
 	if strings.TrimSpace(cfg.APIKey) == "" {
-		return "", fmt.Errorf("--tunnel-id requires CODEDOCK_TUNNEL_API_KEY to validate the managed tunnel")
+		return "", fmt.Errorf("--tunnel-id requires OUTPIPE_API_KEY to validate the managed tunnel")
 	}
 	apiClient, err := client.New(client.Config{BaseURL: cfg.APIURL, APIKey: cfg.APIKey})
 	if err != nil {
@@ -187,6 +187,6 @@ func resolveManagedTunnel(ctx context.Context, cfg config.CLIConfig, tunnelID, r
 }
 
 func printUsage() {
-	fmt.Println("codedock-tunnel <command>")
+	fmt.Println("outpipe <command>")
 	fmt.Println("commands: login, open, create, list, inspect, start, stop, revoke, http, tcp, health, completion, version")
 }

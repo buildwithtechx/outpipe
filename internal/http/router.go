@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"time"
 
-	"codedock.run/codedock-tunnel/internal/models"
 	"github.com/gofiber/fiber/v2"
+	"outpipe.dev/outpipe/internal/models"
 )
 
 type RouterOptions struct {
@@ -30,7 +30,7 @@ func RegisterRoutes(app *fiber.App, handlers Handlers, options RouterOptions) er
 	app.Get("/readyz", handlers.Health.Readiness)
 	app.Get("/metrics", func(c *fiber.Ctx) error {
 		c.Set("Content-Type", "text/plain; version=0.0.4")
-		return c.SendString("# HELP codedock_status Status metric\n# TYPE codedock_status gauge\ncodedock_status 1\n")
+		return c.SendString("# HELP outpipe_status Status metric\n# TYPE outpipe_status gauge\noutpipe_status 1\n")
 	})
 	authLimiter := requestRateLimit(10, time.Minute)
 	app.Post("/api/v1/auth/device/start", authLimiter, handlers.Auth.StartDeviceLogin)

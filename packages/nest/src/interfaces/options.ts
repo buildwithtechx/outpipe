@@ -1,6 +1,6 @@
-import type { RelayConnectionOptions } from '@codedock/sdk';
+import type { RelayConnectionOptions } from '@outpipe/sdk';
 
-export const CODEDOCK_TUNNEL_OPTIONS = Symbol('CODEDOCK_TUNNEL_OPTIONS');
+export const OUTPIPE_OPTIONS = Symbol('OUTPIPE_OPTIONS');
 
 export type NestTunnelOptions = RelayConnectionOptions & {
   localPort: number;

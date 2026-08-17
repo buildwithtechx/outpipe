@@ -1,11 +1,11 @@
-# Codedock Tunnel Desktop
+# Outpipe Desktop
 
-The desktop application is a Tauri GUI and is distributed separately from the `codedock-tunnel` CLI.
+The desktop application is a Tauri GUI and is distributed separately from the `outpipe` CLI.
 
-- Tunnel CLI downloads: `https://cli.codedock-tunnel.dev`
-- Tunnel Desktop downloads: `https://desktop.codedock-tunnel.dev`
-- Tunnel API: `https://api.codedock-tunnel.dev`
-- Tunnel relay: `https://tunnel.codedock-tunnel.dev`
-- Codedock PaaS: `https://codedock.run`
+- Tunnel CLI downloads: `https://cli.outpipe.dev`
+- Tunnel Desktop downloads: `https://desktop.outpipe.dev`
+- Tunnel API: `https://api.outpipe.dev`
+- Tunnel relay: `https://tunnel.outpipe.dev`
+- Outpipe PaaS: `https://outpipe.dev`
 
 Installing the CLI does not install the desktop application. Installing the desktop application does not install the CLI binary.

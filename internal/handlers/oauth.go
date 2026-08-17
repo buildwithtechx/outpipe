@@ -5,8 +5,8 @@ import (
 	"net/url"
 	"strings"
 
-	"codedock.run/codedock-tunnel/internal/services"
 	"github.com/gofiber/fiber/v2"
+	"outpipe.dev/outpipe/internal/services"
 )
 
 type OAuthHandler struct {

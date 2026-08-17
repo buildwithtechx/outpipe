@@ -3,7 +3,7 @@ package handlers
 import (
 	"testing"
 
-	"codedock.run/codedock-tunnel/internal/models"
+	"outpipe.dev/outpipe/internal/models"
 )
 
 func TestParseWebhookCapturesPaymentFailureData(t *testing.T) {

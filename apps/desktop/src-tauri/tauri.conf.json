@@ -1,8 +1,8 @@
 {
   "$schema": "../../node_modules/@tauri-apps/cli/config.schema.json",
-  "productName": "Codedock Tunnel",
+  "productName": "Outpipe",
   "version": "0.1.0",
-  "identifier": "run.codedock.tunnel.desktop",
+  "identifier": "run.outpipe.tunnel.desktop",
   "build": {
     "beforeDevCommand": "npm run dev --workspace apps/web",
     "devUrl": "http://localhost:3000",
@@ -12,7 +12,7 @@
   "app": {
     "windows": [
       {
-        "title": "Codedock Tunnel",
+        "title": "Outpipe",
         "width": 1280,
         "height": 800,
         "resizable": true,

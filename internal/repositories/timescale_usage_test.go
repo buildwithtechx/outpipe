@@ -5,10 +5,10 @@ import (
 	"testing"
 	"time"
 
-	"codedock.run/codedock-tunnel/internal/models"
 	sqliteGorm "gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 	"modernc.org/sqlite"
+	"outpipe.dev/outpipe/internal/models"
 )
 
 func suppressSQLiteUnused(err *sqlite.Error) {}

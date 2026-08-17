@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"time"
 
-	"codedock.run/codedock-tunnel/internal/models"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
+	"outpipe.dev/outpipe/internal/models"
 )
 
 type OrganizationInvitationRepository interface {

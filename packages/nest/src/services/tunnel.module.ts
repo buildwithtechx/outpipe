@@ -1,21 +1,18 @@
 import type { DynamicModule } from '@nestjs/common';
 import { Module } from '@nestjs/common';
-import {
-  CODEDOCK_TUNNEL_OPTIONS,
-  type NestTunnelOptions,
-} from '../interfaces/options';
-import { CodedockTunnelService } from './tunnel.service';
+import { type NestTunnelOptions, OUTPIPE_OPTIONS } from '../interfaces/options';
+import { OutpipeService } from './tunnel.service';
 
 @Module({})
-export class CodedockTunnelModule {
+export class OutpipeModule {
   static forRoot(options: NestTunnelOptions): DynamicModule {
     return {
-      module: CodedockTunnelModule,
+      module: OutpipeModule,
       providers: [
-        { provide: CODEDOCK_TUNNEL_OPTIONS, useValue: options },
-        CodedockTunnelService,
+        { provide: OUTPIPE_OPTIONS, useValue: options },
+        OutpipeService,
       ],
-      exports: [CodedockTunnelService],
+      exports: [OutpipeService],
     };
   }
 }

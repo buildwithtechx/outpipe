@@ -6,7 +6,7 @@ export const Route = createFileRoute('/_marketing/plugins/$pluginId')({
   head: ({ params }) => {
     const plugin = getPluginDefinition(params.pluginId);
     return createSeo({
-      title: `${plugin?.name ?? 'Integration'} — Codedock Tunnel`,
+      title: `${plugin?.name ?? 'Integration'} — Outpipe`,
       description: plugin?.description,
       path: `/plugins/${params.pluginId}`,
     });

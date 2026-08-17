@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"html/template"
 
-	"codedock.run/codedock-tunnel/templates"
+	"outpipe.dev/outpipe/templates"
 )
 
 type AccountUpdateData struct {

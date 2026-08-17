@@ -4,7 +4,7 @@ import { MarketingContainer } from '#/components/layout';
 const endpoints = [
   {
     label: 'Reserved endpoint',
-    value: 'checkout.codedock-tunnel.dev',
+    value: 'checkout.outpipe.dev',
     detail: 'Keep a recognizable URL for repeatable previews.',
     color: 'text-indigo-300',
   },

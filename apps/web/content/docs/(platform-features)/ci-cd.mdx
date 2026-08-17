@@ -13,22 +13,22 @@ Store the token as a CI secret and pass it through the environment:
 steps:
   - name: Start preview tunnel
     env:
-      CODEDOCK_TUNNEL_AGENT_TOKEN: ${{ secrets.CODEDOCK_TUNNEL_AGENT_TOKEN }}
-      CODEDOCK_TUNNEL_PASSWORD: ${{ secrets.TUNNEL_PASSWORD }}
+      OUTPIPE_AGENT_TOKEN: ${{ secrets.OUTPIPE_AGENT_TOKEN }}
+      OUTPIPE_PASSWORD: ${{ secrets.TUNNEL_PASSWORD }}
     run: |
-      codedock-tunnel http --port 3000 &
+      outpipe http --port 3000 &
 ```
 
-For a private installation, set `CODEDOCK_TUNNEL_API_URL` and
-`CODEDOCK_TUNNEL_RELAY_URL`. The `--agent-token` flag can override the
+For a private installation, set `OUTPIPE_API_URL` and
+`OUTPIPE_RELAY_URL`. The `--agent-token` flag can override the
 environment value for a single command.
 
 Use `--tunnel-id` to reconnect a managed tunnel while preserving its public
 identity:
 
 ```sh
-CODEDOCK_TUNNEL_PASSWORD="$TUNNEL_PASSWORD" codedock-tunnel open --tunnel-id "$TUNNEL_ID" --port 3000
+OUTPIPE_PASSWORD="$TUNNEL_PASSWORD" outpipe open --tunnel-id "$TUNNEL_ID" --port 3000
 ```
 
 Management commands such as `list`, `inspect`, and `revoke` use
-`CODEDOCK_TUNNEL_API_KEY`.
+`OUTPIPE_API_KEY`.

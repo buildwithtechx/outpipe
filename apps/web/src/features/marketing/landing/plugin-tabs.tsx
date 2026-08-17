@@ -64,14 +64,14 @@ export function PluginTabs() {
         <pre className="min-h-40 overflow-x-auto p-4 font-mono text-xs leading-6 text-white/65">
           {active === 'vite' && (
             <code>
-              <span className="text-violet-300">import</span> codedock{' '}
+              <span className="text-violet-300">import</span> outpipe{' '}
               <span className="text-violet-300">from</span>{' '}
-              <span className="text-emerald-300">'@codedock/vite-plugin'</span>
+              <span className="text-emerald-300">'@outpipe/vite-plugin'</span>
               {';'}
               {'\n\n'}
               <span className="text-violet-300">export default</span>{' '}
               defineConfig({'{'}
-              {'\n  '}plugins: [codedock()],
+              {'\n  '}plugins: [outpipe()],
               {'\n'}
               {'}'});
             </code>
@@ -79,14 +79,14 @@ export function PluginTabs() {
           {active === 'react' && (
             <code>
               <span className="text-violet-300">import</span>{' '}
-              {'{ CodedockTunnelProvider }'}{' '}
+              {'{ OutpipeProvider }'}{' '}
               <span className="text-violet-300">from</span>{' '}
-              <span className="text-emerald-300">'@codedock/react'</span>
+              <span className="text-emerald-300">'@outpipe/react'</span>
               {';'}
               {'\n\n'}
               <span className="text-violet-300">export function</span> App(){' '}
               {'{'}
-              {'\n  '}return &lt;CodedockTunnelProvider /&gt;;
+              {'\n  '}return &lt;OutpipeProvider /&gt;;
               {'\n'}
               {'}'}
             </code>
@@ -94,12 +94,12 @@ export function PluginTabs() {
           {active === 'nest' && (
             <code>
               <span className="text-violet-300">import</span>{' '}
-              {'{ CodedockModule }'}{' '}
+              {'{ OutpipeModule }'}{' '}
               <span className="text-violet-300">from</span>{' '}
-              <span className="text-emerald-300">'@codedock/nest'</span>
+              <span className="text-emerald-300">'@outpipe/nest'</span>
               {';'}
               {'\n\n'}@Module({'{'}
-              {'\n  '}imports: [CodedockModule.forRoot({'{'} localPort:{' '}
+              {'\n  '}imports: [OutpipeModule.forRoot({'{'} localPort:{' '}
               <span className="text-sky-300">3000</span> {'}'})],
               {'\n'}
               {'}'})

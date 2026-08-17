@@ -58,15 +58,15 @@ export const pluginDefinitions: PluginDefinition[] = [
   {
     id: 'sdk',
     name: 'TypeScript SDK',
-    packageName: '@codedock/sdk',
+    packageName: '@outpipe/sdk',
     eyebrow: 'Framework-neutral foundation',
     headline: 'Bring public access\nto any TypeScript service.',
     description:
       'A small browser and Node.js client for applications that need direct control over authentication, tunnel creation, status, and shutdown.',
     docsSlug: 'sdk',
-    install: 'npm install @codedock/sdk',
+    install: 'npm install @outpipe/sdk',
     fileName: 'server.ts',
-    code: "import { CodedockClient } from '@codedock/sdk';\n\nconst client = new CodedockClient({\n  apiKey: process.env.CODEDOCK_API_KEY,\n});\n\nawait client.openTunnel({ protocol: 'http', localPort: 3000 });",
+    code: "import { OutpipeClient } from '@outpipe/sdk';\n\nconst client = new OutpipeClient({\n  apiKey: process.env.OUTPIPE_API_KEY,\n});\n\nawait client.openTunnel({ protocol: 'http', localPort: 3000 });",
     colorClass: 'text-cyan-300',
     icon: Cable,
     features: [
@@ -90,15 +90,15 @@ export const pluginDefinitions: PluginDefinition[] = [
   {
     id: 'react',
     name: 'React',
-    packageName: '@codedock/react',
+    packageName: '@outpipe/react',
     eyebrow: 'React integration',
     headline: 'Share React previews\nwith your team.',
     description:
       'Provider and hooks for showing connection state, public URLs, and tunnel controls directly in your React application.',
     docsSlug: 'react',
-    install: 'npm install @codedock/react',
+    install: 'npm install @outpipe/react',
     fileName: 'app.tsx',
-    code: "import { CodedockTunnelProvider, useTunnel } from '@codedock/react';\n\nfunction PreviewStatus() {\n  const { tunnel, status } = useTunnel();\n  return <span>{tunnel?.publicUrl ?? status}</span>;\n}",
+    code: "import { OutpipeProvider, useTunnel } from '@outpipe/react';\n\nfunction PreviewStatus() {\n  const { tunnel, status } = useTunnel();\n  return <span>{tunnel?.publicUrl ?? status}</span>;\n}",
     colorClass: 'text-sky-300',
     icon: SiReact,
     features: [
@@ -126,15 +126,15 @@ export const pluginDefinitions: PluginDefinition[] = [
   {
     id: 'vite',
     name: 'Vite',
-    packageName: '@codedock/vite-plugin',
+    packageName: '@outpipe/vite-plugin',
     eyebrow: 'Vite integration',
     headline: 'Share your Vite app\nwithout extra config.',
     description:
       'The development server integration opens a tunnel when Vite is ready and keeps the local target aligned with the running server.',
     docsSlug: 'vite',
-    install: 'npm install -D @codedock/vite-plugin',
+    install: 'npm install -D @outpipe/vite-plugin',
     fileName: 'vite.config.ts',
-    code: "import { defineConfig } from 'vite';\nimport react from '@vitejs/plugin-react';\nimport codedock from '@codedock/vite-plugin';\n\nexport default defineConfig({\n  plugins: [react(), codedock()],\n});",
+    code: "import { defineConfig } from 'vite';\nimport react from '@vitejs/plugin-react';\nimport outpipe from '@outpipe/vite-plugin';\n\nexport default defineConfig({\n  plugins: [react(), outpipe()],\n});",
     colorClass: 'text-indigo-300',
     icon: SiVite,
     features: [
@@ -161,15 +161,15 @@ export const pluginDefinitions: PluginDefinition[] = [
   {
     id: 'next',
     name: 'Next.js',
-    packageName: '@codedock/next',
+    packageName: '@outpipe/next',
     eyebrow: 'Next.js integration',
     headline: 'Put your Next.js app\nwithin reach.',
     description:
       'A lifecycle wrapper for Next.js development and server workflows, with the same tunnel controls as the CLI and SDK.',
     docsSlug: 'next',
-    install: 'npm install @codedock/next',
+    install: 'npm install @outpipe/next',
     fileName: 'next.config.ts',
-    code: "import withCodedock from '@codedock/next';\n\nexport default withCodedock({\n  reactStrictMode: true,\n});",
+    code: "import withOutpipe from '@outpipe/next';\n\nexport default withOutpipe({\n  reactStrictMode: true,\n});",
     colorClass: 'text-white',
     icon: SiNextdotjs,
     features: [
@@ -196,15 +196,15 @@ export const pluginDefinitions: PluginDefinition[] = [
   {
     id: 'nest',
     name: 'NestJS',
-    packageName: '@codedock/nest',
+    packageName: '@outpipe/nest',
     eyebrow: 'NestJS integration',
     headline: 'Expose your NestJS API\nin one call.',
     description:
       'A Nest module and service that make tunnel lifecycle part of your application bootstrap and shutdown flow.',
     docsSlug: 'nest',
-    install: 'npm install @codedock/nest',
+    install: 'npm install @outpipe/nest',
     fileName: 'app.module.ts',
-    code: "import { CodedockModule } from '@codedock/nest';\n\n@Module({\n  imports: [CodedockModule.forRoot({ localPort: 3000 })],\n})\nexport class AppModule {}",
+    code: "import { OutpipeModule } from '@outpipe/nest';\n\n@Module({\n  imports: [OutpipeModule.forRoot({ localPort: 3000 })],\n})\nexport class AppModule {}",
     colorClass: 'text-rose-300',
     icon: SiNestjs,
     features: [
@@ -231,15 +231,15 @@ export const pluginDefinitions: PluginDefinition[] = [
   {
     id: 'express',
     name: 'Express',
-    packageName: '@codedock/express',
+    packageName: '@outpipe/express',
     eyebrow: 'Express integration',
     headline: 'Put your Express server\non a public URL.',
     description:
       'A lightweight lifecycle wrapper for Express servers, designed for APIs, webhooks, and services that already own their HTTP process.',
     docsSlug: 'express',
-    install: 'npm install @codedock/express',
+    install: 'npm install @outpipe/express',
     fileName: 'server.ts',
-    code: "import express from 'express';\nimport { codedockTunnel } from '@codedock/express';\n\nconst app = express();\ncodedockTunnel(app, { localPort: 3000 });\napp.listen(3000);",
+    code: "import express from 'express';\nimport { outpipeTunnel } from '@outpipe/express';\n\nconst app = express();\noutpipeTunnel(app, { localPort: 3000 });\napp.listen(3000);",
     colorClass: 'text-amber-300',
     icon: SiExpress,
     features: [
@@ -257,7 +257,7 @@ export const pluginDefinitions: PluginDefinition[] = [
       'Expose an existing Express process without replacing your middleware, data, or production conventions.',
     integrationHeading: 'Expose an Express server\nwithout rewiring it.',
     integrationDescription:
-      'Keep your routes, middleware, and local process intact while Codedock provides the public URL and connection lifecycle around it.',
+      'Keep your routes, middleware, and local process intact while Outpipe provides the public URL and connection lifecycle around it.',
     technologies: [
       { label: 'MongoDB', icon: SiMongodb },
       { label: 'PostgreSQL', icon: SiPostgresql },

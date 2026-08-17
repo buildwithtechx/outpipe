@@ -1,6 +1,6 @@
-import type { RelayConnectionOptions } from '@codedock/sdk';
+import type { RelayConnectionOptions } from '@outpipe/sdk';
 
-export type CodedockTunnelPluginOptions = RelayConnectionOptions & {
+export type OutpipePluginOptions = RelayConnectionOptions & {
   enabled?: boolean;
   localPort?: number;
   subdomain?: string;

@@ -11,9 +11,9 @@ import (
 	"testing"
 	"time"
 
-	"codedock.run/codedock-tunnel/internal/engine"
-	"codedock.run/codedock-tunnel/internal/relay"
-	"codedock.run/codedock-tunnel/pkg/protocol"
+	"outpipe.dev/outpipe/internal/engine"
+	"outpipe.dev/outpipe/internal/relay"
+	"outpipe.dev/outpipe/pkg/protocol"
 )
 
 func TestHTTPProxyWithRealLocalTarget(t *testing.T) {

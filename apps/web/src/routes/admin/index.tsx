@@ -7,7 +7,7 @@ function AdminPage() {
   return (
     <PagePlaceholder
       title="Platform administration"
-      description="Monitor and operate the Codedock Tunnel platform."
+      description="Monitor and operate the Outpipe platform."
     />
   );
 }

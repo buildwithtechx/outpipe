@@ -6,10 +6,10 @@ import (
 	"fmt"
 	"strings"
 
-	"codedock.run/codedock-tunnel/internal/config"
-	"codedock.run/codedock-tunnel/internal/infra/postgres"
-	"codedock.run/codedock-tunnel/internal/models"
-	"codedock.run/codedock-tunnel/internal/repositories"
+	"outpipe.dev/outpipe/internal/config"
+	"outpipe.dev/outpipe/internal/infra/postgres"
+	"outpipe.dev/outpipe/internal/models"
+	"outpipe.dev/outpipe/internal/repositories"
 )
 
 func runBootstrapAdmin(ctx context.Context, cfg config.APIConfig, args []string) error {

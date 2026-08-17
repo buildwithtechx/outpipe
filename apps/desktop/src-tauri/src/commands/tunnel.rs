@@ -46,7 +46,7 @@ pub fn tunnel_start(
         command.arg("--subdomain").arg(value);
     }
     if let Some(value) = password {
-        command.env("CODEDOCK_TUNNEL_PASSWORD", value);
+        command.env("OUTPIPE_PASSWORD", value);
     }
     let child = command
         .spawn()
@@ -119,7 +119,7 @@ pub fn tunnel_version() -> Result<String, String> {
 }
 
 fn cli_path() -> String {
-    std::env::var("CODEDOCK_TUNNEL_CLI_PATH").unwrap_or_else(|_| "codedock-tunnel".to_string())
+    std::env::var("OUTPIPE_CLI_PATH").unwrap_or_else(|_| "outpipe".to_string())
 }
 
 fn validate_protocol(protocol: &str) -> Result<(), String> {

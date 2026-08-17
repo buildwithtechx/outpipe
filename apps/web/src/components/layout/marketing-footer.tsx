@@ -16,7 +16,7 @@ export function MarketingFooter() {
           <div className="md:col-span-2">
             <Link to="/" className="flex items-center gap-3">
               <img src="/favicon.svg" alt="" className="size-9 rounded-xl" />
-              <span className="font-semibold">Codedock Tunnel</span>
+              <span className="font-semibold">Outpipe</span>
             </Link>
             <p className="mt-4 max-w-xs text-sm leading-6 text-white/45">
               Secure public access for local services, previews, webhooks, and

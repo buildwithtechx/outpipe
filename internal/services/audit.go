@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"time"
 
-	"codedock.run/codedock-tunnel/internal/models"
-	"codedock.run/codedock-tunnel/internal/repositories"
+	"outpipe.dev/outpipe/internal/models"
+	"outpipe.dev/outpipe/internal/repositories"
 )
 
 type AuditService struct {

@@ -5,9 +5,8 @@ import { createSeo } from '#/lib/seo';
 export const Route = createFileRoute('/_marketing/changelog')({
   head: () =>
     createSeo({
-      title: 'Changelog — Codedock Tunnel',
-      description:
-        'Follow new releases and improvements across Codedock Tunnel.',
+      title: 'Changelog — Outpipe',
+      description: 'Follow new releases and improvements across Outpipe.',
       path: '/changelog',
     }),
   component: ChangelogPage,

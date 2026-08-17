@@ -7,8 +7,8 @@ import (
 	"testing"
 	"time"
 
-	"codedock.run/codedock-tunnel/internal/security"
-	"codedock.run/codedock-tunnel/pkg/protocol"
+	"outpipe.dev/outpipe/internal/security"
+	"outpipe.dev/outpipe/pkg/protocol"
 )
 
 func TestResolveTunnelID(t *testing.T) {

@@ -7,9 +7,9 @@ import (
 	"strings"
 	"time"
 
-	"codedock.run/codedock-tunnel/internal/auth"
-	"codedock.run/codedock-tunnel/internal/models"
-	"codedock.run/codedock-tunnel/internal/repositories"
+	"outpipe.dev/outpipe/internal/auth"
+	"outpipe.dev/outpipe/internal/models"
+	"outpipe.dev/outpipe/internal/repositories"
 )
 
 type DomainService struct {
@@ -81,7 +81,7 @@ func (s *DomainService) Create(ctx context.Context, organizationID, hostname, me
 	}
 	domain := models.Domain{OrganizationID: organizationID, TunnelID: tunnelID, Hostname: hostname, Status: models.DomainStatusPending, VerificationMethod: method, VerificationToken: auth.HashToken(raw), CertificateStatus: "pending"}
 	if method == "dns" && s.dns != nil {
-		if err := s.dns.UpsertTXT(ctx, "_codedock-challenge."+hostname, raw, s.dnsTTL); err != nil {
+		if err := s.dns.UpsertTXT(ctx, "_outpipe-challenge."+hostname, raw, s.dnsTTL); err != nil {
 			return "", models.Domain{}, fmt.Errorf("create dns challenge: %w", err)
 		}
 	}

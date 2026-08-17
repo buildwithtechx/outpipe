@@ -74,12 +74,12 @@ func (o *Operations) AllowRate(ctx context.Context, key string, limit int64, win
 	if key == "" || limit <= 0 || window <= 0 {
 		return false, fmt.Errorf("rate limit key, positive limit, and window are required")
 	}
-	count, err := o.client.Raw().Incr(ctx, "codedock-tunnel:rate:"+key).Result()
+	count, err := o.client.Raw().Incr(ctx, "outpipe:rate:"+key).Result()
 	if err != nil {
 		return false, fmt.Errorf("increment rate limit: %w", err)
 	}
 	if count == 1 {
-		if err := o.client.Raw().Expire(ctx, "codedock-tunnel:rate:"+key, window).Err(); err != nil {
+		if err := o.client.Raw().Expire(ctx, "outpipe:rate:"+key, window).Err(); err != nil {
 			return false, fmt.Errorf("expire rate limit: %w", err)
 		}
 	}
@@ -87,17 +87,17 @@ func (o *Operations) AllowRate(ctx context.Context, key string, limit int64, win
 }
 
 func presenceKey(organizationID, member string) string {
-	return "codedock-tunnel:presence:" + organizationID + ":" + member
+	return "outpipe:presence:" + organizationID + ":" + member
 }
 
 func heartbeatKey(organizationID, member string) string {
-	return "codedock-tunnel:heartbeat:" + organizationID + ":" + member
+	return "outpipe:heartbeat:" + organizationID + ":" + member
 }
 
 func activeIndexKey(organizationID string) string {
-	return "codedock-tunnel:active-index:" + organizationID
+	return "outpipe:active-index:" + organizationID
 }
 
 func activeTunnelKey(tunnelID string) string {
-	return "codedock-tunnel:active:" + tunnelID
+	return "outpipe:active:" + tunnelID
 }

@@ -1,11 +1,11 @@
-# Codedock Tunnel TODO
+# Outpipe TODO
 
 The Go backend, CLI, protocol package, and current TypeScript framework adapters are implemented. Remaining work is dashboard functionality, desktop integration, optional integrations, and release operations.
 
 ## Standalone product principles
 
-- [ ] Provide Codedock integration as an optional adapter, plugin, or external API client.
-- [ ] Document the hosted standalone product and optional Codedock integration.
+- [ ] Provide Outpipe integration as an optional adapter, plugin, or external API client.
+- [ ] Document the hosted standalone product and optional Outpipe integration.
 
 ## Product surfaces
 
@@ -124,7 +124,7 @@ apps/web/src/
 - [ ] Keep route files focused on loaders, route metadata, and page composition.
 - [ ] Protect `/admin/*` with a separate platform-admin authorization guard.
 - [ ] Keep admin features and components isolated from organization-member features.
-- [x] Add `codedockd bootstrap-admin --email ...` to provision the first platform administrator explicitly.
+- [x] Add `outpiped bootstrap-admin --email ...` to provision the first platform administrator explicitly.
 - [x] Add platform-admin roles without promoting users automatically during signup.
 - [ ] Keep domain behavior inside `features/`, not inside route files.
 - [ ] Keep shared visual primitives inside `components/ui/`.
@@ -229,14 +229,14 @@ The control-plane API should remain versioned under `/api/v1`:
 ```
 
 - [x] Keep liveness, readiness, and metrics outside the versioned API at `/healthz`, `/readyz`, and `/metrics`.
-- [x] Keep relay WebSocket transport separate at `wss://tunnel.codedock-tunnel.dev/v1/connect`.
+- [x] Keep relay WebSocket transport separate at `wss://tunnel.outpipe.dev/v1/connect`.
 - [ ] Add organization detail, member listing/removal, profile, API-key, audit-log, request-log, and invoice routes.
 - [x] Add platform-admin authorization and admin users, organizations, tunnels, subscriptions, usage, audit, and action routes.
 - [ ] Move agent heartbeats away from browser-session authentication to agent or relay authentication.
 - [ ] Keep internal health, usage ingestion, relay handoff, and agent authentication routes private.
-- [ ] Route wildcard public tunnel traffic through `*.tunnel.codedock-tunnel.dev`, not through control-plane handlers.
+- [ ] Route wildcard public tunnel traffic through `*.tunnel.outpipe.dev`, not through control-plane handlers.
 
-- [ ] Keep `integrations/codedock/` as an optional external adapter.
+- [ ] Keep `integrations/outpipe/` as an optional external adapter.
 
 ## Transactional email
 
@@ -273,7 +273,7 @@ packages/
 │   │       ├── Facades/
 │   │       ├── Http/
 │   │       ├── Services/
-│   │       └── CodedockServiceProvider.php
+│   │       └── OutpipeServiceProvider.php
 │   ├── config/
 │   ├── tests/
 │   ├── composer.json

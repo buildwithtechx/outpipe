@@ -5,11 +5,11 @@ import (
 	"fmt"
 	"strings"
 
-	"codedock.run/codedock-tunnel/internal/models"
-	"codedock.run/codedock-tunnel/internal/security"
-	"codedock.run/codedock-tunnel/internal/services"
-	"codedock.run/codedock-tunnel/internal/validation"
 	"github.com/gofiber/fiber/v2"
+	"outpipe.dev/outpipe/internal/models"
+	"outpipe.dev/outpipe/internal/security"
+	"outpipe.dev/outpipe/internal/services"
+	"outpipe.dev/outpipe/internal/validation"
 )
 
 type TunnelHandler struct{ tunnels *services.TunnelService }

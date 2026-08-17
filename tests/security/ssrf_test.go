@@ -4,7 +4,7 @@ import (
 	"net"
 	"testing"
 
-	"codedock.run/codedock-tunnel/internal/validation"
+	"outpipe.dev/outpipe/internal/validation"
 )
 
 func TestIsPrivateOrLoopbackIP(t *testing.T) {

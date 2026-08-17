@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"time"
 
-	"codedock.run/codedock-tunnel/internal/models"
 	"gorm.io/gorm"
+	"outpipe.dev/outpipe/internal/models"
 )
 
 type GormSessionRepository struct{ db *gorm.DB }

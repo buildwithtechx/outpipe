@@ -4,6 +4,6 @@ import { createSeo } from '#/lib/seo';
 
 export const Route = createFileRoute('/_marketing/terms')({
   head: () =>
-    createSeo({ title: 'Terms of service — Codedock Tunnel', path: '/terms' }),
+    createSeo({ title: 'Terms of service — Outpipe', path: '/terms' }),
   component: TermsPage,
 });

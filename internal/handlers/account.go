@@ -3,8 +3,8 @@ package handlers
 import (
 	"fmt"
 
-	"codedock.run/codedock-tunnel/internal/services"
 	"github.com/gofiber/fiber/v2"
+	"outpipe.dev/outpipe/internal/services"
 )
 
 type AccountHandler struct{ accounts *services.AccountService }

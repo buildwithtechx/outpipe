@@ -6,7 +6,7 @@ import (
 	"log"
 )
 
-const bashCompletion = `_codedock_tunnel_completion() {
+const bashCompletion = `_outpipe_completion() {
     local cur prev opts
     COMPREPLY=()
     cur="${COMP_WORDS[COMP_CWORD]}"
@@ -14,14 +14,14 @@ const bashCompletion = `_codedock_tunnel_completion() {
     COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
     return 0
 }
-complete -F _codedock_tunnel_completion codedock-tunnel
+complete -F _outpipe_completion outpipe
 `
 
-const zshCompletion = `#compdef codedock-tunnel
-_codedock_tunnel() {
+const zshCompletion = `#compdef outpipe
+_outpipe() {
     local -a commands
     commands=(
-        'login:Log in to Codedock Tunnel'
+        'login:Log in to Outpipe'
         'open:Open a tunnel'
         'create:Create a new tunnel'
         'list:List active tunnels'
@@ -37,10 +37,10 @@ _codedock_tunnel() {
     )
     _describe -t commands 'command' commands
 }
-_codedock_tunnel "$@"
+_outpipe "$@"
 `
 
-const fishCompletion = `complete -c codedock-tunnel -n "__fish_use_subcommand" -a "login open create list inspect start stop revoke http tcp health completion version"
+const fishCompletion = `complete -c outpipe -n "__fish_use_subcommand" -a "login open create list inspect start stop revoke http tcp health completion version"
 `
 
 func runCompletion(args []string) {

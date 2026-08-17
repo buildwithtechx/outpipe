@@ -7,19 +7,19 @@ icon: SiNextdotjs
 Install the adapter:
 
 ```sh
-npm install @codedock/next
+npm install @outpipe/next
 ```
 
 Create the tunnel from a server-side startup path, not a browser component:
 
 ```ts
-import { createNextTunnel } from '@codedock/next';
+import { createNextTunnel } from '@outpipe/next';
 
 const tunnel = createNextTunnel({
-  relayUrl: process.env.CODEDOCK_TUNNEL_RELAY_URL!,
-  agentToken: process.env.CODEDOCK_TUNNEL_AGENT_TOKEN!,
+  relayUrl: process.env.OUTPIPE_RELAY_URL!,
+  agentToken: process.env.OUTPIPE_AGENT_TOKEN!,
   localPort: 3000,
-  subdomain: process.env.CODEDOCK_TUNNEL_SUBDOMAIN,
+  subdomain: process.env.OUTPIPE_SUBDOMAIN,
   password: process.env.TUNNEL_PASSWORD,
 });
 

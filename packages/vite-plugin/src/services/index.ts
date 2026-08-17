@@ -1,1 +1,1 @@
-export { codedockTunnel } from './plugin';
+export { outpipeTunnel } from './plugin';

@@ -2,9 +2,9 @@
 
 ## Project boundary
 
-Codedock Tunnel is an independent tunneling product. Its core must work without Codedock and must not import Codedock models, routes, authentication, or database packages.
+Outpipe is an independent tunneling product. Its core must work without Outpipe and must not import Outpipe models, routes, authentication, or database packages.
 
-Codedock integration belongs under `integrations/codedock/` and communicates through the public tunnel API.
+Outpipe integration belongs under `integrations/outpipe/` and communicates through the public tunnel API.
 
 ## Code style
 

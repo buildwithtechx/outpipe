@@ -1,5 +1,5 @@
 {
-  "name": "@codedock/next",
+  "name": "@outpipe/next",
   "version": "0.1.0",
   "publishConfig": {
     "access": "public"
@@ -12,7 +12,7 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run --passWithNoTests"
   },
-  "description": "Next.js integration for Codedock Tunnel",
+  "description": "Next.js integration for Outpipe",
   "files": [
     "dist"
   ],
@@ -20,7 +20,7 @@
     "node": ">=18"
   },
   "dependencies": {
-    "@codedock/sdk": "0.1.0"
+    "@outpipe/sdk": "0.1.0"
   },
   "peerDependencies": {
     "next": ">=15"

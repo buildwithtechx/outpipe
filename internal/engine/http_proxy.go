@@ -10,8 +10,8 @@ import (
 	"strings"
 	"time"
 
-	"codedock.run/codedock-tunnel/internal/security"
-	"codedock.run/codedock-tunnel/pkg/protocol"
+	"outpipe.dev/outpipe/internal/security"
+	"outpipe.dev/outpipe/pkg/protocol"
 )
 
 type HTTPProxy struct {
@@ -59,7 +59,7 @@ func (p *HTTPProxy) ServeHTTP(response http.ResponseWriter, request *http.Reques
 	passwordHash, protected := p.router.PasswordHash(route)
 	protected = protected && passwordHash != ""
 	if protected && !authorizedRequest(request, passwordHash) {
-		response.Header().Set("WWW-Authenticate", `Basic realm="Codedock Tunnel"`)
+		response.Header().Set("WWW-Authenticate", `Basic realm="Outpipe"`)
 		response.WriteHeader(http.StatusUnauthorized)
 		p.recordRequest(request, route, http.StatusUnauthorized, 0, started)
 		return

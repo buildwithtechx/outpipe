@@ -8,14 +8,14 @@ import (
 	"syscall"
 	"time"
 
-	"codedock.run/codedock-tunnel/internal/config"
-	"codedock.run/codedock-tunnel/internal/infra/locks"
-	"codedock.run/codedock-tunnel/internal/infra/postgres"
-	"codedock.run/codedock-tunnel/internal/infra/redis"
-	"codedock.run/codedock-tunnel/internal/infra/telemetry"
-	"codedock.run/codedock-tunnel/internal/repositories"
-	"codedock.run/codedock-tunnel/internal/services"
-	"codedock.run/codedock-tunnel/internal/workers"
+	"outpipe.dev/outpipe/internal/config"
+	"outpipe.dev/outpipe/internal/infra/locks"
+	"outpipe.dev/outpipe/internal/infra/postgres"
+	"outpipe.dev/outpipe/internal/infra/redis"
+	"outpipe.dev/outpipe/internal/infra/telemetry"
+	"outpipe.dev/outpipe/internal/repositories"
+	"outpipe.dev/outpipe/internal/services"
+	"outpipe.dev/outpipe/internal/workers"
 )
 
 var version = "dev"
@@ -36,7 +36,7 @@ func main() {
 		log.Fatal(err)
 	}
 	defer redisClient.Close()
-	lease, err := locks.Acquire(ctx, redisClient.Raw(), "codedock-tunnel:cron", 10*time.Minute)
+	lease, err := locks.Acquire(ctx, redisClient.Raw(), "outpipe:cron", 10*time.Minute)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -153,7 +153,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	if startupLease, err := locks.Acquire(ctx, redisClient.Raw(), "codedock-tunnel:cron:startup-subscription-maintenance", 5*time.Minute); err == nil {
+	if startupLease, err := locks.Acquire(ctx, redisClient.Raw(), "outpipe:cron:startup-subscription-maintenance", 5*time.Minute); err == nil {
 		_ = wrappedRetention.Run(ctx)
 		_ = wrappedBilling.Run(ctx)
 		_ = startupLease.Release(context.Background())

@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://codedock-tunnel.dev/sitemap.xml
+Sitemap: https://outpipe.dev/sitemap.xml

@@ -5,9 +5,9 @@ import { createSeo } from '#/lib/seo';
 export const Route = createFileRoute('/_marketing/contact')({
   head: () =>
     createSeo({
-      title: 'Contact — Codedock Tunnel',
+      title: 'Contact — Outpipe',
       description:
-        'Contact the Codedock Tunnel team with product and integration questions.',
+        'Contact the Outpipe team with product and integration questions.',
       path: '/contact',
     }),
   component: ContactPage,

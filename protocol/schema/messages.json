@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://codedock-tunnel.dev/protocol/messages.json",
-  "title": "Codedock Tunnel Protocol",
+  "$id": "https://outpipe.dev/protocol/messages.json",
+  "title": "Outpipe Protocol",
   "protocolVersion": 1,
   "type": "object",
   "required": ["version", "type"],

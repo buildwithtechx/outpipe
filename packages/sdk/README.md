@@ -1,6 +1,6 @@
-# @codedock/sdk
+# @outpipe/sdk
 
-Framework-neutral TypeScript and Node.js client for the standalone Codedock Tunnel API.
+Framework-neutral TypeScript and Node.js client for the standalone Outpipe API.
 
 The SDK owns client authentication, tunnel lifecycle operations, connection state, reconnect behavior, and protocol communication. Framework packages should remain thin adapters over this package.
 

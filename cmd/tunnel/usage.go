@@ -8,8 +8,8 @@ import (
 	"net/http"
 	"strings"
 
-	"codedock.run/codedock-tunnel/internal/engine"
-	"codedock.run/codedock-tunnel/internal/models"
+	"outpipe.dev/outpipe/internal/engine"
+	"outpipe.dev/outpipe/internal/models"
 )
 
 type usageRecorder struct {

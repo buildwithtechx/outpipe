@@ -3,9 +3,9 @@ package relay
 import (
 	"context"
 
-	"codedock.run/codedock-tunnel/internal/engine"
-	"codedock.run/codedock-tunnel/pkg/protocol"
-	"codedock.run/codedock-tunnel/pkg/utils"
+	"outpipe.dev/outpipe/internal/engine"
+	"outpipe.dev/outpipe/pkg/protocol"
+	"outpipe.dev/outpipe/pkg/utils"
 )
 
 func (h *Handler) recordMessageUsage(ctx context.Context, organizationID string, message protocol.Envelope) {

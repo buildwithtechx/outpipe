@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"time"
 
-	"codedock.run/codedock-tunnel/internal/auth"
+	"outpipe.dev/outpipe/internal/auth"
 )
 
 type OAuthStateStore struct {
@@ -26,11 +26,11 @@ func (s *OAuthStateStore) Save(ctx context.Context, state string, value auth.OAu
 	if err != nil {
 		return fmt.Errorf("encode oauth state: %w", err)
 	}
-	return s.client.Set(ctx, "codedock-tunnel:oauth-state:"+state, body, s.ttl)
+	return s.client.Set(ctx, "outpipe:oauth-state:"+state, body, s.ttl)
 }
 
 func (s *OAuthStateStore) Take(ctx context.Context, state string) (auth.OAuthState, error) {
-	key := "codedock-tunnel:oauth-state:" + state
+	key := "outpipe:oauth-state:" + state
 	body, err := s.client.Get(ctx, key)
 	if err != nil {
 		return auth.OAuthState{}, fmt.Errorf("get oauth state: %w", err)

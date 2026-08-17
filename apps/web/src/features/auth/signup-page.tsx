@@ -14,7 +14,7 @@ export function SignupPage() {
   return (
     <AuthPageShell
       title="Create an account"
-      description="Sign up to get started with Codedock Tunnel."
+      description="Sign up to get started with Outpipe."
       footer={
         <>
           Already have an account?{' '}

@@ -27,12 +27,12 @@ jobs:
           VERSION: ${{ github.ref_name }}
         run: |
           mkdir -p dist
-          for target in codedock-api codedock-tunnel codedock-cron codedock-check; do
+          for target in outpipe-api outpipe outpipe-cron outpipe-check; do
             case "${target}" in
-              codedock-api) source_dir="server" ;;
-              codedock-tunnel) source_dir="tunnel" ;;
-              codedock-cron) source_dir="cron" ;;
-              codedock-check) source_dir="check" ;;
+              outpipe-api) source_dir="server" ;;
+              outpipe) source_dir="tunnel" ;;
+              outpipe-cron) source_dir="cron" ;;
+              outpipe-check) source_dir="check" ;;
             esac
             GOOS=linux GOARCH=amd64 go build -ldflags="-s -w -X main.version=${VERSION}" -o "dist/${target}_linux_amd64" "./cmd/${source_dir}"
             tar -czf "dist/${target}_linux_amd64.tar.gz" -C dist "${target}_linux_amd64"
@@ -42,11 +42,11 @@ jobs:
             os="${platform%_*}"
             arch="${platform#*_}"
             if [ "$os" = "windows" ]; then
-              binary="codedock-cli_${platform}.exe"
+              binary="outpipe-cli_${platform}.exe"
               GOOS="${os}" GOARCH="${arch}" go build -ldflags="-s -w -X main.version=${VERSION}" -o "dist/${binary}" ./cmd/cli
               (cd dist && zip "${binary%.exe}.zip" "$binary" && rm "$binary")
             else
-              binary="codedock-cli_${platform}"
+              binary="outpipe-cli_${platform}"
               GOOS="${os}" GOARCH="${arch}" go build -ldflags="-s -w -X main.version=${VERSION}" -o "dist/${binary}" ./cmd/cli
               tar -czf "dist/${binary}.tar.gz" -C dist "$binary"
               rm "dist/${binary}"

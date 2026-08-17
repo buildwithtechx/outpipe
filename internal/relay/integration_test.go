@@ -8,8 +8,8 @@ import (
 	"testing"
 	"time"
 
-	"codedock.run/codedock-tunnel/internal/engine"
-	"codedock.run/codedock-tunnel/pkg/protocol"
+	"outpipe.dev/outpipe/internal/engine"
+	"outpipe.dev/outpipe/pkg/protocol"
 )
 
 func TestLocalHTTPTargetIntegration(t *testing.T) {

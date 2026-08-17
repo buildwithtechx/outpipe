@@ -25,7 +25,7 @@ export function checkOrganizationSlug(slug: string) {
 
 export function getLastOrganizationSlug() {
   if (typeof window === 'undefined') return null;
-  return window.localStorage.getItem('codedock_tunnel_last_organization');
+  return window.localStorage.getItem('outpipe_last_organization');
 }
 
 export function getAuthReturnTo(defaultPath = '/select') {

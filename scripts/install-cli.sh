@@ -2,10 +2,10 @@
 
 set -euo pipefail
 
-repo="${CODEDOCK_TUNNEL_REPO:-codedock-tunnel/codedock-tunnel}"
-download_base_url="${CODEDOCK_TUNNEL_DOWNLOAD_BASE_URL:-https://cli.codedock-tunnel.dev/releases/cli}"
-version="${CODEDOCK_TUNNEL_VERSION:-latest}"
-install_dir="${CODEDOCK_TUNNEL_INSTALL_DIR:-$HOME/.local/bin}"
+repo="${OUTPIPE_REPO:-outpipe/outpipe}"
+download_base_url="${OUTPIPE_DOWNLOAD_BASE_URL:-https://cli.outpipe.dev/releases/cli}"
+version="${OUTPIPE_VERSION:-latest}"
+install_dir="${OUTPIPE_INSTALL_DIR:-$HOME/.local/bin}"
 
 case "$(uname -s)" in
   Linux) os="linux" ;;
@@ -19,7 +19,7 @@ case "$(uname -m)" in
   *) echo "unsupported architecture" >&2; exit 1 ;;
 esac
 
-asset="codedock-cli_${os}_${arch}.tar.gz"
+asset="outpipe-cli_${os}_${arch}.tar.gz"
 if [ "$version" = "latest" ]; then
   download_url="${download_base_url}/latest/${asset}"
   fallback_url="https://github.com/${repo}/releases/latest/download/${asset}"
@@ -37,5 +37,5 @@ fi
 tar -xzf "$tmp_dir/$asset" -C "$tmp_dir"
 
 mkdir -p "$install_dir"
-install "$tmp_dir/codedock-cli" "$install_dir/codedock-tunnel"
-echo "installed codedock-tunnel to $install_dir/codedock-tunnel"
+install "$tmp_dir/outpipe-cli" "$install_dir/outpipe"
+echo "installed outpipe to $install_dir/outpipe"

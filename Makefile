@@ -28,19 +28,19 @@ install-cli:
 	bash scripts/install-cli.sh
 
 docker-build:
-	docker build -f docker/Dockerfile.api -t codedock-api:dev .
+	docker build -f docker/Dockerfile.api -t outpipe-api:dev .
 
 docker-images:
 	bash scripts/build-images.sh
 
 docker-api:
-	docker build -f docker/Dockerfile.api -t codedock-api:dev .
+	docker build -f docker/Dockerfile.api -t outpipe-api:dev .
 
 docker-tunnel:
-	docker build -f docker/Dockerfile.tunnel -t codedock-tunnel-server:dev .
+	docker build -f docker/Dockerfile.tunnel -t outpipe-server:dev .
 
 docker-cron:
-	docker build -f docker/Dockerfile.cron -t codedock-tunnel-cron:dev .
+	docker build -f docker/Dockerfile.cron -t outpipe-cron:dev .
 
 docker-check:
-	docker build -f docker/Dockerfile.check -t codedock-tunnel-check:dev .
+	docker build -f docker/Dockerfile.check -t outpipe-check:dev .

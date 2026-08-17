@@ -9,8 +9,8 @@ import (
 	"sync"
 	"time"
 
-	"codedock.run/codedock-tunnel/pkg/protocol"
 	"github.com/gorilla/websocket"
+	"outpipe.dev/outpipe/pkg/protocol"
 )
 
 type RelayConfig struct {
@@ -92,7 +92,7 @@ func OpenRelay(ctx context.Context, cfg RelayConfig, open protocol.OpenTunnel) (
 }
 
 func negotiate(ctx context.Context, connection *websocket.Conn, token string) error {
-	versionPayload, err := protocol.EncodePayload(protocol.MessageTypeVersionNegotiate, "version", protocol.VersionNegotiate{MinVersion: protocol.MinSupportedVersion, MaxVersion: protocol.MaxSupportedVersion, ClientName: "codedock-tunnel-cli", ClientVersion: "0.1.0"})
+	versionPayload, err := protocol.EncodePayload(protocol.MessageTypeVersionNegotiate, "version", protocol.VersionNegotiate{MinVersion: protocol.MinSupportedVersion, MaxVersion: protocol.MaxSupportedVersion, ClientName: "outpipe-cli", ClientVersion: "0.1.0"})
 	if err != nil {
 		return err
 	}

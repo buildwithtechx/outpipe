@@ -3,8 +3,8 @@ package relay
 import (
 	"fmt"
 
-	"codedock.run/codedock-tunnel/pkg/protocol"
-	"codedock.run/codedock-tunnel/pkg/utils"
+	"outpipe.dev/outpipe/pkg/protocol"
+	"outpipe.dev/outpipe/pkg/utils"
 )
 
 func (h *Handler) handleTCPData(message protocol.Envelope) error {

@@ -10,15 +10,15 @@ export function PluginsPage() {
         <div className="mx-auto max-w-3xl text-center">
           <div className="mx-auto inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5 text-sm text-white/55">
             <PackageCheck className="size-4 text-cyan-300" />
-            Official Codedock integrations
+            Official Outpipe integrations
           </div>
           <h1 className="mt-7 text-4xl font-semibold tracking-[-0.06em] sm:text-5xl">
             One lifecycle for every stack.
           </h1>
           <p className="mt-6 text-lg leading-8 text-white/50">
             Install the package that matches your runtime. Each integration
-            handles its own framework details and shares the same secure
-            Codedock protocol underneath.
+            handles its own framework details and shares the same secure Outpipe
+            protocol underneath.
           </p>
         </div>
         <div className="mt-12 grid gap-5 md:grid-cols-2 lg:grid-cols-3">

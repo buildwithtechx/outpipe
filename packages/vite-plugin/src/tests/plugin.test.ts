@@ -1,18 +1,18 @@
 import { describe, expect, it } from 'vitest';
-import { codedockTunnel } from '../services/plugin';
+import { outpipeTunnel } from '../services/plugin';
 
-describe('codedockTunnel', () => {
+describe('outpipeTunnel', () => {
   it('is enabled only for Vite development by default', () => {
-    const plugin = codedockTunnel({
+    const plugin = outpipeTunnel({
       relayUrl: 'wss://relay.test',
       agentToken: 'token',
     });
-    expect(plugin.name).toBe('codedock-tunnel');
+    expect(plugin.name).toBe('outpipe');
     expect(plugin.apply).toBe('serve');
   });
 
   it('does not configure a server when disabled', () => {
-    const plugin = codedockTunnel({
+    const plugin = outpipeTunnel({
       relayUrl: 'wss://relay.test',
       agentToken: 'token',
       enabled: false,

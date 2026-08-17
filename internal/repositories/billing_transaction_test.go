@@ -4,9 +4,9 @@ import (
 	"context"
 	"testing"
 
-	"codedock.run/codedock-tunnel/internal/models"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
+	"outpipe.dev/outpipe/internal/models"
 )
 
 func TestBillingEventAndSubscriptionCommitTogether(t *testing.T) {

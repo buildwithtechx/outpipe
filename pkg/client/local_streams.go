@@ -4,7 +4,7 @@ import (
 	"encoding/base64"
 	"net"
 
-	"codedock.run/codedock-tunnel/pkg/protocol"
+	"outpipe.dev/outpipe/pkg/protocol"
 )
 
 func (c *RelayConnection) handleUDPData(target string, message protocol.Envelope) error {

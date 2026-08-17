@@ -28,5 +28,5 @@ func (m *Metrics) Snapshot() map[string]int64 {
 
 func (m *Metrics) Prometheus() string {
 	snapshot := m.Snapshot()
-	return fmt.Sprintf("codedock_tunnel_connections %d\ncodedock_tunnel_tunnels %d\ncodedock_tunnel_frames %d\ncodedock_tunnel_bytes %d\ncodedock_tunnel_errors %d\n", snapshot["connections"], snapshot["tunnels"], snapshot["frames"], snapshot["bytes"], snapshot["errors"])
+	return fmt.Sprintf("outpipe_connections %d\noutpipe_tunnels %d\noutpipe_frames %d\noutpipe_bytes %d\noutpipe_errors %d\n", snapshot["connections"], snapshot["tunnels"], snapshot["frames"], snapshot["bytes"], snapshot["errors"])
 }

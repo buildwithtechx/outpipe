@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"strings"
 
-	"codedock.run/codedock-tunnel/internal/repositories"
 	"github.com/google/uuid"
+	"outpipe.dev/outpipe/internal/repositories"
 )
 
 type HostnameAllocator struct {

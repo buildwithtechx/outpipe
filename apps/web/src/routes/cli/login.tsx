@@ -7,7 +7,7 @@ function CliLoginPage() {
   return (
     <PagePlaceholder
       title="Authorize CLI"
-      description="Approve a device login request from the Codedock Tunnel CLI."
+      description="Approve a device login request from the Outpipe CLI."
     />
   );
 }

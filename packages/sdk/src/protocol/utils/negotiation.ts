@@ -22,7 +22,7 @@ export const negotiateVersion = (
   return {
     negotiated_version: Math.min(request.max_version, maxSupportedVersion),
     supported_versions: [protocolVersion],
-    server_name: 'codedock-tunnel',
+    server_name: 'outpipe',
     server_version: '0.1.0',
   };
 };

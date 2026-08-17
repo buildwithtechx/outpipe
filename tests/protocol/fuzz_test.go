@@ -3,7 +3,7 @@ package protocol_test
 import (
 	"testing"
 
-	"codedock.run/codedock-tunnel/pkg/protocol"
+	"outpipe.dev/outpipe/pkg/protocol"
 )
 
 func FuzzProtocolDecode(f *testing.F) {

@@ -12,7 +12,7 @@ import {
 const slugPattern = /^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$/;
 
 function rememberOrganization(slug: string) {
-  window.localStorage.setItem('codedock_tunnel_last_organization', slug);
+  window.localStorage.setItem('outpipe_last_organization', slug);
 }
 
 function slugify(value: string) {

@@ -1,9 +1,9 @@
 {
-  "name": "@codedock/desktop",
-  "productName": "Codedock Tunnel",
+  "name": "@outpipe/desktop",
+  "productName": "Outpipe",
   "version": "0.1.0",
   "private": true,
-  "description": "Codedock Tunnel standalone desktop application",
+  "description": "Outpipe standalone desktop application",
   "author": "TechX",
   "type": "module",
   "scripts": {

@@ -2,13 +2,13 @@ package config
 
 import "testing"
 
-func TestLoadUsesCodedockEnvironmentPrefix(t *testing.T) {
-	t.Setenv("CODEDOCK_PORT", "9090")
-	t.Setenv("CODEDOCK_APP_NAME", "test-tunnel")
-	t.Setenv("CODEDOCK_DATABASE_MAX_CONNS", "12")
-	t.Setenv("CODEDOCK_GOOGLE_CLIENT_ID", "google-client")
-	t.Setenv("CODEDOCK_GITHUB_CLIENT_ID", "github-client")
-	t.Setenv("CODEDOCK_ZEPTO_API_KEY", "zepto-key")
+func TestLoadUsesOutpipeEnvironmentPrefix(t *testing.T) {
+	t.Setenv("OUTPIPE_PORT", "9090")
+	t.Setenv("OUTPIPE_APP_NAME", "test-tunnel")
+	t.Setenv("OUTPIPE_DATABASE_MAX_CONNS", "12")
+	t.Setenv("OUTPIPE_GOOGLE_CLIENT_ID", "google-client")
+	t.Setenv("OUTPIPE_GITHUB_CLIENT_ID", "github-client")
+	t.Setenv("OUTPIPE_ZEPTO_API_KEY", "zepto-key")
 
 	cfg, err := LoadAPI()
 	if err != nil {
@@ -33,8 +33,8 @@ func TestLoadUsesCodedockEnvironmentPrefix(t *testing.T) {
 }
 
 func TestLoadRelayDoesNotRequireDatabase(t *testing.T) {
-	t.Setenv("CODEDOCK_PORT", "8081")
-	t.Setenv("CODEDOCK_TUNNEL_MAX_CONNECTIONS", "20")
+	t.Setenv("OUTPIPE_PORT", "8081")
+	t.Setenv("OUTPIPE_MAX_CONNECTIONS", "20")
 
 	cfg, err := LoadRelay()
 	if err != nil {

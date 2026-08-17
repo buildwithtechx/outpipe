@@ -5,13 +5,13 @@ import (
 	"fmt"
 	"strings"
 
-	"codedock.run/codedock-tunnel/internal/config"
-	"codedock.run/codedock-tunnel/internal/infra/billing"
-	"codedock.run/codedock-tunnel/internal/infra/certificates"
-	"codedock.run/codedock-tunnel/internal/infra/mail"
-	"codedock.run/codedock-tunnel/internal/repositories"
-	"codedock.run/codedock-tunnel/internal/services"
 	"gorm.io/gorm"
+	"outpipe.dev/outpipe/internal/config"
+	"outpipe.dev/outpipe/internal/infra/billing"
+	"outpipe.dev/outpipe/internal/infra/certificates"
+	"outpipe.dev/outpipe/internal/infra/mail"
+	"outpipe.dev/outpipe/internal/repositories"
+	"outpipe.dev/outpipe/internal/services"
 )
 
 func NewDatabaseDependencies(db *gorm.DB, cfg config.APIConfig) (Dependencies, error) {

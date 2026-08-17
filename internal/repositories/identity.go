@@ -6,8 +6,8 @@ import (
 	"strings"
 	"time"
 
-	"codedock.run/codedock-tunnel/internal/models"
 	"gorm.io/gorm"
+	"outpipe.dev/outpipe/internal/models"
 )
 
 type UserRepository interface {

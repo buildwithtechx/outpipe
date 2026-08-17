@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	"codedock.run/codedock-tunnel/internal/infra/telemetry"
+	"outpipe.dev/outpipe/internal/infra/telemetry"
 )
 
 type testReporter struct {

@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"strings"
 
-	"codedock.run/codedock-tunnel/pkg/protocol"
+	"outpipe.dev/outpipe/pkg/protocol"
 )
 
 func (c *RelayConnection) forwardHTTP(ctx context.Context, targetURL string, incoming protocol.HTTPRequest) protocol.HTTPResponse {

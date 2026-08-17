@@ -8,15 +8,15 @@ import (
 	"os/signal"
 	"syscall"
 
-	"codedock.run/codedock-tunnel/internal/config"
-	"codedock.run/codedock-tunnel/internal/engine"
-	"codedock.run/codedock-tunnel/internal/infra/certificates"
-	"codedock.run/codedock-tunnel/internal/infra/redis"
-	"codedock.run/codedock-tunnel/internal/relay"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/adaptor"
 	"github.com/gofiber/fiber/v2/middleware/recover"
 	"github.com/google/uuid"
+	"outpipe.dev/outpipe/internal/config"
+	"outpipe.dev/outpipe/internal/engine"
+	"outpipe.dev/outpipe/internal/infra/certificates"
+	"outpipe.dev/outpipe/internal/infra/redis"
+	"outpipe.dev/outpipe/internal/relay"
 )
 
 var version = "dev"

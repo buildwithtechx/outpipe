@@ -4,13 +4,13 @@ import (
 	"fmt"
 	"strings"
 
-	"codedock.run/codedock-tunnel/internal/config"
-	"codedock.run/codedock-tunnel/internal/infra/billing"
-	"codedock.run/codedock-tunnel/internal/infra/certificates"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/helmet"
 	"github.com/gofiber/fiber/v2/middleware/recover"
+	"outpipe.dev/outpipe/internal/config"
+	"outpipe.dev/outpipe/internal/infra/billing"
+	"outpipe.dev/outpipe/internal/infra/certificates"
 )
 
 type Server struct {

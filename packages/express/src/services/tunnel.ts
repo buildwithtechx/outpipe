@@ -1,4 +1,4 @@
-import { RelayConnection } from '@codedock/sdk';
+import { RelayConnection } from '@outpipe/sdk';
 import type {
   ExpressTunnel,
   ExpressTunnelOptions,

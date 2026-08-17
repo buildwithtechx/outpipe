@@ -49,7 +49,7 @@ export function DeveloperExperience() {
                 reverse proxy configuration required.
               </p>
               <div className="mt-8 rounded-2xl border border-white/10 bg-black/30 p-4 font-mono text-sm text-white/65">
-                <span className="text-indigo-300">$</span> codedock-tunnel 3000
+                <span className="text-indigo-300">$</span> outpipe 3000
               </div>
             </article>
             <article className="group rounded-3xl border border-white/5 bg-white/[0.02] p-8 transition-colors hover:border-white/10">

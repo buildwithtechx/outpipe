@@ -7,20 +7,20 @@ icon: SiVite
 Install the plugin:
 
 ```sh
-npm install -D @codedock/vite-plugin
+npm install -D @outpipe/vite-plugin
 ```
 
 Register it in `vite.config.ts`:
 
 ```ts
 import { defineConfig } from 'vite';
-import { codedockTunnel } from '@codedock/vite-plugin';
+import { outpipeTunnel } from '@outpipe/vite-plugin';
 
 export default defineConfig({
   plugins: [
-    codedockTunnel({
-      relayUrl: process.env.CODEDOCK_TUNNEL_RELAY_URL!,
-      agentToken: process.env.CODEDOCK_TUNNEL_AGENT_TOKEN!,
+    outpipeTunnel({
+      relayUrl: process.env.OUTPIPE_RELAY_URL!,
+      agentToken: process.env.OUTPIPE_AGENT_TOKEN!,
       subdomain: 'my-preview',
     }),
   ],

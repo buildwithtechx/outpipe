@@ -14,19 +14,19 @@ const channels = [
   {
     label: 'Product help',
     detail: 'Setup, accounts, and tunnel questions',
-    email: 'hello@codedock-tunnel.dev',
+    email: 'hello@outpipe.dev',
     icon: Mail,
   },
   {
     label: 'Partnerships',
     detail: 'Integrations and business conversations',
-    email: 'partners@codedock-tunnel.dev',
+    email: 'partners@outpipe.dev',
     icon: Handshake,
   },
   {
     label: 'Security',
     detail: 'Private vulnerability disclosure',
-    email: 'security@codedock-tunnel.dev',
+    email: 'security@outpipe.dev',
     icon: ShieldCheck,
   },
 ] as const;
@@ -48,14 +48,12 @@ export function ContactPage() {
     const email = String(data.get('email') ?? '').trim();
     const topic = String(data.get('topic') ?? '').trim();
     const message = String(data.get('message') ?? '').trim();
-    const subject = encodeURIComponent(
-      topic || `Codedock Tunnel message from ${name}`,
-    );
+    const subject = encodeURIComponent(topic || `Outpipe message from ${name}`);
     const body = encodeURIComponent(
       `${message}\n\nFrom: ${name}\nReply to: ${email}`,
     );
     setSubmitted(true);
-    window.location.href = `mailto:hello@codedock-tunnel.dev?subject=${subject}&body=${body}`;
+    window.location.href = `mailto:hello@outpipe.dev?subject=${subject}&body=${body}`;
   }
 
   return (
@@ -74,7 +72,7 @@ export function ContactPage() {
           </h1>
           <p className="mx-auto mt-4 max-w-xl text-lg leading-8 text-white/50">
             Tell us where your tunnel workflow is stuck, what you are building,
-            or where Codedock should connect next.
+            or where Outpipe should connect next.
           </p>
         </motion.div>
 

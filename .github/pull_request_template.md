@@ -13,7 +13,7 @@ Describe what changed and why.
 - [ ] Desktop app
 - [ ] Storage or migrations
 - [ ] Documentation or deployment
-- [ ] Optional Codedock integration
+- [ ] Optional Outpipe integration
 
 ## Verification
 

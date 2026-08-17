@@ -3,44 +3,44 @@ package config
 import "time"
 
 type APIConfig struct {
-	App      AppConfig      `envPrefix:"CODEDOCK_"`
-	Auth     AuthConfig     `envPrefix:"CODEDOCK_"`
-	Database DatabaseConfig `envPrefix:"CODEDOCK_"`
-	Redis    RedisConfig    `envPrefix:"CODEDOCK_"`
-	Mail     MailConfig     `envPrefix:"CODEDOCK_"`
-	Service  ServiceConfig  `envPrefix:"CODEDOCK_"`
-	Billing  BillingConfig  `envPrefix:"CODEDOCK_"`
-	Tunnel   TunnelConfig   `envPrefix:"CODEDOCK_"`
+	App      AppConfig      `envPrefix:"OUTPIPE_"`
+	Auth     AuthConfig     `envPrefix:"OUTPIPE_"`
+	Database DatabaseConfig `envPrefix:"OUTPIPE_"`
+	Redis    RedisConfig    `envPrefix:"OUTPIPE_"`
+	Mail     MailConfig     `envPrefix:"OUTPIPE_"`
+	Service  ServiceConfig  `envPrefix:"OUTPIPE_"`
+	Billing  BillingConfig  `envPrefix:"OUTPIPE_"`
+	Tunnel   TunnelConfig   `envPrefix:"OUTPIPE_"`
 }
 
 type RelayConfig struct {
-	App     AppConfig     `envPrefix:"CODEDOCK_"`
-	Redis   RedisConfig   `envPrefix:"CODEDOCK_"`
-	Tunnel  TunnelConfig  `envPrefix:"CODEDOCK_"`
-	Service ServiceConfig `envPrefix:"CODEDOCK_"`
+	App     AppConfig     `envPrefix:"OUTPIPE_"`
+	Redis   RedisConfig   `envPrefix:"OUTPIPE_"`
+	Tunnel  TunnelConfig  `envPrefix:"OUTPIPE_"`
+	Service ServiceConfig `envPrefix:"OUTPIPE_"`
 	RelayID string        `env:"RELAY_ID"`
 }
 
 type CronConfig struct {
-	App      AppConfig      `envPrefix:"CODEDOCK_"`
-	Database DatabaseConfig `envPrefix:"CODEDOCK_"`
-	Redis    RedisConfig    `envPrefix:"CODEDOCK_"`
-	Service  ServiceConfig  `envPrefix:"CODEDOCK_"`
+	App      AppConfig      `envPrefix:"OUTPIPE_"`
+	Database DatabaseConfig `envPrefix:"OUTPIPE_"`
+	Redis    RedisConfig    `envPrefix:"OUTPIPE_"`
+	Service  ServiceConfig  `envPrefix:"OUTPIPE_"`
 }
 
 type CheckConfig struct {
-	App     AppConfig     `envPrefix:"CODEDOCK_"`
-	Service ServiceConfig `envPrefix:"CODEDOCK_"`
+	App     AppConfig     `envPrefix:"OUTPIPE_"`
+	Service ServiceConfig `envPrefix:"OUTPIPE_"`
 }
 
 type CLIConfig struct {
-	APIURL       string `env:"CODEDOCK_TUNNEL_API_URL" envDefault:"http://localhost:8080"`
-	RelayURL     string `env:"CODEDOCK_TUNNEL_RELAY_URL" envDefault:"ws://localhost:8081"`
-	PublicDomain string `env:"CODEDOCK_TUNNEL_DOMAIN" envDefault:"tunnel.codedock-tunnel.dev"`
-	APIKey       string `env:"CODEDOCK_TUNNEL_API_KEY"`
-	AgentToken   string `env:"CODEDOCK_TUNNEL_AGENT_TOKEN"`
-	Password     string `env:"CODEDOCK_TUNNEL_PASSWORD"`
-	ConfigPath   string `env:"CODEDOCK_TUNNEL_CONFIG_PATH" envDefault:".config/codedock-tunnel/config.json"`
+	APIURL       string `env:"OUTPIPE_API_URL" envDefault:"http://localhost:8080"`
+	RelayURL     string `env:"OUTPIPE_RELAY_URL" envDefault:"ws://localhost:8081"`
+	PublicDomain string `env:"OUTPIPE_DOMAIN" envDefault:"tunnel.outpipe.dev"`
+	APIKey       string `env:"OUTPIPE_API_KEY"`
+	AgentToken   string `env:"OUTPIPE_AGENT_TOKEN"`
+	Password     string `env:"OUTPIPE_PASSWORD"`
+	ConfigPath   string `env:"OUTPIPE_CONFIG_PATH" envDefault:".config/outpipe/config.json"`
 }
 
 type ServiceConfig struct {
@@ -50,7 +50,7 @@ type ServiceConfig struct {
 
 type AppConfig struct {
 	Port             string        `env:"PORT" envDefault:"8080"`
-	Name             string        `env:"APP_NAME" envDefault:"codedock-tunnel"`
+	Name             string        `env:"APP_NAME" envDefault:"outpipe"`
 	Environment      string        `env:"ENV" envDefault:"development"`
 	LogLevel         string        `env:"LOG_LEVEL" envDefault:"info"`
 	ShutdownTimeout  time.Duration `env:"SHUTDOWN_TIMEOUT" envDefault:"10s"`
@@ -71,7 +71,7 @@ type AuthConfig struct {
 	DeviceLoginTTL     time.Duration `env:"DEVICE_LOGIN_TTL" envDefault:"10m"`
 	InvitationTTL      time.Duration `env:"INVITATION_TTL" envDefault:"168h"`
 	OAuthStateTTL      time.Duration `env:"OAUTH_STATE_TTL" envDefault:"10m"`
-	CookieName         string        `env:"AUTH_COOKIE_NAME" envDefault:"codedock_session"`
+	CookieName         string        `env:"AUTH_COOKIE_NAME" envDefault:"outpipe_session"`
 	CookieSecure       bool          `env:"AUTH_COOKIE_SECURE" envDefault:"false"`
 	GoogleClientID     string        `env:"GOOGLE_CLIENT_ID"`
 	GoogleClientSecret string        `env:"GOOGLE_CLIENT_SECRET"`
@@ -81,7 +81,7 @@ type AuthConfig struct {
 }
 
 type DatabaseConfig struct {
-	URL         string        `env:"DATABASE_URL" envDefault:"postgres://codedock:codedock@localhost:5432/codedock?sslmode=disable"`
+	URL         string        `env:"DATABASE_URL" envDefault:"postgres://outpipe:outpipe@localhost:5432/outpipe?sslmode=disable"`
 	MaxConns    int           `env:"DATABASE_MAX_CONNS" envDefault:"25"`
 	MaxLifetime time.Duration `env:"DB_CONN_MAX_LIFETIME" envDefault:"30m"`
 	MaxIdleTime time.Duration `env:"DB_CONN_MAX_IDLE_TIME" envDefault:"5m"`
@@ -101,7 +101,7 @@ type MailConfig struct {
 }
 
 type TunnelConfig struct {
-	Domain          string        `env:"TUNNEL_DOMAIN" envDefault:"tunnel.codedock-tunnel.dev"`
+	Domain          string        `env:"TUNNEL_DOMAIN" envDefault:"tunnel.outpipe.dev"`
 	TokenTTL        time.Duration `env:"TUNNEL_TOKEN_TTL" envDefault:"24h"`
 	MaxConnections  int           `env:"TUNNEL_MAX_CONNECTIONS" envDefault:"1000"`
 	MaxTunnels      int           `env:"TUNNEL_MAX_TUNNELS" envDefault:"1000"`

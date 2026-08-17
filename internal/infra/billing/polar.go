@@ -9,7 +9,7 @@ import (
 	"net/http"
 	"strings"
 
-	"codedock.run/codedock-tunnel/internal/models"
+	"outpipe.dev/outpipe/internal/models"
 )
 
 type PolarConfig struct {
