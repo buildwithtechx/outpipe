@@ -66,11 +66,8 @@ const plans = [
   },
 ] as const;
 
-type Currency = 'USD' | 'NGN';
-
 export function PricingPage() {
   const [yearly, setYearly] = useState(false);
-  const [currency, setCurrency] = useState<Currency>('USD');
 
   return (
     <section className="pb-20 pt-28 sm:pt-32">
@@ -87,52 +84,43 @@ export function PricingPage() {
             capacity as your workflow grows.
           </p>
           <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
-            <div className="inline-flex rounded-xl border border-white/10 bg-white/[0.035] p-1">
+            <div className="inline-flex rounded-full border border-white/10 bg-white/[0.035] p-1">
               <button
                 type="button"
                 onClick={() => setYearly(false)}
-                className={`rounded-lg px-4 py-2 text-sm transition-colors ${!yearly ? 'bg-white text-black' : 'text-white/45 hover:text-white'}`}
+                className={`rounded-full px-4 py-2 text-sm transition-colors ${!yearly ? 'bg-white text-black' : 'text-white/45 hover:text-white'}`}
               >
                 Monthly
               </button>
               <button
                 type="button"
                 onClick={() => setYearly(true)}
-                className={`flex items-center gap-2 rounded-lg px-4 py-2 text-sm transition-colors ${yearly ? 'bg-indigo-300 text-[#080914]' : 'text-white/45 hover:text-white'}`}
+                className={`flex items-center gap-2 rounded-full px-4 py-2 text-sm transition-colors ${yearly ? 'bg-indigo-300 text-[#080914]' : 'text-white/45 hover:text-white'}`}
               >
                 Yearly
-                <span className="rounded-full bg-emerald-400/15 px-2 py-0.5 text-[10px] text-emerald-300">
+                <span className="rounded-full bg-emerald-300 px-2 py-0.5 text-[10px] font-semibold text-emerald-950">
                   2 months free
                 </span>
               </button>
-            </div>
-            <div className="inline-flex rounded-xl border border-white/10 bg-white/[0.035] p-1">
-              {(['USD', 'NGN'] as Currency[]).map((value) => (
-                <button
-                  key={value}
-                  type="button"
-                  onClick={() => setCurrency(value)}
-                  className={`rounded-lg px-4 py-2 text-sm transition-colors ${currency === value ? 'bg-white/10 text-white' : 'text-white/40 hover:text-white'}`}
-                >
-                  {value}
-                </button>
-              ))}
             </div>
           </div>
         </div>
 
         <div className="mt-14 grid gap-5 md:grid-cols-2 xl:grid-cols-4">
           {plans.map((plan) => {
-            const monthlyPrice = currency === 'USD' ? plan.usd : plan.ngn;
-            const amount = yearly ? monthlyPrice * 10 : monthlyPrice;
-            const formatted = new Intl.NumberFormat(
-              currency === 'USD' ? 'en-US' : 'en-NG',
-              {
-                style: 'currency',
-                currency,
-                maximumFractionDigits: 0,
-              },
-            ).format(amount);
+            const usdAmount = yearly ? plan.usd * 10 : plan.usd;
+            const ngnAmount = yearly ? plan.ngn * 10 : plan.ngn;
+            const period = yearly ? 'year' : 'month';
+            const formattedUSD = new Intl.NumberFormat('en-US', {
+              style: 'currency',
+              currency: 'USD',
+              maximumFractionDigits: 0,
+            }).format(usdAmount);
+            const formattedNGN = new Intl.NumberFormat('en-NG', {
+              style: 'currency',
+              currency: 'NGN',
+              maximumFractionDigits: 0,
+            }).format(ngnAmount);
 
             return (
               <article
@@ -150,14 +138,17 @@ export function PricingPage() {
                 </p>
                 <div className="mt-7 flex items-end gap-1">
                   <span className="text-4xl font-bold tracking-tight">
-                    {formatted}
+                    {formattedUSD}
                   </span>
-                  {amount > 0 && (
+                  {usdAmount > 0 && (
                     <span className="pb-1 text-sm text-white/35">
-                      /{yearly ? 'year' : 'month'}
+                      /{period}
                     </span>
                   )}
                 </div>
+                <p className="mt-2 text-sm text-white/40">
+                  {formattedNGN} / {period} equivalent
+                </p>
                 <div className="my-7 h-px bg-white/10" />
                 <ul className="flex-1 space-y-4">
                   {plan.features.map(([feature, included]) => (
@@ -182,7 +173,7 @@ export function PricingPage() {
                   to="/signup"
                   className={`mt-8 rounded-full py-3 text-center text-sm font-bold transition-colors ${plan.featured ? 'bg-white text-black hover:bg-white/85' : 'bg-white/[0.07] text-white hover:bg-white/12'}`}
                 >
-                  {amount === 0 ? 'Start free' : `Choose ${plan.name}`}
+                  {usdAmount === 0 ? 'Start free' : `Choose ${plan.name}`}
                 </Link>
               </article>
             );
