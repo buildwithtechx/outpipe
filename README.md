@@ -65,7 +65,7 @@ The Go commands are independently deployable and do not all need to run on the s
 | `cmd/tunnel` | Public VPS or container                                         | Long-running tunnel relay and data plane |
 | `cmd/cron`   | Long-running worker under a process manager or worker container | Scheduled maintenance jobs               |
 | `cmd/check`  | Internal service container or process-manager service           | HTTP domain and edge verification        |
-| `cmd/cli`    | User workstation binary or package manager                  | Opens tunnels and calls the API          |
+| `cmd/cli`    | User workstation binary or package manager                      | Opens tunnels and calls the API          |
 
 Each server-side command has its own Dockerfile:
 
@@ -80,13 +80,13 @@ The CLI is distributed as a platform binary. It runs on the user’s workstation
 
 Each independently deployed command has a focused environment example:
 
-| Command | Environment example |
-| --- | --- |
-| API server | `cmd/server/.env.example` |
-| Tunnel relay | `cmd/tunnel/.env.example` |
-| Cron worker | `cmd/cron/.env.example` |
-| Check service | `cmd/check/.env.example` |
-| CLI | `cmd/cli/.env.example` |
+| Command       | Environment example       |
+| ------------- | ------------------------- |
+| API server    | `cmd/server/.env.example` |
+| Tunnel relay  | `cmd/tunnel/.env.example` |
+| Cron worker   | `cmd/cron/.env.example`   |
+| Check service | `cmd/check/.env.example`  |
+| CLI           | `cmd/cli/.env.example`    |
 
 ## Provisioning platform administrators
 
