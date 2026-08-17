@@ -36,7 +36,7 @@ It is designed to work without Outpipe. Outpipe is an optional integration that 
 
 Requirements:
 
-- Go 1.25 or newer
+- Go 1.25.13 or newer
 - Node.js 22 or newer
 - npm 10 or newer
 
