@@ -9,7 +9,7 @@ func TestAllPlansIsStableAndIncludesFreePlan(t *testing.T) {
 		t.Fatalf("expected 4 plans, got %d", len(all))
 	}
 
-	if all[0].Key != "beam" || all[1].Key != "free" {
+	if all[0].Key != "edge" || all[1].Key != "free" {
 		t.Fatalf("plans are not sorted: %+v", all)
 	}
 

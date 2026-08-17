@@ -121,12 +121,12 @@ type BillingConfig struct {
 	PolarBaseURL            string        `env:"POLAR_BASE_URL" envDefault:"https://sandbox-api.polar.sh"`
 	PolarAccessToken        string        `env:"POLAR_ACCESS_TOKEN"`
 	PolarWebhookSecret      string        `env:"POLAR_WEBHOOK_SECRET"`
-	PolarProductRay         string        `env:"POLAR_PRODUCT_RAY"`
-	PolarProductBeam        string        `env:"POLAR_PRODUCT_BEAM"`
-	PolarProductPulse       string        `env:"POLAR_PRODUCT_PULSE"`
-	PolarProductRayYearly   string        `env:"POLAR_PRODUCT_RAY_YEARLY"`
-	PolarProductBeamYearly  string        `env:"POLAR_PRODUCT_BEAM_YEARLY"`
-	PolarProductPulseYearly string        `env:"POLAR_PRODUCT_PULSE_YEARLY"`
+	PolarProductLink        string        `env:"POLAR_PRODUCT_LINK"`
+	PolarProductRoute       string        `env:"POLAR_PRODUCT_ROUTE"`
+	PolarProductEdge        string        `env:"POLAR_PRODUCT_EDGE"`
+	PolarProductLinkYearly  string        `env:"POLAR_PRODUCT_LINK_YEARLY"`
+	PolarProductRouteYearly string        `env:"POLAR_PRODUCT_ROUTE_YEARLY"`
+	PolarProductEdgeYearly  string        `env:"POLAR_PRODUCT_EDGE_YEARLY"`
 	PaystackBaseURL         string        `env:"PAYSTACK_BASE_URL" envDefault:"https://api.paystack.co"`
 	PaystackSecret          string        `env:"PAYSTACK_SECRET_KEY"`
 	WebhookSecret           string        `env:"BILLING_WEBHOOK_SECRET"`
