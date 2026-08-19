@@ -2,16 +2,6 @@
 
 Remaining work: production hardening and tests, dashboard functionality, desktop integration, optional integrations, and release operations.
 
-## Standalone product principles
-
-- [ ] Provide Outpipe integration as an optional adapter, plugin, or external API client.
-- [ ] Document the hosted standalone product and optional Outpipe integration.
-
-## Product surfaces
-
-- [ ] Build a standalone tunnel dashboard with its own authentication and organization model.
-- [ ] Keep the Tauri desktop application usable with standalone tunnel servers.
-
 ## Route structure
 
 Dashboard routes should remain browser-only and organization-scoped:
@@ -163,8 +153,6 @@ apps/web/src/features/auth/
 The browser flow requires these API changes before the dashboard UI is wired:
 
 - [ ] Set API cookie `Secure`, `HttpOnly`, `SameSite=Lax`, and an intentional shared-domain cookie policy for hosted dashboard/API subdomains.
-
-- [ ] Keep `integrations/outpipe/` as an optional external adapter.
 
 ## Future SDKs
 
