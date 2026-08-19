@@ -14,6 +14,7 @@ const (
 	AlertRepeatedPaymentFailure AlertType = "repeated_payment_failure"
 	AlertStalePresenceGrowth    AlertType = "stale_presence_growth"
 	AlertQuotaInconsistency     AlertType = "quota_inconsistency"
+	AlertDeadLetteredJob        AlertType = "dead_lettered_job"
 )
 
 type AlertService struct {
@@ -87,6 +88,22 @@ func (s *AlertService) AlertQuotaInconsistency(ctx context.Context, organization
 		},
 	}); err != nil {
 		return fmt.Errorf("report quota inconsistency alert: %w", err)
+	}
+
+	return nil
+}
+
+func (s *AlertService) AlertJobDeadLetter(ctx context.Context, jobName string, err error, attempts int) error {
+
+	if err := s.reporter.Report(ctx, telemetry.Event{
+		Name: string(AlertDeadLetteredJob),
+		Properties: map[string]any{
+			"job":      jobName,
+			"attempts": attempts,
+			"error":    err.Error(),
+		},
+	}); err != nil {
+		return fmt.Errorf("report dead-lettered job alert: %w", err)
 	}
 
 	return nil

@@ -26,11 +26,15 @@ type CronConfig struct {
 	Database DatabaseConfig `envPrefix:"OUTPIPE_"`
 	Redis    RedisConfig    `envPrefix:"OUTPIPE_"`
 	Service  ServiceConfig  `envPrefix:"OUTPIPE_"`
+	Backup   BackupConfig   `envPrefix:"OUTPIPE_"`
 }
 
 type CheckConfig struct {
-	App     AppConfig     `envPrefix:"OUTPIPE_"`
-	Service ServiceConfig `envPrefix:"OUTPIPE_"`
+	App      AppConfig      `envPrefix:"OUTPIPE_"`
+	Service  ServiceConfig  `envPrefix:"OUTPIPE_"`
+	Database DatabaseConfig `envPrefix:"OUTPIPE_"`
+	Redis    RedisConfig    `envPrefix:"OUTPIPE_"`
+	RelayURL string         `env:"CHECK_RELAY_URL"`
 }
 
 type CLIConfig struct {
@@ -46,6 +50,14 @@ type CLIConfig struct {
 type ServiceConfig struct {
 	InternalAPIURL    string `env:"INTERNAL_API_URL" envDefault:"http://127.0.0.1:9090"`
 	InternalAPISecret string `env:"INTERNAL_API_SECRET"`
+}
+
+type BackupConfig struct {
+	Directory     string `env:"BACKUP_DIRECTORY"`
+	DatabaseURL   string `env:"DATABASE_URL"`
+	Keep          int    `env:"BACKUP_KEEP" envDefault:"7"`
+	PgDumpPath    string `env:"BACKUP_PG_DUMP_PATH" envDefault:"pg_dump"`
+	PgRestorePath string `env:"BACKUP_PG_RESTORE_PATH" envDefault:"pg_restore"`
 }
 
 type AppConfig struct {

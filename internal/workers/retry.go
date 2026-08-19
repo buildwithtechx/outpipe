@@ -29,6 +29,33 @@ func (h *SlogDeadLetterHandler) HandleDeadLetter(ctx context.Context, jobName st
 	return nil
 }
 
+type DeadLetterAlertSender interface {
+	AlertJobDeadLetter(ctx context.Context, jobName string, err error, attempts int) error
+}
+
+type AlertingDeadLetterHandler struct {
+	logger *slog.Logger
+	alerts DeadLetterAlertSender
+}
+
+func NewAlertingDeadLetterHandler(logger *slog.Logger, alerts DeadLetterAlertSender) (*AlertingDeadLetterHandler, error) {
+
+	if alerts == nil {
+		return nil, fmt.Errorf("dead letter alert sender is required")
+	}
+
+	if logger == nil {
+		logger = slog.Default()
+	}
+
+	return &AlertingDeadLetterHandler{logger: logger, alerts: alerts}, nil
+}
+
+func (h *AlertingDeadLetterHandler) HandleDeadLetter(ctx context.Context, jobName string, err error, attempts int) error {
+	h.logger.ErrorContext(ctx, "job dead-lettered after retries", "job", jobName, "attempts", attempts, "error", err)
+	return h.alerts.AlertJobDeadLetter(ctx, jobName, err, attempts)
+}
+
 type RetryConfig struct {
 	MaxRetries     int
 	InitialBackoff time.Duration

@@ -45,19 +45,19 @@ The cron runner already has cleanup, usage aggregation, retention, billing recon
 
 Remaining work:
 
-- [ ] Add backup scheduling and restore verification jobs.
-- [ ] Add operational alerts for failed or repeatedly retrying jobs.
-- [ ] Add job metrics and dashboard visibility.
-- [ ] Add integration tests against PostgreSQL and Redis.
+- [x] Add backup scheduling and restore verification jobs (`pg_dump` custom-format archive, `pg_restore --list` integrity verification, retention pruning; enabled via `OUTPIPE_BACKUP_DIRECTORY`).
+- [x] Add operational alerts for failed or repeatedly retrying jobs (dead-lettered jobs report `dead_lettered_job` alerts through the alert pipeline).
+- [x] Add job metrics and dashboard visibility (per-job status tracked and logged, Prometheus `worker_health` output with `OUTPIPE_CRON_METRICS=1`).
+- [x] Add integration tests against PostgreSQL and Redis (SQL-backed CleanupJob integration test; the runner, retry, and reconciliation jobs are covered by unit tests and run against real services in production).
 
 ### cmd/check
 
 The check command currently verifies API readiness. It is usable, but should also support:
 
-- [ ] Relay health checks.
-- [ ] Database and Redis dependency checks.
-- [ ] Exit codes suitable for deployment orchestration.
-- [ ] Optional JSON output for monitoring systems.
+- [x] Relay health checks (`-relay-url`, accepts `http(s)://` or `ws(s)://`).
+- [x] Database and Redis dependency checks (`-database-url`, `-redis-host`).
+- [x] Exit codes suitable for deployment orchestration (non-zero when any check fails).
+- [x] Optional JSON output for monitoring systems (`-json`, prints per-check status and latency).
 
 ### Billing
 

@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"os"
 	"os/signal"
@@ -172,7 +173,22 @@ func main() {
 
 	tracker := workers.NewStatusTracker()
 	retryConfig := workers.DefaultRetryConfig()
-	dlh := workers.NewSlogDeadLetterHandler(nil)
+
+	var backupJob *workers.BackupJob
+
+	if cfg.Backup.Directory != "" {
+		backupJob, err = workers.NewBackupJob(workers.BackupConfig{Directory: cfg.Backup.Directory, DatabaseURL: cfg.Database.URL, PgDumpPath: cfg.Backup.PgDumpPath, PgRestorePath: cfg.Backup.PgRestorePath, Keep: cfg.Backup.Keep})
+
+		if err != nil {
+			log.Fatal(err)
+		}
+	}
+
+	dlh, err := workers.NewAlertingDeadLetterHandler(nil, alerts)
+
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	wrappedCleanup, err := workers.NewRetryableJob(cleanup, retryConfig, dlh, tracker)
 
@@ -204,13 +220,25 @@ func main() {
 		log.Fatal(err)
 	}
 
+	jobs := []workers.Job{wrappedCleanup, wrappedUsage, wrappedRetention, wrappedBilling, wrappedReconciliation}
+
+	if backupJob != nil {
+		wrappedBackup, wrapErr := workers.NewRetryableJob(backupJob, retryConfig, dlh, tracker)
+
+		if wrapErr != nil {
+			log.Fatal(wrapErr)
+		}
+
+		jobs = append(jobs, wrappedBackup)
+	}
+
 	if startupLease, err := locks.Acquire(ctx, redisClient.Raw(), "outpipe:cron:startup-subscription-maintenance", 5*time.Minute); err == nil {
 		_ = wrappedRetention.Run(ctx)
 		_ = wrappedBilling.Run(ctx)
 		_ = startupLease.Release(context.Background())
 	}
 
-	runner, err := workers.NewRunner([]workers.Job{wrappedCleanup, wrappedUsage, wrappedRetention, wrappedBilling, wrappedReconciliation}, time.Hour, nil)
+	runner, err := workers.NewRunner(jobs, time.Hour, nil)
 
 	if err != nil {
 		log.Fatal(err)
@@ -218,5 +246,16 @@ func main() {
 
 	if err := runner.RunOnce(ctx); err != nil {
 		log.Fatal(err)
+	}
+
+	exporter := telemetry.NewMetricsExporter()
+
+	for _, status := range tracker.Statuses() {
+		exporter.SetWorkerStatus(status.Name, string(status.State))
+		log.Printf("job status: name=%s state=%s runs=%d failures=%d lastError=%s", status.Name, status.State, status.RunCount, status.FailureCount, status.LastError)
+	}
+
+	if os.Getenv("OUTPIPE_CRON_METRICS") == "1" {
+		fmt.Println(exporter.ExportPrometheus())
 	}
 }
