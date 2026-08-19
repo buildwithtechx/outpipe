@@ -11,6 +11,13 @@ bin/
 *.test
 *.out
 
+# go build ./cmd/* without -o drops binaries at the repo root
+/cli
+/server
+/tunnel
+/cron
+/check
+
 target/
 apps/desktop/src-tauri/gen/
 apps/desktop/src-tauri/target/

@@ -42,7 +42,13 @@ func (g *Gateway) Checkout(ctx context.Context, plan models.Plan, organizationID
 			return "", fmt.Errorf("resolve billing email: %w", err)
 		}
 
-		transaction, err := g.paystack.InitializeTransaction(ctx, email, plan.PriceMinor, map[string]any{"organization_id": organizationID, "plan_key": plan.Key})
+		amount := plan.PriceMinor
+
+		if plan.BillingInterval == models.BillingIntervalYear {
+			amount = annualPrice(amount)
+		}
+
+		transaction, err := g.paystack.InitializeTransaction(ctx, email, amount, map[string]any{"organization_id": organizationID, "plan_key": plan.Key, "billing_interval": plan.BillingInterval})
 
 		if err != nil {
 			return "", err

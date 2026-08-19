@@ -13,14 +13,15 @@ import (
 )
 
 type PolarConfig struct {
-	BaseURL     string
-	AccessToken string
-	HTTPClient  *http.Client
-	ProductIDs  map[string]string
+	BaseURL          string
+	AccessToken      string
+	HTTPClient       *http.Client
+	ProductIDs       map[string]string
+	YearlyProductIDs map[string]string
 }
 
 func (c *PolarClient) Checkout(ctx context.Context, plan models.Plan, organizationID string) (string, error) {
-	productID, err := c.productID(plan.Key)
+	productID, err := c.productID(plan.Key, plan.BillingInterval)
 
 	if err != nil {
 		return "", err
@@ -29,7 +30,7 @@ func (c *PolarClient) Checkout(ctx context.Context, plan models.Plan, organizati
 	var response struct {
 		URL string `json:"url"`
 	}
-	if err := c.Request(ctx, http.MethodPost, "/v1/checkouts", map[string]any{"product_id": productID, "metadata": map[string]string{"organization_id": organizationID}}, &response); err != nil {
+	if err := c.Request(ctx, http.MethodPost, "/v1/checkouts", map[string]any{"product_id": productID, "metadata": map[string]string{"organization_id": organizationID, "billing_interval": plan.BillingInterval}}, &response); err != nil {
 		return "", err
 	}
 
@@ -60,10 +61,11 @@ func (c *PolarClient) Resume(ctx context.Context, subscriptionID string) error {
 }
 
 type PolarClient struct {
-	baseURL     string
-	accessToken string
-	httpClient  *http.Client
-	productIDs  map[string]string
+	baseURL          string
+	accessToken      string
+	httpClient       *http.Client
+	productIDs       map[string]string
+	yearlyProductIDs map[string]string
 }
 
 func NewPolar(cfg PolarConfig) (*PolarClient, error) {
@@ -84,14 +86,20 @@ func NewPolar(cfg PolarConfig) (*PolarClient, error) {
 		client = http.DefaultClient
 	}
 
-	return &PolarClient{baseURL: baseURL, accessToken: cfg.AccessToken, httpClient: client, productIDs: cfg.ProductIDs}, nil
+	return &PolarClient{baseURL: baseURL, accessToken: cfg.AccessToken, httpClient: client, productIDs: cfg.ProductIDs, yearlyProductIDs: cfg.YearlyProductIDs}, nil
 }
 
-func (c *PolarClient) productID(planKey string) (string, error) {
-	productID := c.productIDs[planKey]
+func (c *PolarClient) productID(planKey, billingInterval string) (string, error) {
+	productIDs := c.productIDs
+
+	if billingInterval == models.BillingIntervalYear {
+		productIDs = c.yearlyProductIDs
+	}
+
+	productID := productIDs[planKey]
 
 	if productID == "" {
-		return "", fmt.Errorf("polar product is not configured for plan %q", planKey)
+		return "", fmt.Errorf("polar product is not configured for plan %q at the %q interval", planKey, billingInterval)
 	}
 
 	return productID, nil

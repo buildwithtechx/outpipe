@@ -20,6 +20,11 @@ const (
 	BillingProviderPaystack BillingProvider = "paystack"
 )
 
+const (
+	BillingIntervalMonth = "month"
+	BillingIntervalYear  = "year"
+)
+
 type Plan struct {
 	Base
 	Key             string `json:"key" gorm:"uniqueIndex;not null"`

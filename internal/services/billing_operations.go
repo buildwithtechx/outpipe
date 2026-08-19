@@ -16,10 +16,16 @@ type BillingGateway interface {
 
 func (s *BillingService) SetGateway(gateway BillingGateway) { s.gateway = gateway }
 
-func (s *BillingService) Checkout(ctx context.Context, organizationID, planKey string) (string, error) {
+func (s *BillingService) Checkout(ctx context.Context, organizationID, planKey, billingInterval string) (string, error) {
 
 	if s.gateway == nil {
 		return "", fmt.Errorf("billing gateway is not configured")
+	}
+
+	billingInterval, err := normalizeBillingInterval(billingInterval)
+
+	if err != nil {
+		return "", err
 	}
 
 	plan, err := s.billing.FindPlan(ctx, planKey)
@@ -28,6 +34,7 @@ func (s *BillingService) Checkout(ctx context.Context, organizationID, planKey s
 		return "", fmt.Errorf("find checkout plan: %w", err)
 	}
 
+	plan.BillingInterval = billingInterval
 	url, err := s.gateway.Checkout(ctx, plan, organizationID)
 
 	if err != nil {
@@ -35,6 +42,19 @@ func (s *BillingService) Checkout(ctx context.Context, organizationID, planKey s
 	}
 
 	return url, nil
+}
+
+func normalizeBillingInterval(interval string) (string, error) {
+
+	if interval == "" {
+		return models.BillingIntervalMonth, nil
+	}
+
+	if interval != models.BillingIntervalMonth && interval != models.BillingIntervalYear {
+		return "", fmt.Errorf("unsupported billing interval %q (use %q or %q)", interval, models.BillingIntervalMonth, models.BillingIntervalYear)
+	}
+
+	return interval, nil
 }
 
 func (s *BillingService) Portal(ctx context.Context, organizationID string) (string, error) {

@@ -61,6 +61,7 @@ type BillingTransition struct {
 	AttemptsKnown         bool
 	PreviousPlan          string
 	PaidAt                *time.Time
+	BillingInterval       string
 }
 
 func (s *BillingService) ProcessWebhook(ctx context.Context, event *models.BillingEvent, transition *BillingTransition) (bool, error) {
@@ -307,6 +308,10 @@ func (s *BillingService) applyTransition(subscription *models.Subscription, tran
 		}
 
 		subscription.ProviderAuthCode = encrypted
+	}
+
+	if transition.BillingInterval != "" {
+		subscription.BillingInterval = transition.BillingInterval
 	}
 
 	return nil

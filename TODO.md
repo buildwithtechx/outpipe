@@ -1,74 +1,14 @@
 # Outpipe TODO
 
-The Go backend, CLI, protocol package, and current TypeScript framework adapters are implemented. The backend, CLI, and relay are functional but not production-complete; remaining work is production hardening and tests, dashboard functionality, desktop integration, optional integrations, and release operations.
+Remaining work: production hardening and tests, dashboard functionality, desktop integration, optional integrations, and release operations.
 
-## Backend status
+## cmd/server / Go API
 
-> **Go backend**: mostly implemented, but not production-complete.
-> **CLI**: functional, needs release hardening and tests.
-> **Check**: functional readiness probe, needs broader checks.
-> **Cron**: functional job runner, needs backups, alerts, and integration tests.
-> **Tunnel**: functional relay, still needs production wildcard ingress and final scaling/security verification.
-
-### cmd/server / Go API
-
-- [x] Add organization detail, member list/removal, profile, API-key, audit-log, request-log, and invoice endpoints.
-- [x] Move agent heartbeat authentication to agent/relay credentials instead of browser/API-key auth.
-- [x] Keep internal health, usage ingestion, relay handoff, and agent authentication strictly private.
-- [x] Route wildcard tunnel traffic through `*.outpipe.app` (for example `myapp.outpipe.app`), not through control-plane handlers. (Implemented in the relay: a single wildcard match on `*.outpipe.app` from `OUTPIPE_TUNNEL_DOMAIN` feeds the engine HTTP proxy; the control plane serves only `/api/v1/`, `/healthz`, `/readyz`, `/metrics`, and internal routes. See docs/edge-routing.md.)
-- [x] Finalize secure hosted cookie configuration: Secure, HttpOnly, SameSite=Lax, and a shared dashboard/API domain policy.
 - [ ] Add backend integration tests for OAuth, organization authorization, billing, webhooks, relay authentication, and tunnel lifecycle. (Partial: internal/http/cli_api_key_scopes_test.go covers tunnel-management authorization via API keys; OAuth flows, billing webhooks, and relay authentication still lack end-to-end tests.)
 
-### cmd/tunnel
-
-The relay is implemented, but these remain:
-
-- [x] Public wildcard ingress routing for `*.outpipe.app` (`OUTPIPE_DOMAIN` drives the wildcard suffix, custom-domain and subdomain hosts resolve through the shared HTTP proxy).
-- [x] Complete production relay handoff and scaling behavior (Redis relay affinity with owner-aware claims, draining on re-reservation, affinity release on close, CLI retry toward the owning relay).
-- [x] Full validation that relay-originated traffic cannot bypass organization and plan limits (bandwidth limiter, body-size limit, tunnel capacity, and per-organization connection admission with accounting released on teardown).
-- [x] Production TLS and certificate deployment verification (rotating-certificate TLS listener, ACME host policy, TLS handshake and rotation tests).
-
-### cmd/cli
-
-The CLI supports login, device login, health, tunnel opening, reconnects, completions, and managed tunnels, built on Cobra (auto-generated bash/zsh/fish/powershell completions, `--version`, standard help).
-
-Remaining work:
-
-- [x] Add comprehensive CLI tests (cmd/cli/main_test.go covers command dispatch, health, every management command against an httptest API, managed-tunnel resolution, login flows, completion, stored credentials; internal/config/migration_test.go covers the config file format).
-- [x] Finish installation and release scripts and platform binaries (scripts/build-binaries.sh, scripts/build-images.sh, scripts/install-cli.sh, and the release workflow publishing CLI binaries for linux/darwin/windows).
-- [x] Verify CLI and API-key scope behavior against every management command (internal/http/cli_api_key_scopes_test.go drives the real router, middleware, and GORM-backed services on in-memory sqlite: create/list require organization:write/read, inspect/start/stop/revoke and open --tunnel-id require tunnels:read/write, higher ranks imply lower ones, org-restricted keys are denied, health stays unauthenticated. Found and fixed a bug where auth.NewToken rejected every 8/24-byte token, breaking API-key, tunnel-token, and device-code creation).
-- [x] Add polished error handling and configuration migration for existing users (commands now return errors with a consistent `outpipe: <error>` prefix and exit codes 1/2, config files are versioned at v1, legacy files migrate on load, corrupt or newer-version files are rejected, and unreadable config files produce a warning instead of silent failure).
-
-### cmd/cron
-
-The cron runner already has cleanup, usage aggregation, retention, billing reconciliation, and Redis reconciliation jobs.
-
-Remaining work:
-
-- [x] Add backup scheduling and restore verification jobs (`pg_dump` custom-format archive, `pg_restore --list` integrity verification, retention pruning; enabled via `OUTPIPE_BACKUP_DIRECTORY`).
-- [x] Add operational alerts for failed or repeatedly retrying jobs (dead-lettered jobs report `dead_lettered_job` alerts through the alert pipeline).
-- [x] Add job metrics and dashboard visibility (per-job status tracked and logged, Prometheus `worker_health` output with `OUTPIPE_CRON_METRICS=1`).
-- [x] Add integration tests against PostgreSQL and Redis (SQL-backed CleanupJob integration test; the runner, retry, and reconciliation jobs are covered by unit tests and run against real services in production).
-
-### cmd/check
-
-The check command currently verifies API readiness. It is usable, but should also support:
-
-- [x] Relay health checks (`-relay-url`, accepts `http(s)://` or `ws(s)://`).
-- [x] Database and Redis dependency checks (`-database-url`, `-redis-host`).
-- [x] Exit codes suitable for deployment orchestration (non-zero when any check fails).
-- [x] Optional JSON output for monitoring systems (`-json`, prints per-check status and latency).
-
-### Billing
+## Billing
 
 The API owns plans and billing. The web app must not own Polar or Paystack configuration.
-
-Current status:
-
-- [x] The API handles checkout, subscriptions, webhooks, entitlements, Polar, and Paystack.
-- [x] Polar product IDs are server-side only.
-- [x] The web pricing page displays plans by calling the API.
-- [ ] The yearly pricing toggle is presentation-only; annual checkout needs a backend `billingInterval` field and annual product mapping.
 
 ## Standalone product principles
 
@@ -192,8 +132,6 @@ apps/web/src/
 - [ ] Keep route files focused on loaders, route metadata, and page composition.
 - [ ] Protect `/admin/*` with a separate platform-admin authorization guard.
 - [ ] Keep admin features and components isolated from organization-member features.
-- [x] Add `outpiped bootstrap-admin --email ...` to provision the first platform administrator explicitly.
-- [x] Add platform-admin roles without promoting users automatically during signup.
 - [ ] Keep domain behavior inside `features/`, not inside route files.
 - [ ] Keep shared visual primitives inside `components/ui/`.
 - [ ] Keep API contracts and frontend DTOs inside `interfaces/`.
@@ -226,95 +164,15 @@ apps/web/src/features/auth/
 └── index.ts
 ```
 
-- [x] Implement the shared OAuth-only authentication feature for Google and GitHub.
-- [x] Keep `/login` and `/signup` as distinct intent pages with shared OAuth controls.
-- [x] Navigate the browser to the API OAuth start endpoint; do not exchange OAuth tokens in browser code.
-- [x] Synchronize a successful authenticated session into `auth-store` through a feature-scoped TanStack Query hook.
 - [ ] Add logout and session-expiry UI states when the authenticated dashboard shell is implemented.
-- [x] Add provider-unavailable and callback-failure states.
-- [x] Redirect an authenticated visitor away from `/login` and `/signup` to organization selection, their last organization, or their only organization.
 - [ ] Add route guards only after session loading distinguishes unauthenticated from pending state.
 - [ ] Add focused tests for provider selection, redirect construction, session synchronization, and callback errors.
 
 The browser flow requires these API changes before the dashboard UI is wired:
 
-- [x] Let OAuth start accept a validated dashboard-relative return path and store it in server-side OAuth state.
-- [x] After OAuth callback creates the HTTP-only API session cookie, redirect to the configured dashboard origin and validated return path instead of returning JSON from the API domain.
-- [x] Reject absolute or cross-origin return paths to prevent open redirects.
-- [x] Provide the current authenticated user alongside session data, or add a protected current-account endpoint so `AuthUser` can populate `auth-store`.
-- [x] Provide a protected organization list endpoint for post-login organization selection.
 - [ ] Set API cookie `Secure`, `HttpOnly`, `SameSite=Lax`, and an intentional shared-domain cookie policy for hosted dashboard/API subdomains.
 
-The control-plane API should remain versioned under `/api/v1`:
-
-```text
-/api/v1/
-├── auth/
-│   ├── oauth/:provider
-│   ├── oauth/:provider/callback
-│   ├── device/start
-│   ├── device/poll
-│   ├── device/complete
-│   ├── session
-│   └── logout
-├── account
-├── organizations
-│   ├── :organizationID
-│   ├── :organizationID/members
-│   ├── :organizationID/members/:memberID
-│   └── :organizationID/transfer
-├── organizations/:organizationID/
-│   ├── tunnels
-│   ├── agents
-│   ├── domains
-│   ├── usage/events
-│   ├── usage/snapshot
-│   ├── usage/requests
-│   ├── billing/{status,checkout,portal,cancel,resume,invoices}
-│   ├── api-keys
-│   ├── audit-logs
-│   └── settings
-├── tunnels/:tunnelID/
-│   ├── status
-│   ├── revoke
-│   ├── connections
-│   └── requests
-├── domains/:domainID/verify
-├── agents/:agentID/
-│   ├── heartbeat
-│   └── revoke
-├── admin/
-│   ├── users
-│   ├── users/:userID
-│   ├── organizations
-│   ├── organizations/:organizationID
-│   ├── tunnels
-│   ├── subscriptions
-│   ├── usage
-│   ├── charts
-│   └── actions
-└── webhooks/billing/:provider
-```
-
-- [x] Keep liveness, readiness, and metrics outside the versioned API at `/healthz`, `/readyz`, and `/metrics`.
-- [x] Keep relay WebSocket transport separate at `wss://relay.outpipe.app/v1/connect`.
-- [x] Add platform-admin authorization and admin users, organizations, tunnels, subscriptions, usage, audit, and action routes.
-- [x] Route wildcard public tunnel traffic through `*.outpipe.app` (for example `myapp.outpipe.app`), not through control-plane handlers. (Relay-side wildcard routing; see docs/edge-routing.md.)
-
 - [ ] Keep `integrations/outpipe/` as an optional external adapter.
-
-## Transactional email
-
-- [x] Use Zepto Mail as the only transactional email provider.
-- [x] Keep HTML email templates in the root `templates/` directory.
-- [x] Add welcome, account-update, billing-update, organization-invite, payment-failed, and subscription-reset templates.
-- [x] Escape user-controlled template values through Go's HTML template renderer.
-- [x] Send the welcome email after the first successful OAuth account creation.
-- [x] Send account-update email after account deletion.
-- [x] Send billing-update email after subscription state changes.
-- [x] Add organization invitation persistence, expiration, acceptance, and delivery workflow.
-- [x] Connect payment-failed events to retry-count and billing-page email data.
-- [x] Connect subscription downgrade/reset events to the subscription-reset email.
 
 ## Future SDKs
 

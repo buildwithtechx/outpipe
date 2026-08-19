@@ -6,6 +6,42 @@ import (
 	"outpipe.dev/outpipe/internal/models"
 )
 
+func TestNormalizeBillingInterval(t *testing.T) {
+	tests := []struct {
+		input string
+		want  string
+		isErr bool
+	}{
+		{"", models.BillingIntervalMonth, false},
+		{models.BillingIntervalMonth, models.BillingIntervalMonth, false},
+		{models.BillingIntervalYear, models.BillingIntervalYear, false},
+		{"quarterly", "", true},
+		{"weekly", "", true},
+	}
+
+	for _, tt := range tests {
+		got, err := normalizeBillingInterval(tt.input)
+
+		if tt.isErr {
+
+			if err == nil {
+				t.Errorf("normalizeBillingInterval(%q): expected error", tt.input)
+			}
+
+			continue
+		}
+
+		if err != nil {
+			t.Errorf("normalizeBillingInterval(%q): %v", tt.input, err)
+			continue
+		}
+
+		if got != tt.want {
+			t.Errorf("normalizeBillingInterval(%q) = %q, want %q", tt.input, got, tt.want)
+		}
+	}
+}
+
 func TestValidHostname(t *testing.T) {
 	valid := []string{"example.com", "api.example.com", "a1.example-2.com"}
 

@@ -24,7 +24,8 @@ type BillingHandler struct {
 }
 
 type CheckoutRequest struct {
-	PlanKey string `json:"planKey" validate:"required"`
+	PlanKey         string `json:"planKey" validate:"required"`
+	BillingInterval string `json:"billingInterval" validate:"omitempty,oneof=month year"`
 }
 
 func NewBillingHandler(billing *services.BillingService) (*BillingHandler, error) {
@@ -60,7 +61,7 @@ func (h *BillingHandler) Checkout(c *fiber.Ctx) error {
 		return writeError(c, fiber.StatusBadRequest, err)
 	}
 
-	url, err := h.billing.Checkout(c.UserContext(), c.Params("organizationID"), input.PlanKey)
+	url, err := h.billing.Checkout(c.UserContext(), c.Params("organizationID"), input.PlanKey, input.BillingInterval)
 
 	if err != nil {
 		return writeError(c, fiber.StatusBadRequest, err)
@@ -222,6 +223,12 @@ func parseWebhook(provider string, payload []byte) (services.BillingTransition, 
 		if transition.ProviderSubscription == "" {
 			transition.ProviderSubscription = stringValue(metadata, "subscription_id")
 		}
+
+		transition.BillingInterval = stringValue(metadata, "billing_interval")
+	}
+
+	if transition.BillingInterval == "" {
+		transition.BillingInterval = stringValue(data, "billing_interval")
 	}
 
 	if provider == string(models.BillingProviderPaystack) {

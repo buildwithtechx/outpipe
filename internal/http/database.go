@@ -152,6 +152,11 @@ func NewDatabaseDependencies(db *gorm.DB, cfg config.APIConfig) (Dependencies, e
 				"route": cfg.Billing.PolarProductRoute,
 				"edge":  cfg.Billing.PolarProductEdge,
 			},
+			YearlyProductIDs: map[string]string{
+				"link":  cfg.Billing.PolarProductLinkYearly,
+				"route": cfg.Billing.PolarProductRouteYearly,
+				"edge":  cfg.Billing.PolarProductEdgeYearly,
+			},
 		})
 
 		if err != nil {

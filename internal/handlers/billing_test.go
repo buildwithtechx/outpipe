@@ -34,6 +34,32 @@ func TestParseWebhookCapturesSubscriptionResetData(t *testing.T) {
 	}
 }
 
+func TestParseWebhookCapturesBillingIntervalFromMetadata(t *testing.T) {
+	payload := []byte(`{"id":"evt-1","type":"subscription.activated","data":{"status":"active","metadata":{"billing_interval":"year"}}}`)
+	transition, _, _, err := parseWebhook("polar", payload)
+
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if transition.BillingInterval != "year" {
+		t.Errorf("expected billing interval year, got %q", transition.BillingInterval)
+	}
+}
+
+func TestParseWebhookCapturesBillingIntervalFallback(t *testing.T) {
+	payload := []byte(`{"id":"evt-1","type":"subscription.activated","data":{"status":"active","billing_interval":"year"}}`)
+	transition, _, _, err := parseWebhook("polar", payload)
+
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if transition.BillingInterval != "year" {
+		t.Errorf("expected billing interval year, got %q", transition.BillingInterval)
+	}
+}
+
 func TestParseWebhookDistinguishesUnknownAttempts(t *testing.T) {
 	withoutAttempts, _, _, err := parseWebhook(string(models.BillingProviderPaystack), []byte(`{"event":"charge.failed","data":{}}`))
 
