@@ -100,6 +100,8 @@ func migrations() []migration {
 		return db.AutoMigrate(&models.UsageEvent{})
 	}}, {version: 10, name: "billing_invoices_and_receipts", up: func(db *gorm.DB) error {
 		return db.AutoMigrate(&models.Invoice{}, &models.Receipt{})
+	}}, {version: 11, name: "webhook_subscriptions_and_tunnel_metadata", up: func(db *gorm.DB) error {
+		return db.AutoMigrate(&models.Tunnel{}, &models.APIKey{}, &models.WebhookSubscription{}, &models.WebhookDelivery{})
 	}}}
 }
 

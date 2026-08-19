@@ -2,6 +2,7 @@ package services
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"strings"
 	"time"
@@ -15,6 +16,7 @@ type TunnelService struct {
 	tunnels   repositories.TunnelRepository
 	billing   *BillingService
 	allocator *HostnameAllocator
+	webhooks  *WebhookService
 	now       func() time.Time
 }
 
@@ -33,6 +35,10 @@ func (s *TunnelService) SetBilling(billing *BillingService) {
 
 func (s *TunnelService) SetHostnameAllocator(allocator *HostnameAllocator) {
 	s.allocator = allocator
+}
+
+func (s *TunnelService) SetWebhooks(webhooks *WebhookService) {
+	s.webhooks = webhooks
 }
 
 func (s *TunnelService) Find(ctx context.Context, id string) (models.Tunnel, error) {
@@ -69,7 +75,7 @@ func (s *TunnelService) List(ctx context.Context, organizationID string) ([]mode
 	return tunnels, nil
 }
 
-func (s *TunnelService) Create(ctx context.Context, organizationID, name string, protocol models.TunnelProtocol, targetHost string, targetPort int, publicHostname, password string) (models.Tunnel, error) {
+func (s *TunnelService) Create(ctx context.Context, organizationID, name string, protocol models.TunnelProtocol, targetHost string, targetPort int, publicHostname, password, metadata string) (models.Tunnel, error) {
 
 	if organizationID == "" || strings.TrimSpace(name) == "" || strings.TrimSpace(targetHost) == "" || !validTunnelProtocol(protocol) || targetPort < 1 || targetPort > 65535 {
 		return models.Tunnel{}, fmt.Errorf("invalid tunnel configuration")
@@ -79,6 +85,12 @@ func (s *TunnelService) Create(ctx context.Context, organizationID, name string,
 
 	if err != nil {
 		return models.Tunnel{}, err
+	}
+
+	metadata = strings.TrimSpace(metadata)
+
+	if metadata == "" || !json.Valid([]byte(metadata)) {
+		metadata = `{}`
 	}
 
 	if s.allocator != nil {
@@ -95,7 +107,7 @@ func (s *TunnelService) Create(ctx context.Context, organizationID, name string,
 		return models.Tunnel{}, fmt.Errorf("public hostname is required")
 	}
 
-	tunnel := models.Tunnel{OrganizationID: organizationID, Name: strings.TrimSpace(name), Protocol: protocol, Status: models.TunnelStatusCreated, TargetHost: strings.TrimSpace(targetHost), TargetPort: targetPort, PublicHostname: strings.ToLower(strings.TrimSpace(publicHostname)), AccessPolicy: `{}`, PasswordHash: passwordHash}
+	tunnel := models.Tunnel{OrganizationID: organizationID, Name: strings.TrimSpace(name), Protocol: protocol, Status: models.TunnelStatusCreated, TargetHost: strings.TrimSpace(targetHost), TargetPort: targetPort, PublicHostname: strings.ToLower(strings.TrimSpace(publicHostname)), AccessPolicy: `{}`, Metadata: metadata, PasswordHash: passwordHash}
 
 	if s.billing != nil {
 		plan, _, err := s.billing.Entitlements(ctx, organizationID)
@@ -156,7 +168,34 @@ func (s *TunnelService) SetStatus(ctx context.Context, id string, status models.
 		return fmt.Errorf("set tunnel status: %w", err)
 	}
 
+	s.emitStatusEvent(ctx, id, status)
 	return nil
+}
+
+func (s *TunnelService) emitStatusEvent(ctx context.Context, id string, status models.TunnelStatus) {
+
+	if s.webhooks == nil {
+		return
+	}
+
+	var event models.WebhookEvent
+
+	switch status {
+	case models.TunnelStatusActive:
+		event = models.WebhookEventTunnelConnected
+	case models.TunnelStatusDisconnected:
+		event = models.WebhookEventTunnelDisconnected
+	default:
+		return
+	}
+
+	tunnel, err := s.tunnels.FindByID(ctx, id)
+
+	if err != nil {
+		return
+	}
+
+	s.webhooks.Dispatch(ctx, tunnel.OrganizationID, event, map[string]any{"tunnel": tunnel})
 }
 
 func (s *TunnelService) Touch(ctx context.Context, id string) error {
@@ -174,6 +213,17 @@ func (s *TunnelService) Revoke(ctx context.Context, id string) error {
 		return fmt.Errorf("revoke tunnel: %w", err)
 	}
 
+	if s.webhooks == nil {
+		return nil
+	}
+
+	tunnel, err := s.tunnels.FindByID(ctx, id)
+
+	if err != nil {
+		return nil
+	}
+
+	s.webhooks.Dispatch(ctx, tunnel.OrganizationID, models.WebhookEventTunnelRevoked, map[string]any{"tunnel": tunnel})
 	return nil
 }
 

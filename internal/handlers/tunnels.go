@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"strings"
 
@@ -26,6 +27,7 @@ type CreateTunnelRequest struct {
 	TargetPort     int                   `json:"targetPort" validate:"gte=1,lte=65535"`
 	PublicHostname string                `json:"publicHostname,omitempty" validate:"max=253"`
 	Password       string                `json:"password,omitempty" validate:"omitempty,min=8,max=256"`
+	Metadata       json.RawMessage       `json:"metadata,omitempty" validate:"max=16384"`
 }
 
 type UpdateTunnelStatusRequest struct {
@@ -52,7 +54,7 @@ func (h *TunnelHandler) Create(c *fiber.Ctx) error {
 		return writeError(c, fiber.StatusBadRequest, err)
 	}
 
-	tunnel, err := h.tunnels.Create(c.UserContext(), strings.TrimSpace(c.Params("organizationID")), input.Name, input.Protocol, input.TargetHost, input.TargetPort, input.PublicHostname, input.Password)
+	tunnel, err := h.tunnels.Create(c.UserContext(), strings.TrimSpace(c.Params("organizationID")), input.Name, input.Protocol, input.TargetHost, input.TargetPort, input.PublicHostname, input.Password, string(input.Metadata))
 
 	if err != nil {
 		return writeError(c, fiber.StatusBadRequest, err)

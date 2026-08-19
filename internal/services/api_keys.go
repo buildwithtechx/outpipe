@@ -31,7 +31,7 @@ func NewAPIKeyService(keys repositories.APIKeyRepository) (*APIKeyService, error
 	return &APIKeyService{keys: keys, now: time.Now}, nil
 }
 
-func (s *APIKeyService) Create(ctx context.Context, userID, name string, scopes []string, expiresAt *time.Time) (string, models.APIKey, error) {
+func (s *APIKeyService) Create(ctx context.Context, userID, name string, scopes []string, expiresAt *time.Time, source string) (string, models.APIKey, error) {
 
 	if userID == "" || strings.TrimSpace(name) == "" {
 		return "", models.APIKey{}, fmt.Errorf("user id and name are required")
@@ -55,7 +55,7 @@ func (s *APIKeyService) Create(ctx context.Context, userID, name string, scopes 
 		return "", models.APIKey{}, fmt.Errorf("encode api key scopes: %w", err)
 	}
 
-	key := models.APIKey{UserID: userID, Name: strings.TrimSpace(name), Prefix: prefix, SecretHash: auth.HashToken(secret), Scopes: string(scopeJSON), ExpiresAt: expiresAt}
+	key := models.APIKey{UserID: userID, Name: strings.TrimSpace(name), Prefix: prefix, SecretHash: auth.HashToken(secret), Scopes: string(scopeJSON), Source: strings.TrimSpace(source), ExpiresAt: expiresAt}
 
 	if err := s.keys.Create(ctx, &key); err != nil {
 		return "", models.APIKey{}, fmt.Errorf("create api key: %w", err)
@@ -64,7 +64,7 @@ func (s *APIKeyService) Create(ctx context.Context, userID, name string, scopes 
 	return prefix + "." + secret, key, nil
 }
 
-func (s *APIKeyService) CreateForOrganization(ctx context.Context, userID, organizationID, name string, scopes []string, expiresAt *time.Time) (string, models.APIKey, error) {
+func (s *APIKeyService) CreateForOrganization(ctx context.Context, userID, organizationID, name string, scopes []string, expiresAt *time.Time, source string) (string, models.APIKey, error) {
 
 	if userID == "" || organizationID == "" {
 		return "", models.APIKey{}, fmt.Errorf("user id and organization id are required")
@@ -89,7 +89,7 @@ func (s *APIKeyService) CreateForOrganization(ctx context.Context, userID, organ
 	}
 
 	organizationID = strings.TrimSpace(organizationID)
-	key := models.APIKey{UserID: userID, OrganizationID: &organizationID, Name: strings.TrimSpace(name), Prefix: prefix, SecretHash: auth.HashToken(secret), Scopes: string(scopeJSON), ExpiresAt: expiresAt}
+	key := models.APIKey{UserID: userID, OrganizationID: &organizationID, Name: strings.TrimSpace(name), Prefix: prefix, SecretHash: auth.HashToken(secret), Scopes: string(scopeJSON), Source: strings.TrimSpace(source), ExpiresAt: expiresAt}
 
 	if err := s.keys.Create(ctx, &key); err != nil {
 		return "", models.APIKey{}, fmt.Errorf("create api key: %w", err)

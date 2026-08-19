@@ -321,7 +321,21 @@ func NewDatabaseDependencies(db *gorm.DB, cfg config.APIConfig) (Dependencies, e
 		return Dependencies{}, err
 	}
 
-	return Dependencies{Auth: authService, DeviceLogin: deviceService, Organizations: organizationService, Invitations: invitationService, Tunnels: tunnelService, Agents: agentService, Domains: domainService, Usage: usageService, Billing: billingService, Account: accountService, Admin: adminService, Audit: auditService, APIKeys: apiKeyService, WelcomeMailer: welcomeMailer, Ready: func(ctx context.Context) error {
+	webhookRepository, err := repositories.NewWebhookRepository(db)
+
+	if err != nil {
+		return Dependencies{}, err
+	}
+
+	webhookService, err := services.NewWebhookService(webhookRepository)
+
+	if err != nil {
+		return Dependencies{}, err
+	}
+
+	tunnelService.SetWebhooks(webhookService)
+
+	return Dependencies{Auth: authService, DeviceLogin: deviceService, Organizations: organizationService, Invitations: invitationService, Tunnels: tunnelService, Agents: agentService, Domains: domainService, Usage: usageService, Billing: billingService, Account: accountService, Admin: adminService, Audit: auditService, APIKeys: apiKeyService, Webhooks: webhookService, WelcomeMailer: welcomeMailer, Ready: func(ctx context.Context) error {
 		sqlDB, err := db.DB()
 
 		if err != nil {

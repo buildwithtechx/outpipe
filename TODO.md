@@ -222,6 +222,10 @@ packages/
 
 ## Codedock integration
 
+Platform contract DONE (delivered this round): scoped API keys with `source` marker, tunnel metadata, signed webhook subscriptions + delivery history, `tunnel.connected/disconnected/revoked` events, standalone e2e proof in internal/http. Contract documented in docs/codedock-integration.md.
+
+Remaining items are Codedock-repo work (~/Dev/TechX/codedock), none started:
+
 - [ ] Define an optional Codedock adapter that consumes the standalone tunnel API.
 - [ ] Allow Codedock to create scoped tunnel credentials through the public integration API.
 - [ ] Add optional tunnel metadata links to Codedock projects and services.

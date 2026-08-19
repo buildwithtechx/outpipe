@@ -16,6 +16,7 @@ type APIKeyHandler struct{ keys *services.APIKeyService }
 type CreateAPIKeyRequest struct {
 	Name      string   `json:"name" validate:"required,max=120"`
 	Scopes    []string `json:"scopes"`
+	Source    string   `json:"source,omitempty" validate:"omitempty,max=40"`
 	ExpiresAt *string  `json:"expiresAt"`
 }
 
@@ -97,7 +98,7 @@ func (h *APIKeyHandler) Create(c *fiber.Ctx) error {
 		return writeError(c, fiber.StatusBadRequest, fmt.Errorf("organization is required"))
 	}
 
-	raw, key, err := h.keys.CreateForOrganization(c.UserContext(), userID, organizationID, input.Name, input.Scopes, expiresAt)
+	raw, key, err := h.keys.CreateForOrganization(c.UserContext(), userID, organizationID, input.Name, input.Scopes, expiresAt, input.Source)
 
 	if err != nil {
 		return writeError(c, fiber.StatusBadRequest, err)

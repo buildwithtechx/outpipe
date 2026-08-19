@@ -38,7 +38,7 @@ func newE2EStack(t *testing.T) *e2eStack {
 		t.Fatalf("open sqlite: %v", err)
 	}
 
-	if err := db.AutoMigrate(&models.User{}, &models.OAuthIdentity{}, &models.Session{}, &models.APIKey{}, &models.DeviceLogin{}, &models.Organization{}, &models.OrganizationMember{}, &models.Tunnel{}, &models.Agent{}, &models.Plan{}, &models.Subscription{}, &models.BillingEvent{}, &models.Invoice{}); err != nil {
+	if err := db.AutoMigrate(&models.User{}, &models.OAuthIdentity{}, &models.Session{}, &models.APIKey{}, &models.DeviceLogin{}, &models.Organization{}, &models.OrganizationMember{}, &models.Tunnel{}, &models.Agent{}, &models.Plan{}, &models.Subscription{}, &models.BillingEvent{}, &models.Invoice{}, &models.WebhookSubscription{}, &models.WebhookDelivery{}); err != nil {
 		t.Fatalf("migrate: %v", err)
 	}
 
@@ -120,6 +120,20 @@ func newE2EStack(t *testing.T) *e2eStack {
 		t.Fatal(err)
 	}
 
+	webhookRepository, err := repositories.NewWebhookRepository(db)
+
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	webhookService, err := services.NewWebhookService(webhookRepository)
+
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	tunnelService.SetWebhooks(webhookService)
+
 	agentService, err := services.NewAgentService(agents)
 
 	if err != nil {
@@ -192,6 +206,12 @@ func newE2EStack(t *testing.T) *e2eStack {
 		t.Fatal(err)
 	}
 
+	webhookHandler, err := handlers.NewWebhookHandler(webhookService)
+
+	if err != nil {
+		t.Fatal(err)
+	}
+
 	oauthHandler, err := handlers.NewOAuthHandler(oauthService, "https://api.outpipe.test", "https://app.outpipe.test", "outpipe_session", false, "")
 
 	if err != nil {
@@ -210,6 +230,7 @@ func newE2EStack(t *testing.T) *e2eStack {
 		OAuth:               oauthHandler,
 		Account:             accountHandler,
 		APIKeys:             apiKeyHandler,
+		Webhooks:            webhookHandler,
 		authService:         authService,
 		organizationService: organizationService,
 		apiKeyService:       apiKeyService,
@@ -256,7 +277,7 @@ func newE2EStack(t *testing.T) *e2eStack {
 		t.Fatal(err)
 	}
 
-	raw, _, err := apiKeyService.CreateForOrganization(context.Background(), user.ID, organization.ID, "star", []string{"*"}, nil)
+	raw, _, err := apiKeyService.CreateForOrganization(context.Background(), user.ID, organization.ID, "star", []string{"*"}, nil, "")
 
 	if err != nil {
 		t.Fatal(err)

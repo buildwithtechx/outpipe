@@ -194,7 +194,7 @@ func newVerificationStack(t *testing.T) *verificationStack {
 			organizationID = otherOrg.ID
 		}
 
-		raw, _, err := apiKeyService.CreateForOrganization(context.Background(), user.ID, organizationID, name, scopes, nil)
+		raw, _, err := apiKeyService.CreateForOrganization(context.Background(), user.ID, organizationID, name, scopes, nil, "")
 
 		if err != nil {
 			t.Fatal(err)
