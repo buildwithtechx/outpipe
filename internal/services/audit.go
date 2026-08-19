@@ -38,3 +38,18 @@ func (s *AuditService) Record(ctx context.Context, event *models.AuditEvent) err
 
 	return nil
 }
+
+func (s *AuditService) ListByOrganization(ctx context.Context, organizationID string, from, to time.Time, limit int) ([]models.AuditEvent, error) {
+
+	if organizationID == "" || from.IsZero() || to.IsZero() || !to.After(from) {
+		return nil, fmt.Errorf("organization and valid audit period are required")
+	}
+
+	events, err := s.audit.ListByOrganization(ctx, organizationID, from, to, limit)
+
+	if err != nil {
+		return nil, fmt.Errorf("list audit events: %w", err)
+	}
+
+	return events, nil
+}

@@ -23,6 +23,8 @@ type BillingRepository interface {
 	ApplyBillingEvent(context.Context, *models.BillingEvent, *models.Subscription) error
 	SaveCredential(context.Context, *models.BillingCredential) error
 	FindCredential(context.Context, string, models.BillingProvider, string) (models.BillingCredential, error)
+	CreateInvoice(context.Context, *models.Invoice) error
+	ListInvoicesByOrganization(context.Context, string) ([]models.Invoice, error)
 }
 
 type GormBillingRepository struct{ db *gorm.DB }
@@ -183,4 +185,23 @@ func (r *GormBillingRepository) FindCredential(ctx context.Context, organization
 	}
 
 	return credential, nil
+}
+
+func (r *GormBillingRepository) CreateInvoice(ctx context.Context, invoice *models.Invoice) error {
+
+	if invoice == nil {
+		return fmt.Errorf("invoice is required")
+	}
+
+	return wrap(r.db.WithContext(ctx).Create(invoice).Error, "create invoice")
+}
+
+func (r *GormBillingRepository) ListInvoicesByOrganization(ctx context.Context, organizationID string) ([]models.Invoice, error) {
+	var invoices []models.Invoice
+
+	if err := r.db.WithContext(ctx).Where("organization_id = ?", organizationID).Order("created_at DESC").Find(&invoices).Error; err != nil {
+		return nil, fmt.Errorf("list organization invoices: %w", err)
+	}
+
+	return invoices, nil
 }

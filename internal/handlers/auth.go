@@ -3,17 +3,16 @@ package handlers
 import (
 	"fmt"
 	"strings"
-	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"outpipe.dev/outpipe/internal/services"
 )
 
 type AuthHandler struct {
-	auth         *services.AuthService
-	deviceLogin  *services.DeviceLoginService
-	cookieName   string
-	cookieSecure bool
+	auth          *services.AuthService
+	deviceLogin   *services.DeviceLoginService
+	sessionCookie SessionCookieConfig
+	cookieName    string
 }
 
 type StartDeviceLoginRequest struct {
@@ -24,13 +23,13 @@ type CompleteDeviceLoginRequest struct {
 	Code string `json:"code"`
 }
 
-func NewAuthHandler(auth *services.AuthService, deviceLogin *services.DeviceLoginService, cookieName string, cookieSecure bool) (*AuthHandler, error) {
+func NewAuthHandler(auth *services.AuthService, deviceLogin *services.DeviceLoginService, cookieName string, cookieSecure bool, cookieDomain string) (*AuthHandler, error) {
 
 	if auth == nil || deviceLogin == nil || strings.TrimSpace(cookieName) == "" {
 		return nil, fmt.Errorf("auth services and cookie name are required")
 	}
 
-	return &AuthHandler{auth: auth, deviceLogin: deviceLogin, cookieName: cookieName, cookieSecure: cookieSecure}, nil
+	return &AuthHandler{auth: auth, deviceLogin: deviceLogin, sessionCookie: SessionCookieConfig{Name: cookieName, Secure: cookieSecure, Domain: cookieDomain}, cookieName: cookieName}, nil
 }
 
 func (h *AuthHandler) StartDeviceLogin(c *fiber.Ctx) error {
@@ -125,7 +124,7 @@ func (h *AuthHandler) Logout(c *fiber.Ctx) error {
 		err = h.auth.RevokeSession(c.UserContext(), session.ID)
 	}
 
-	c.Cookie(&fiber.Cookie{Name: h.cookieName, Value: "", Expires: time.Unix(0, 0), HTTPOnly: true, Secure: h.cookieSecure, SameSite: "Lax"})
+	ClearSessionCookie(c, h.sessionCookie)
 
 	if err != nil {
 		return writeError(c, fiber.StatusUnauthorized, err)

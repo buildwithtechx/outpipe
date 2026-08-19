@@ -105,6 +105,35 @@ func apiKeyFromRequest(c *fiber.Ctx, apiKeys *services.APIKeyService) (services.
 	return apiKeys.Authenticate(c.UserContext(), strings.TrimSpace(parts[1]))
 }
 
+func agentTokenRequired(agents *services.AgentService, parameter string) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+
+		if agents == nil {
+			return c.Status(fiber.StatusServiceUnavailable).JSON(fiber.Map{"error": "agent authentication is unavailable"})
+		}
+
+		value := strings.TrimSpace(c.Get("Authorization"))
+		parts := strings.SplitN(value, " ", 2)
+
+		if len(parts) != 2 || !strings.EqualFold(parts[0], "bearer") {
+			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "bearer agent token is required"})
+		}
+
+		agent, err := agents.Authenticate(c.UserContext(), strings.TrimSpace(parts[1]))
+
+		if err != nil {
+			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "invalid agent token"})
+		}
+
+		if agent.ID != c.Params(parameter) {
+			return c.Status(fiber.StatusForbidden).JSON(fiber.Map{"error": "agent token does not match the requested agent"})
+		}
+
+		c.Locals("agent", agent)
+		return c.Next()
+	}
+}
+
 func authenticatedUserID(c *fiber.Ctx) (string, bool) {
 
 	if session, ok := c.Locals("session").(models.Session); ok && session.UserID != "" {

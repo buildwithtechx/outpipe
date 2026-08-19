@@ -17,14 +17,14 @@ func TestResolveTunnelID(t *testing.T) {
 		expected string
 		valid    bool
 	}{
-		{host: "abc.tunnel.localhost", expected: "abc", valid: true},
-		{host: "abc.tunnel.localhost:443", expected: "abc", valid: true},
-		{host: "tunnel.localhost", valid: false},
+		{host: "abc.outpipe.localhost", expected: "abc", valid: true},
+		{host: "abc.outpipe.localhost:443", expected: "abc", valid: true},
+		{host: "outpipe.localhost", valid: false},
 		{host: "abc.other.localhost", valid: false},
-		{host: "www.tunnel.localhost", valid: false},
+		{host: "www.outpipe.localhost", valid: false},
 	}
 	for _, test := range tests {
-		actual, valid := resolveTunnelID(test.host, "tunnel.localhost")
+		actual, valid := resolveTunnelID(test.host, "outpipe.localhost")
 
 		if valid != test.valid || actual != test.expected {
 			t.Fatalf("resolveTunnelID(%q) = %q, %t", test.host, actual, valid)
@@ -51,13 +51,13 @@ func TestHTTPProxyRequiresTunnelPassword(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	proxy, err := NewHTTPProxy("tunnel.localhost", router, 1024)
+	proxy, err := NewHTTPProxy("outpipe.localhost", router, 1024)
 
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	request := httptest.NewRequest(http.MethodGet, "http://protected.tunnel.localhost/", nil)
+	request := httptest.NewRequest(http.MethodGet, "http://protected.outpipe.localhost/", nil)
 	response := httptest.NewRecorder()
 	proxy.ServeHTTP(response, request)
 

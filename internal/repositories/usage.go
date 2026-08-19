@@ -15,6 +15,7 @@ type UsageRepository interface {
 	UpsertSnapshot(context.Context, *models.UsageSnapshot) error
 	FindSnapshot(context.Context, string, time.Time) (models.UsageSnapshot, error)
 	ListEvents(context.Context, string, time.Time, time.Time) ([]models.UsageEvent, error)
+	ListRequestEvents(context.Context, string, time.Time, time.Time, int) ([]models.UsageEvent, error)
 	AggregatePeriod(context.Context, string, time.Time, time.Time) (models.UsageSnapshot, error)
 	DeleteBefore(context.Context, string, time.Time) (int64, error)
 }
@@ -64,6 +65,22 @@ func (r *GormUsageRepository) ListEvents(ctx context.Context, organizationID str
 
 	if err != nil {
 		return nil, fmt.Errorf("list usage events: %w", err)
+	}
+
+	return events, nil
+}
+
+func (r *GormUsageRepository) ListRequestEvents(ctx context.Context, organizationID string, from, to time.Time, limit int) ([]models.UsageEvent, error) {
+
+	if limit <= 0 || limit > 1000 {
+		return nil, fmt.Errorf("request log limit must be between 1 and 1000")
+	}
+
+	var events []models.UsageEvent
+	err := r.db.WithContext(ctx).Where("organization_id = ? AND occurred_at >= ? AND occurred_at < ? AND method <> ''", organizationID, from, to).Order("occurred_at DESC").Limit(limit).Find(&events).Error
+
+	if err != nil {
+		return nil, fmt.Errorf("list request logs: %w", err)
 	}
 
 	return events, nil

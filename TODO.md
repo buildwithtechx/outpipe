@@ -1,6 +1,74 @@
 # Outpipe TODO
 
-The Go backend, CLI, protocol package, and current TypeScript framework adapters are implemented. Remaining work is dashboard functionality, desktop integration, optional integrations, and release operations.
+The Go backend, CLI, protocol package, and current TypeScript framework adapters are implemented. The backend, CLI, and relay are functional but not production-complete; remaining work is production hardening and tests, dashboard functionality, desktop integration, optional integrations, and release operations.
+
+## Backend status
+
+> **Go backend**: mostly implemented, but not production-complete.
+> **CLI**: functional, needs release hardening and tests.
+> **Check**: functional readiness probe, needs broader checks.
+> **Cron**: functional job runner, needs backups, alerts, and integration tests.
+> **Tunnel**: functional relay, still needs production wildcard ingress and final scaling/security verification.
+
+### cmd/server / Go API
+
+- [x] Add organization detail, member list/removal, profile, API-key, audit-log, request-log, and invoice endpoints.
+- [x] Move agent heartbeat authentication to agent/relay credentials instead of browser/API-key auth.
+- [x] Keep internal health, usage ingestion, relay handoff, and agent authentication strictly private.
+- [ ] Route wildcard tunnel traffic through `*.outpipe.app` (for example `myapp.outpipe.app`), not through control-plane handlers.
+- [x] Finalize secure hosted cookie configuration: Secure, HttpOnly, SameSite=Lax, and a shared dashboard/API domain policy.
+- [ ] Add backend integration tests for OAuth, organization authorization, billing, webhooks, relay authentication, and tunnel lifecycle.
+
+### cmd/tunnel
+
+The relay is implemented, but these remain:
+
+- [x] Public wildcard ingress routing for `*.outpipe.app` (`OUTPIPE_DOMAIN` drives the wildcard suffix, custom-domain and subdomain hosts resolve through the shared HTTP proxy).
+- [x] Complete production relay handoff and scaling behavior (Redis relay affinity with owner-aware claims, draining on re-reservation, affinity release on close, CLI retry toward the owning relay).
+- [x] Full validation that relay-originated traffic cannot bypass organization and plan limits (bandwidth limiter, body-size limit, tunnel capacity, and per-organization connection admission with accounting released on teardown).
+- [x] Production TLS and certificate deployment verification (rotating-certificate TLS listener, ACME host policy, TLS handshake and rotation tests).
+
+### cmd/cli
+
+The CLI currently supports login, device login, health, tunnel opening, reconnects, completions, and managed tunnels.
+
+Remaining work:
+
+- [ ] Add comprehensive CLI tests.
+- [ ] Finish installation and release scripts and platform binaries.
+- [ ] Verify CLI and API-key scope behavior against every management command.
+- [ ] Add polished error handling and configuration migration for existing users.
+
+### cmd/cron
+
+The cron runner already has cleanup, usage aggregation, retention, billing reconciliation, and Redis reconciliation jobs.
+
+Remaining work:
+
+- [ ] Add backup scheduling and restore verification jobs.
+- [ ] Add operational alerts for failed or repeatedly retrying jobs.
+- [ ] Add job metrics and dashboard visibility.
+- [ ] Add integration tests against PostgreSQL and Redis.
+
+### cmd/check
+
+The check command currently verifies API readiness. It is usable, but should also support:
+
+- [ ] Relay health checks.
+- [ ] Database and Redis dependency checks.
+- [ ] Exit codes suitable for deployment orchestration.
+- [ ] Optional JSON output for monitoring systems.
+
+### Billing
+
+The API owns plans and billing. The web app must not own Polar or Paystack configuration.
+
+Current status:
+
+- [x] The API handles checkout, subscriptions, webhooks, entitlements, Polar, and Paystack.
+- [x] Polar product IDs are server-side only.
+- [x] The web pricing page displays plans by calling the API.
+- [ ] The yearly pricing toggle is presentation-only; annual checkout needs a backend `billingInterval` field and annual product mapping.
 
 ## Standalone product principles
 
@@ -229,12 +297,9 @@ The control-plane API should remain versioned under `/api/v1`:
 ```
 
 - [x] Keep liveness, readiness, and metrics outside the versioned API at `/healthz`, `/readyz`, and `/metrics`.
-- [x] Keep relay WebSocket transport separate at `wss://tunnel.outpipe.dev/v1/connect`.
-- [ ] Add organization detail, member listing/removal, profile, API-key, audit-log, request-log, and invoice routes.
+- [x] Keep relay WebSocket transport separate at `wss://relay.outpipe.app/v1/connect`.
 - [x] Add platform-admin authorization and admin users, organizations, tunnels, subscriptions, usage, audit, and action routes.
-- [ ] Move agent heartbeats away from browser-session authentication to agent or relay authentication.
-- [ ] Keep internal health, usage ingestion, relay handoff, and agent authentication routes private.
-- [ ] Route wildcard public tunnel traffic through `*.tunnel.outpipe.dev`, not through control-plane handlers.
+- [ ] Route wildcard public tunnel traffic through `*.outpipe.app` (for example `myapp.outpipe.app`), not through control-plane handlers.
 
 - [ ] Keep `integrations/outpipe/` as an optional external adapter.
 

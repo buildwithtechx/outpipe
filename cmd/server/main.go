@@ -104,6 +104,14 @@ func main() {
 		}
 
 	}()
+	go func() {
+
+		if err := server.ListenInternal(cfg.App.InternalListenAddress); err != nil {
+			log.Printf("internal http server stopped: %v", err)
+			stop()
+		}
+
+	}()
 	<-ctx.Done()
 
 	if err := server.Shutdown(); err != nil {

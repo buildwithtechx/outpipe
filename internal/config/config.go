@@ -36,7 +36,7 @@ type CheckConfig struct {
 type CLIConfig struct {
 	APIURL       string `env:"OUTPIPE_API_URL" envDefault:"http://localhost:8080"`
 	RelayURL     string `env:"OUTPIPE_RELAY_URL" envDefault:"ws://localhost:8081"`
-	PublicDomain string `env:"OUTPIPE_DOMAIN" envDefault:"tunnel.outpipe.dev"`
+	PublicDomain string `env:"OUTPIPE_DOMAIN" envDefault:"outpipe.app"`
 	APIKey       string `env:"OUTPIPE_API_KEY"`
 	AgentToken   string `env:"OUTPIPE_AGENT_TOKEN"`
 	Password     string `env:"OUTPIPE_PASSWORD"`
@@ -44,26 +44,27 @@ type CLIConfig struct {
 }
 
 type ServiceConfig struct {
-	InternalAPIURL    string `env:"INTERNAL_API_URL" envDefault:"http://localhost:8080"`
+	InternalAPIURL    string `env:"INTERNAL_API_URL" envDefault:"http://127.0.0.1:9090"`
 	InternalAPISecret string `env:"INTERNAL_API_SECRET"`
 }
 
 type AppConfig struct {
-	Port             string        `env:"PORT" envDefault:"8080"`
-	Name             string        `env:"APP_NAME" envDefault:"outpipe"`
-	Environment      string        `env:"ENV" envDefault:"development"`
-	LogLevel         string        `env:"LOG_LEVEL" envDefault:"info"`
-	ShutdownTimeout  time.Duration `env:"SHUTDOWN_TIMEOUT" envDefault:"10s"`
-	AllowedOrigins   string        `env:"ALLOWED_ORIGINS" envDefault:"http://localhost:3000,http://localhost:3001"`
-	CORSOrigin       string        `env:"CORS_ORIGIN" envDefault:"http://localhost:3000"`
-	PublicAPIURL     string        `env:"PUBLIC_API_URL" envDefault:"http://localhost:8080"`
-	DashboardURL     string        `env:"DASHBOARD_URL" envDefault:"http://localhost:3000"`
-	ACMEEmail        string        `env:"ACME_EMAIL"`
-	ACMEDirectory    string        `env:"ACME_DIRECTORY"`
-	CertificateCache string        `env:"CERTIFICATE_CACHE_DIR" envDefault:".data/acme"`
-	RequireTLS       bool          `env:"REQUIRE_TLS" envDefault:"false"`
-	TLSCertFile      string        `env:"TLS_CERT_FILE"`
-	TLSKeyFile       string        `env:"TLS_KEY_FILE"`
+	Port                  string        `env:"PORT" envDefault:"8080"`
+	InternalListenAddress string        `env:"INTERNAL_LISTEN_ADDRESS" envDefault:"127.0.0.1:9090"`
+	Name                  string        `env:"APP_NAME" envDefault:"outpipe"`
+	Environment           string        `env:"ENV" envDefault:"development"`
+	LogLevel              string        `env:"LOG_LEVEL" envDefault:"info"`
+	ShutdownTimeout       time.Duration `env:"SHUTDOWN_TIMEOUT" envDefault:"10s"`
+	AllowedOrigins        string        `env:"ALLOWED_ORIGINS" envDefault:"http://localhost:3000,http://localhost:3001"`
+	CORSOrigin            string        `env:"CORS_ORIGIN" envDefault:"http://localhost:3000"`
+	PublicAPIURL          string        `env:"PUBLIC_API_URL" envDefault:"http://localhost:8080"`
+	DashboardURL          string        `env:"DASHBOARD_URL" envDefault:"http://localhost:3000"`
+	ACMEEmail             string        `env:"ACME_EMAIL"`
+	ACMEDirectory         string        `env:"ACME_DIRECTORY"`
+	CertificateCache      string        `env:"CERTIFICATE_CACHE_DIR" envDefault:".data/acme"`
+	RequireTLS            bool          `env:"REQUIRE_TLS" envDefault:"false"`
+	TLSCertFile           string        `env:"TLS_CERT_FILE"`
+	TLSKeyFile            string        `env:"TLS_KEY_FILE"`
 }
 
 type AuthConfig struct {
@@ -73,6 +74,7 @@ type AuthConfig struct {
 	OAuthStateTTL      time.Duration `env:"OAUTH_STATE_TTL" envDefault:"10m"`
 	CookieName         string        `env:"AUTH_COOKIE_NAME" envDefault:"outpipe_session"`
 	CookieSecure       bool          `env:"AUTH_COOKIE_SECURE" envDefault:"false"`
+	CookieDomain       string        `env:"AUTH_COOKIE_DOMAIN"`
 	GoogleClientID     string        `env:"GOOGLE_CLIENT_ID"`
 	GoogleClientSecret string        `env:"GOOGLE_CLIENT_SECRET"`
 	GitHubClientID     string        `env:"GITHUB_CLIENT_ID"`
@@ -101,7 +103,7 @@ type MailConfig struct {
 }
 
 type TunnelConfig struct {
-	Domain          string        `env:"TUNNEL_DOMAIN" envDefault:"tunnel.outpipe.dev"`
+	Domain          string        `env:"TUNNEL_DOMAIN" envDefault:"outpipe.app"`
 	TokenTTL        time.Duration `env:"TUNNEL_TOKEN_TTL" envDefault:"24h"`
 	MaxConnections  int           `env:"TUNNEL_MAX_CONNECTIONS" envDefault:"1000"`
 	MaxTunnels      int           `env:"TUNNEL_MAX_TUNNELS" envDefault:"1000"`

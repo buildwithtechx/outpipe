@@ -51,14 +51,14 @@ func TestHTTPProxyWithRealLocalTarget(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	proxy, err := engine.NewHTTPProxy("tunnel.localhost", router, 1<<20)
+	proxy, err := engine.NewHTTPProxy("outpipe.localhost", router, 1<<20)
 
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	record := httptest.NewRecorder()
-	request := httptest.NewRequest(http.MethodGet, "http://http-tunnel.tunnel.localhost/", nil)
+	request := httptest.NewRequest(http.MethodGet, "http://http-tunnel.outpipe.localhost/", nil)
 	proxy.ServeHTTP(record, request)
 
 	if record.Code != http.StatusOK || record.Body.String() != "real-http" {

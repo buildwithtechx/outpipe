@@ -27,7 +27,7 @@ type AgentAuthenticator interface {
 }
 
 type RelayAffinity interface {
-	Claim(context.Context, string, string, time.Duration) (bool, error)
+	Claim(context.Context, string, string, time.Duration) (bool, string, error)
 	Release(context.Context, string, string) error
 }
 
@@ -103,7 +103,7 @@ type HandlerOptions struct {
 }
 
 func NewHandler(authenticator AgentAuthenticator, sessions *engine.SessionRegistry, router *engine.RequestRouter, tcp *TCPManager, udp *UDPManager, maxSessions int) (*Handler, error) {
-	return NewHandlerWithOptions(authenticator, sessions, router, tcp, udp, HandlerOptions{MaxConnections: maxSessions, MaxTunnels: maxSessions, Heartbeat: 20 * time.Second, ReadTimeout: 90 * time.Second, MaxFrameBytes: 16 << 20, PublicDomain: "tunnel.outpipe.dev"})
+	return NewHandlerWithOptions(authenticator, sessions, router, tcp, udp, HandlerOptions{MaxConnections: maxSessions, MaxTunnels: maxSessions, Heartbeat: 20 * time.Second, ReadTimeout: 90 * time.Second, MaxFrameBytes: 16 << 20, PublicDomain: "outpipe.app"})
 }
 
 func NewHandlerWithOptions(authenticator AgentAuthenticator, sessions *engine.SessionRegistry, router *engine.RequestRouter, tcp *TCPManager, udp *UDPManager, options HandlerOptions) (*Handler, error) {
@@ -143,11 +143,17 @@ func NewHandlerWithOptions(authenticator AgentAuthenticator, sessions *engine.Se
 	tcp.SetUsageHook(func(tunnelID, eventType string, connections int) {
 		organizationID, ok := router.OrganizationID(tunnelID)
 
-		if ok && eventType == "tcp_connection_close" {
-			handler.updateOrganizationConnections(organizationID, connections)
-			handler.recordUsage(context.Background(), organizationID, tunnelID, eventType, 0, connections)
+		if !ok {
+			return
 		}
 
+		switch eventType {
+		case "tcp_connection_close":
+			handler.updateOrganizationConnections(organizationID, connections)
+			handler.recordUsage(context.Background(), organizationID, tunnelID, eventType, 0, connections)
+		case "tcp_connection_open":
+			handler.recordUsage(context.Background(), organizationID, tunnelID, eventType, 0, connections)
+		}
 	})
 	return handler, nil
 }

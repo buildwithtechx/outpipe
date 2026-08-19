@@ -92,6 +92,21 @@ func (s *UsageService) ListEvents(ctx context.Context, organizationID string, fr
 	return events, nil
 }
 
+func (s *UsageService) ListRequests(ctx context.Context, organizationID string, from, to time.Time, limit int) ([]models.UsageEvent, error) {
+
+	if organizationID == "" || from.IsZero() || to.IsZero() || !to.After(from) {
+		return nil, fmt.Errorf("organization and valid usage period are required")
+	}
+
+	events, err := s.usage.ListRequestEvents(ctx, organizationID, from, to, limit)
+
+	if err != nil {
+		return nil, fmt.Errorf("list request logs: %w", err)
+	}
+
+	return events, nil
+}
+
 func (s *UsageService) FindSnapshot(ctx context.Context, organizationID string, periodStart time.Time) (models.UsageSnapshot, error) {
 	snapshot, err := s.usage.FindSnapshot(ctx, organizationID, periodStart)
 

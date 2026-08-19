@@ -29,7 +29,13 @@ func (h *Handler) allowConnection(tunnelID string) bool {
 	h.mu.Lock()
 	defer h.mu.Unlock()
 	limit := h.orgLimits[organizationID]
-	return limit <= 0 || h.orgConnections[organizationID] < limit
+
+	if limit > 0 && h.orgConnections[organizationID] >= limit {
+		return false
+	}
+
+	h.orgConnections[organizationID]++
+	return true
 }
 
 func (h *Handler) updateOrganizationConnections(organizationID string, delta int) {

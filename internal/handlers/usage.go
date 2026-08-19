@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"fmt"
+	"strconv"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
@@ -70,6 +71,34 @@ func (h *UsageHandler) Snapshot(c *fiber.Ctx) error {
 	}
 
 	return c.JSON(snapshot)
+}
+
+func (h *UsageHandler) Requests(c *fiber.Ctx) error {
+	from, to, err := usagePeriod(c)
+
+	if err != nil {
+		return writeError(c, fiber.StatusBadRequest, err)
+	}
+
+	limit := 100
+
+	if value := c.Query("limit"); value != "" {
+		parsed, err := strconv.Atoi(value)
+
+		if err != nil || parsed < 1 || parsed > 1000 {
+			return writeError(c, fiber.StatusBadRequest, fmt.Errorf("limit must be between 1 and 1000"))
+		}
+
+		limit = parsed
+	}
+
+	events, err := h.usage.ListRequests(c.UserContext(), c.Params("organizationID"), from, to, limit)
+
+	if err != nil {
+		return writeError(c, fiber.StatusBadRequest, err)
+	}
+
+	return c.JSON(fiber.Map{"from": from, "to": to, "events": events})
 }
 
 func usagePeriod(c *fiber.Ctx) (time.Time, time.Time, error) {

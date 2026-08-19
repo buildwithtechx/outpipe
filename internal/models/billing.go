@@ -69,14 +69,16 @@ type BillingEvent struct {
 
 type Invoice struct {
 	Base
-	OrganizationID string     `json:"organizationId" gorm:"type:uuid;not null;index"`
-	SubscriptionID string     `json:"subscriptionId" gorm:"type:uuid;not null;index"`
-	AmountMinor    int64      `json:"amountMinor" gorm:"not null"`
-	Currency       string     `json:"currency" gorm:"type:varchar(3);not null;default:'USD'"`
-	Status         string     `json:"status" gorm:"type:varchar(20);not null;default:'paid'"`
-	InvoiceURL     string     `json:"invoiceUrl,omitempty"`
-	PDFURL         string     `json:"pdfUrl,omitempty"`
-	PaidAt         *time.Time `json:"paidAt,omitempty"`
+	OrganizationID  string          `json:"organizationId" gorm:"type:uuid;not null;index"`
+	SubscriptionID  string          `json:"subscriptionId" gorm:"type:uuid;not null;index"`
+	Provider        BillingProvider `json:"provider" gorm:"type:varchar(20);not null;uniqueIndex:provider_invoice"`
+	ProviderInvoice string          `json:"providerInvoice" gorm:"not null;uniqueIndex:provider_invoice"`
+	AmountMinor     int64           `json:"amountMinor" gorm:"not null"`
+	Currency        string          `json:"currency" gorm:"type:varchar(3);not null;default:'USD'"`
+	Status          string          `json:"status" gorm:"type:varchar(20);not null;default:'paid'"`
+	InvoiceURL      string          `json:"invoiceUrl,omitempty"`
+	PDFURL          string          `json:"pdfUrl,omitempty"`
+	PaidAt          *time.Time      `json:"paidAt,omitempty"`
 }
 
 type Receipt struct {

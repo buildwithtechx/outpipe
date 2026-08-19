@@ -69,6 +69,63 @@ func (s *OrganizationService) ListForUser(ctx context.Context, userID string) ([
 	return organizations, nil
 }
 
+func (s *OrganizationService) Get(ctx context.Context, organizationID string) (models.Organization, error) {
+	organizationID = strings.TrimSpace(organizationID)
+
+	if organizationID == "" {
+		return models.Organization{}, fmt.Errorf("organization id is required")
+	}
+
+	organization, err := s.organizations.FindByID(ctx, organizationID)
+
+	if err != nil {
+		return models.Organization{}, err
+	}
+
+	return organization, nil
+}
+
+func (s *OrganizationService) ListMembers(ctx context.Context, organizationID string) ([]models.OrganizationMember, error) {
+	organizationID = strings.TrimSpace(organizationID)
+
+	if organizationID == "" {
+		return nil, fmt.Errorf("organization id is required")
+	}
+
+	members, err := s.organizations.ListMembers(ctx, organizationID)
+
+	if err != nil {
+		return nil, fmt.Errorf("list organization members: %w", err)
+	}
+
+	return members, nil
+}
+
+func (s *OrganizationService) RemoveMember(ctx context.Context, organizationID, userID string) error {
+	organizationID = strings.TrimSpace(organizationID)
+	userID = strings.TrimSpace(userID)
+
+	if organizationID == "" || userID == "" {
+		return fmt.Errorf("organization and member are required")
+	}
+
+	member, err := s.organizations.FindMember(ctx, organizationID, userID)
+
+	if err != nil {
+		return err
+	}
+
+	if member.Role == models.MemberRoleOwner {
+		return utils.NewAuthorizationError(fmt.Errorf("organization owner cannot be removed"))
+	}
+
+	if err := s.organizations.RemoveMember(ctx, organizationID, userID); err != nil {
+		return fmt.Errorf("remove organization member: %w", err)
+	}
+
+	return nil
+}
+
 func (s *OrganizationService) IsSlugAvailable(ctx context.Context, slug string) (bool, error) {
 	slug = strings.ToLower(strings.TrimSpace(slug))
 

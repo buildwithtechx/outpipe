@@ -34,6 +34,8 @@ type SessionRepository interface {
 type APIKeyRepository interface {
 	Create(context.Context, *models.APIKey) error
 	FindByPrefix(context.Context, string) (models.APIKey, error)
+	FindByID(context.Context, string) (models.APIKey, error)
+	ListByUser(context.Context, string, *string) ([]models.APIKey, error)
 	Touch(context.Context, string, time.Time) error
 	Revoke(context.Context, string, time.Time) error
 	DeleteExpired(context.Context, time.Time) (int64, error)

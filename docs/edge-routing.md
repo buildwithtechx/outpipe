@@ -7,25 +7,25 @@ The tunnel relay owns public routing. DNS automation is optional and is not part
 Create these records once for the hosted installation:
 
 ```text
-tunnel.outpipe.dev       A/AAAA <relay-address>
-*.tunnel.outpipe.dev     A/AAAA <relay-address>
+relay.outpipe.app        A/AAAA <relay-address>
+*.outpipe.app            A/AAAA <relay-address>
 ```
 
 The relay then assigns URLs such as:
 
 ```text
-https://abc123.tunnel.outpipe.dev
+https://abc123.outpipe.app
 ```
 
 No DNS record is created for an individual tunnel.
 
-When the relay is directly exposed on the public network, provision a certificate containing `*.tunnel.outpipe.dev` and `tunnel.outpipe.dev`. Mount the certificate and key into the relay and set:
+When the relay is directly exposed on the public network, provision a certificate containing `*.outpipe.app` and `relay.outpipe.app`. Mount the certificate and key into the relay and set:
 
 ```text
 OUTPIPE_REQUIRE_TLS=true
 OUTPIPE_TLS_CERT_FILE=/run/secrets/tunnel/fullchain.pem
 OUTPIPE_TLS_KEY_FILE=/run/secrets/tunnel/privkey.pem
-OUTPIPE_DOMAIN=tunnel.outpipe.dev
+OUTPIPE_DOMAIN=outpipe.app
 ```
 
 The relay reloads the certificate on the next TLS handshake after either mounted file changes. A deployment can renew the certificate atomically by writing new files beside the existing files and replacing them with a rename.
@@ -59,5 +59,5 @@ Use the local example values:
 ```text
 OUTPIPE_REQUIRE_TLS=false
 OUTPIPE_REQUIRE_TLS=false
-OUTPIPE_DOMAIN=tunnel.localhost
+OUTPIPE_DOMAIN=outpipe.localhost
 ```

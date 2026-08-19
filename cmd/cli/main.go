@@ -142,7 +142,12 @@ func openTunnel(cfg config.CLIConfig, cmdName string, args []string) {
 				return
 			}
 
-			log.Printf("relay connection failed: %v; retrying in %s", err, delay)
+			if ownerRelay := client.RelayOwnerFromError(err); ownerRelay != "" {
+				log.Printf("tunnel %q is connected through relay %s; retrying on the owning relay in %s", tunnelID, ownerRelay, 2*time.Second)
+				delay = 2 * time.Second
+			} else {
+				log.Printf("relay connection failed: %v; retrying in %s", err, delay)
+			}
 
 			select {
 			case <-ctx.Done():

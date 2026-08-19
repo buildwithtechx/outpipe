@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"outpipe.dev/outpipe/internal/models"
 	"outpipe.dev/outpipe/internal/repositories"
 )
 
@@ -30,6 +31,21 @@ func NewAccountService(users repositories.UserRepository, organizations reposito
 }
 
 func (s *AccountService) SetMailer(mailer AccountMailer) { s.mailer = mailer }
+
+func (s *AccountService) Profile(ctx context.Context, userID string) (models.User, error) {
+
+	if userID == "" {
+		return models.User{}, fmt.Errorf("user id is required")
+	}
+
+	user, err := s.users.FindByID(ctx, userID)
+
+	if err != nil {
+		return models.User{}, fmt.Errorf("find account profile: %w", err)
+	}
+
+	return user, nil
+}
 
 func (s *AccountService) Delete(ctx context.Context, userID string) error {
 	user, err := s.users.FindByID(ctx, userID)

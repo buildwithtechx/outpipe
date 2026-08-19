@@ -19,34 +19,44 @@ func NewRelayAffinity(client *Client) (*RelayAffinity, error) {
 	return &RelayAffinity{client: client}, nil
 }
 
-func (a *RelayAffinity) Claim(ctx context.Context, tunnelID, relayID string, ttl time.Duration) (bool, error) {
+func (a *RelayAffinity) Claim(ctx context.Context, tunnelID, relayID string, ttl time.Duration) (bool, string, error) {
 
 	if tunnelID == "" || relayID == "" || ttl <= 0 {
-		return false, fmt.Errorf("tunnel, relay, and positive ttl are required")
+		return false, "", fmt.Errorf("tunnel, relay, and positive ttl are required")
 	}
 
 	key := "outpipe:relay-owner:" + tunnelID
 	owner, err := a.client.Raw().Get(ctx, key).Result()
 
 	if err == nil && owner != relayID {
-		return false, nil
+		return false, owner, nil
 	}
 
 	if err != nil && err != redis.Nil {
-		return false, fmt.Errorf("read relay owner: %w", err)
+		return false, "", fmt.Errorf("read relay owner: %w", err)
 	}
 
 	if err == nil {
-		return true, a.client.Raw().Expire(ctx, key, ttl).Err()
+		return true, relayID, a.client.Raw().Expire(ctx, key, ttl).Err()
 	}
 
 	ok, err := a.client.Raw().SetNX(ctx, key, relayID, ttl).Result()
 
 	if err != nil {
-		return false, fmt.Errorf("claim relay owner: %w", err)
+		return false, "", fmt.Errorf("claim relay owner: %w", err)
 	}
 
-	return ok, nil
+	if !ok {
+		owner, getErr := a.client.Raw().Get(ctx, key).Result()
+
+		if getErr != nil {
+			owner = ""
+		}
+
+		return false, owner, nil
+	}
+
+	return true, relayID, nil
 }
 
 func (a *RelayAffinity) Release(ctx context.Context, tunnelID, relayID string) error {

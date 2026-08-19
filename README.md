@@ -8,7 +8,7 @@ It is designed to work without Outpipe. Outpipe is an optional integration that 
 
 - `outpipe.dev` serves the Tunnel web dashboard.
 - `api.outpipe.dev` serves the Tunnel control-plane API.
-- `tunnel.outpipe.dev` serves the public tunnel relay and generated tunnel endpoints.
+- `relay.outpipe.app` serves the public tunnel relay, and `*.outpipe.app` serves generated tunnel endpoints (`myapp.outpipe.app`, for example).
 - `cli.outpipe.dev` serves the CLI installer and release assets.
 - `desktop.outpipe.dev` serves Tunnel Desktop installers.
 

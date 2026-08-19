@@ -10,20 +10,19 @@ import (
 )
 
 type OAuthHandler struct {
-	oauth        *services.OAuthService
-	publicAPIURL string
-	dashboardURL string
-	cookieName   string
-	cookieSecure bool
+	oauth         *services.OAuthService
+	publicAPIURL  string
+	dashboardURL  string
+	sessionCookie SessionCookieConfig
 }
 
-func NewOAuthHandler(oauth *services.OAuthService, publicAPIURL, dashboardURL, cookieName string, cookieSecure bool) (*OAuthHandler, error) {
+func NewOAuthHandler(oauth *services.OAuthService, publicAPIURL, dashboardURL, cookieName string, cookieSecure bool, cookieDomain string) (*OAuthHandler, error) {
 
 	if oauth == nil || strings.TrimSpace(publicAPIURL) == "" || strings.TrimSpace(dashboardURL) == "" || strings.TrimSpace(cookieName) == "" {
 		return nil, fmt.Errorf("oauth service, public api url, dashboard url, and cookie name are required")
 	}
 
-	return &OAuthHandler{oauth: oauth, publicAPIURL: strings.TrimRight(publicAPIURL, "/"), dashboardURL: strings.TrimRight(dashboardURL, "/"), cookieName: cookieName, cookieSecure: cookieSecure}, nil
+	return &OAuthHandler{oauth: oauth, publicAPIURL: strings.TrimRight(publicAPIURL, "/"), dashboardURL: strings.TrimRight(dashboardURL, "/"), sessionCookie: SessionCookieConfig{Name: cookieName, Secure: cookieSecure, Domain: cookieDomain}}, nil
 }
 
 func (h *OAuthHandler) Start(c *fiber.Ctx) error {
@@ -51,7 +50,7 @@ func (h *OAuthHandler) Callback(c *fiber.Ctx) error {
 		return c.Redirect(h.dashboardURL+"/login?error=oauth_failed", fiber.StatusFound)
 	}
 
-	c.Cookie(&fiber.Cookie{Name: h.cookieName, Value: raw, HTTPOnly: true, Secure: h.cookieSecure, SameSite: "Lax", Path: "/", Expires: session.ExpiresAt})
+	SetSessionCookie(c, h.sessionCookie, raw, session.ExpiresAt)
 	return c.Redirect(h.dashboardURL+returnPath, fiber.StatusFound)
 }
 

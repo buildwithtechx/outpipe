@@ -51,19 +51,22 @@ type Handlers struct {
 	OAuth               *handlers.OAuthHandler
 	Account             *handlers.AccountHandler
 	Admin               *handlers.AdminHandler
+	APIKeys             *handlers.APIKeyHandler
+	AuditLogs           *handlers.AuditLogHandler
 	auditService        *services.AuditService
 	authService         *services.AuthService
 	organizationService *services.OrganizationService
 	apiKeyService       *services.APIKeyService
+	agentService        *services.AgentService
 }
 
-func buildHandlers(deps Dependencies, cookieName string, cookieSecure bool) (Handlers, error) {
+func buildHandlers(deps Dependencies, cookie handlers.SessionCookieConfig) (Handlers, error) {
 
 	if err := deps.Validate(); err != nil {
 		return Handlers{}, err
 	}
 
-	authHandler, err := handlers.NewAuthHandler(deps.Auth, deps.DeviceLogin, cookieName, cookieSecure)
+	authHandler, err := handlers.NewAuthHandler(deps.Auth, deps.DeviceLogin, cookie.Name, cookie.Secure, cookie.Domain)
 
 	if err != nil {
 		return Handlers{}, err
@@ -114,7 +117,7 @@ func buildHandlers(deps Dependencies, cookieName string, cookieSecure bool) (Han
 	var oauthHandler *handlers.OAuthHandler
 
 	if deps.OAuth != nil {
-		oauthHandler, err = handlers.NewOAuthHandler(deps.OAuth, deps.PublicAPIURL, deps.DashboardURL, cookieName, cookieSecure)
+		oauthHandler, err = handlers.NewOAuthHandler(deps.OAuth, deps.PublicAPIURL, deps.DashboardURL, cookie.Name, cookie.Secure, cookie.Domain)
 
 		if err != nil {
 			return Handlers{}, err
@@ -133,5 +136,17 @@ func buildHandlers(deps Dependencies, cookieName string, cookieSecure bool) (Han
 		return Handlers{}, err
 	}
 
-	return Handlers{Health: handlers.NewHealthHandler(deps.Ready), Auth: authHandler, Organizations: organizationHandler, Invitations: invitationHandler, Tunnels: tunnelHandler, Agents: agentHandler, Domains: domainHandler, Usage: usageHandler, Billing: billingHandler, OAuth: oauthHandler, Account: accountHandler, Admin: adminHandler, authService: deps.Auth, organizationService: deps.Organizations, apiKeyService: deps.APIKeys, auditService: deps.Audit}, nil
+	apiKeyHandler, err := handlers.NewAPIKeyHandler(deps.APIKeys)
+
+	if err != nil {
+		return Handlers{}, err
+	}
+
+	auditLogHandler, err := handlers.NewAuditLogHandler(deps.Audit)
+
+	if err != nil {
+		return Handlers{}, err
+	}
+
+	return Handlers{Health: handlers.NewHealthHandler(deps.Ready), Auth: authHandler, Organizations: organizationHandler, Invitations: invitationHandler, Tunnels: tunnelHandler, Agents: agentHandler, Domains: domainHandler, Usage: usageHandler, Billing: billingHandler, OAuth: oauthHandler, Account: accountHandler, Admin: adminHandler, APIKeys: apiKeyHandler, AuditLogs: auditLogHandler, authService: deps.Auth, organizationService: deps.Organizations, apiKeyService: deps.APIKeys, auditService: deps.Audit, agentService: deps.Agents}, nil
 }

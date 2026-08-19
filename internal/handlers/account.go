@@ -22,6 +22,22 @@ func NewAccountHandler(accounts *services.AccountService) (*AccountHandler, erro
 	return &AccountHandler{accounts: accounts}, nil
 }
 
+func (h *AccountHandler) Profile(c *fiber.Ctx) error {
+	userID, err := sessionUserID(c)
+
+	if err != nil {
+		return writeError(c, fiber.StatusUnauthorized, err)
+	}
+
+	profile, err := h.accounts.Profile(c.UserContext(), userID)
+
+	if err != nil {
+		return writeError(c, fiber.StatusNotFound, err)
+	}
+
+	return c.JSON(profile)
+}
+
 func (h *AccountHandler) Delete(c *fiber.Ctx) error {
 	userID, err := sessionUserID(c)
 

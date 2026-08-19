@@ -97,6 +97,16 @@ func (h *BillingHandler) Resume(c *fiber.Ctx) error {
 	return c.SendStatus(fiber.StatusNoContent)
 }
 
+func (h *BillingHandler) Invoices(c *fiber.Ctx) error {
+	invoices, err := h.billing.ListInvoices(c.UserContext(), c.Params("organizationID"))
+
+	if err != nil {
+		return writeError(c, fiber.StatusNotFound, err)
+	}
+
+	return c.JSON(fiber.Map{"invoices": invoices})
+}
+
 func (h *BillingHandler) Webhook(c *fiber.Ctx) error {
 	payload := c.Body()
 	provider := c.Params("provider")
@@ -205,7 +215,7 @@ func parseWebhook(provider string, payload []byte) (services.BillingTransition, 
 	status := subscriptionStatus(eventType, stringValue(data, "status"))
 	periodEnd := timeValue(data, "current_period_end", "period_end")
 	attemptKeys := []string{"attempts_remaining", "attemptsRemaining", "retries_remaining"}
-	transition := services.BillingTransition{Provider: models.BillingProvider(strings.ToLower(provider)), ProviderSubscription: stringValue(data, "subscription_id", "subscription_code", "id"), ProviderCustomer: stringValue(data, "customer_id", "customer_code"), ProviderProduct: stringValue(data, "product_id"), Status: status, CurrentPeriodEnd: periodEnd, CancelAtPeriodEnd: boolValue(data, "cancel_at_period_end", "cancelled"), EventType: eventType, AmountMinor: int64Value(data, "amount", "amount_minor", "amountMinor"), Currency: stringValue(data, "currency"), AttemptsRemaining: intValue(data, attemptKeys...), AttemptsKnown: hasIntValue(data, attemptKeys...), PreviousPlan: stringValue(data, "previous_plan", "previousPlan")}
+	transition := services.BillingTransition{Provider: models.BillingProvider(strings.ToLower(provider)), ProviderSubscription: stringValue(data, "subscription_id", "subscription_code", "id"), ProviderCustomer: stringValue(data, "customer_id", "customer_code"), ProviderProduct: stringValue(data, "product_id"), ProviderInvoice: stringValue(data, "invoice_id", "order_id", "invoice_code", "reference"), InvoiceURL: stringValue(data, "invoice_url", "receipt_url", "order_url"), Status: status, CurrentPeriodEnd: periodEnd, CancelAtPeriodEnd: boolValue(data, "cancel_at_period_end", "cancelled"), EventType: eventType, AmountMinor: int64Value(data, "amount", "amount_minor", "amountMinor"), Currency: stringValue(data, "currency"), AttemptsRemaining: intValue(data, attemptKeys...), AttemptsKnown: hasIntValue(data, attemptKeys...), PreviousPlan: stringValue(data, "previous_plan", "previousPlan"), PaidAt: timeValue(data, "paid_at", "paidAt", "created_at")}
 
 	if metadata, ok := data["metadata"].(map[string]any); ok {
 

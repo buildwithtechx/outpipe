@@ -240,17 +240,26 @@ func (m *TCPManager) CloseTunnel(tunnelID string) {
 	delete(m.senders, tunnelID)
 	connections := m.tunnels[tunnelID]
 	delete(m.tunnels, tunnelID)
+	hook := m.usageHook
+	var closed []net.Conn
 
 	for connectionID := range connections {
 
 		if connection := m.connections[connectionID]; connection != nil {
-			_ = connection.Close()
+			closed = append(closed, connection)
 		}
 
 		delete(m.connections, connectionID)
 	}
-
 	m.mu.Unlock()
+
+	if hook != nil && len(closed) > 0 {
+		hook(tunnelID, "tcp_connection_close", -len(closed))
+	}
+
+	for _, connection := range closed {
+		_ = connection.Close()
+	}
 
 	if listener != nil {
 		_ = listener.Close()

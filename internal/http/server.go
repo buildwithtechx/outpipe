@@ -9,21 +9,25 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/helmet"
 	"github.com/gofiber/fiber/v2/middleware/recover"
 	"outpipe.dev/outpipe/internal/config"
+	"outpipe.dev/outpipe/internal/handlers"
 	"outpipe.dev/outpipe/internal/infra/billing"
 	"outpipe.dev/outpipe/internal/infra/certificates"
 )
 
 type Server struct {
-	app        *fiber.App
-	requireTLS bool
-	certFile   string
-	keyFile    string
+	app             *fiber.App
+	internalApp     *fiber.App
+	requireTLS      bool
+	certFile        string
+	keyFile         string
+	internalAddress string
 }
 
 func NewServer(cfg config.APIConfig, deps Dependencies) (*Server, error) {
 	deps.PublicAPIURL = cfg.App.PublicAPIURL
 	deps.DashboardURL = cfg.App.DashboardURL
-	handlers, err := buildHandlers(deps, cfg.Auth.CookieName, cfg.Auth.CookieSecure)
+	cookie := handlers.SessionCookieConfig{Name: cfg.Auth.CookieName, Secure: cfg.Auth.CookieSecure, Domain: cfg.Auth.CookieDomain}
+	handlers, err := buildHandlers(deps, cookie)
 
 	if err != nil {
 		return nil, err
@@ -34,8 +38,19 @@ func NewServer(cfg config.APIConfig, deps Dependencies) (*Server, error) {
 	app.Use(helmet.New())
 	app.Use(cors.New(cors.Config{AllowOrigins: cfg.App.AllowedOrigins, AllowHeaders: "Origin, Content-Type, Accept, Authorization, X-Internal-Secret", AllowCredentials: true}))
 
-	if err := RegisterRoutes(app, handlers, RouterOptions{CookieName: cfg.Auth.CookieName, CookieSecure: cfg.Auth.CookieSecure, InternalAPISecret: cfg.Service.InternalAPISecret, BillingWebhookSecret: cfg.Billing.WebhookSecret}); err != nil {
+	if err := RegisterRoutes(app, handlers, RouterOptions{CookieName: cfg.Auth.CookieName, CookieSecure: cfg.Auth.CookieSecure, BillingWebhookSecret: cfg.Billing.WebhookSecret}); err != nil {
 		return nil, err
+	}
+
+	var internalApp *fiber.App
+
+	if cfg.Service.InternalAPISecret != "" {
+		internalApp = fiber.New(fiber.Config{AppName: cfg.App.Name + "-internal", DisableStartupMessage: true, ErrorHandler: errorHandler})
+		internalApp.Use(recover.New())
+
+		if err := RegisterInternalRoutes(internalApp, handlers, RouterOptions{InternalAPISecret: cfg.Service.InternalAPISecret}); err != nil {
+			return nil, err
+		}
 	}
 
 	if handlers.Billing != nil {
@@ -52,11 +67,15 @@ func NewServer(cfg config.APIConfig, deps Dependencies) (*Server, error) {
 		handlers.Billing.SetProviderSecrets(cfg.Billing.PolarWebhookSecret, paystackClient)
 	}
 
-	return &Server{app: app, requireTLS: cfg.App.RequireTLS, certFile: cfg.App.TLSCertFile, keyFile: cfg.App.TLSKeyFile}, nil
+	return &Server{app: app, internalApp: internalApp, requireTLS: cfg.App.RequireTLS, certFile: cfg.App.TLSCertFile, keyFile: cfg.App.TLSKeyFile, internalAddress: cfg.App.InternalListenAddress}, nil
 }
 
 func (s *Server) App() *fiber.App {
 	return s.app
+}
+
+func (s *Server) InternalApp() *fiber.App {
+	return s.internalApp
 }
 
 func (s *Server) Listen(address string) error {
@@ -78,13 +97,30 @@ func (s *Server) Listen(address string) error {
 	return s.app.Listen(address)
 }
 
+func (s *Server) ListenInternal(address string) error {
+
+	if s == nil || s.internalApp == nil {
+		return fmt.Errorf("internal http server is not initialized")
+	}
+
+	return s.internalApp.Listen(address)
+}
+
 func (s *Server) Shutdown() error {
 
 	if s == nil || s.app == nil {
 		return nil
 	}
 
-	return s.app.Shutdown()
+	if err := s.app.Shutdown(); err != nil {
+		return err
+	}
+
+	if s.internalApp != nil {
+		return s.internalApp.Shutdown()
+	}
+
+	return nil
 }
 
 func errorHandler(c *fiber.Ctx, err error) error {

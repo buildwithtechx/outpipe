@@ -51,13 +51,18 @@ func RegisterRoutes(app *fiber.App, handlers Handlers, options RouterOptions) er
 
 	app.Get("/api/v1/auth/session", handlers.Auth.Session)
 	app.Post("/api/v1/auth/logout", handlers.Auth.Logout)
+	app.Post("/api/v1/agents/:agentID/heartbeat", agentTokenRequired(handlers.agentService, "agentID"), handlers.Agents.Heartbeat)
 
 	protected := app.Group("/api/v1", sessionRequired(handlers.authService, handlers.apiKeyService, options.CookieName), auditRequest(handlers.auditService))
 	protected.Post("/auth/device/complete", handlers.Auth.CompleteDeviceLogin)
+	protected.Get("/account", handlers.Account.Profile)
 	protected.Get("/organizations", handlers.Organizations.List)
 	protected.Get("/organizations/slug-availability", handlers.Organizations.CheckSlug)
 	protected.Post("/organizations", handlers.Organizations.Create)
+	protected.Get("/organizations/:organizationID", organizationRoleRequired(handlers.organizationService, models.MemberRoleViewer), handlers.Organizations.Detail)
+	protected.Get("/organizations/:organizationID/members", organizationRoleRequired(handlers.organizationService, models.MemberRoleViewer), handlers.Organizations.ListMembers)
 	protected.Post("/organizations/:organizationID/members", organizationRoleRequired(handlers.organizationService, models.MemberRoleAdmin), handlers.Organizations.AddMember)
+	protected.Delete("/organizations/:organizationID/members/:memberID", organizationRoleRequired(handlers.organizationService, models.MemberRoleAdmin), handlers.Organizations.RemoveMember)
 	protected.Post("/organizations/:organizationID/invitations", organizationRoleRequired(handlers.organizationService, models.MemberRoleAdmin), handlers.Invitations.Create)
 	protected.Post("/invitations/accept", handlers.Invitations.Accept)
 	protected.Delete("/account", apiKeyScopeRequired("account:write"), handlers.Account.Delete)
@@ -67,8 +72,14 @@ func RegisterRoutes(app *fiber.App, handlers Handlers, options RouterOptions) er
 	protected.Post("/organizations/:organizationID/agents", organizationRoleRequired(handlers.organizationService, models.MemberRoleAdmin), handlers.Agents.Register)
 	protected.Post("/organizations/:organizationID/domains", organizationRoleRequired(handlers.organizationService, models.MemberRoleAdmin), handlers.Domains.Create)
 	protected.Get("/organizations/:organizationID/usage/events", organizationRoleRequired(handlers.organizationService, models.MemberRoleViewer), handlers.Usage.Events)
+	protected.Get("/organizations/:organizationID/usage/requests", organizationRoleRequired(handlers.organizationService, models.MemberRoleViewer), handlers.Usage.Requests)
 	protected.Get("/organizations/:organizationID/usage/snapshot", organizationRoleRequired(handlers.organizationService, models.MemberRoleViewer), handlers.Usage.Snapshot)
+	protected.Get("/organizations/:organizationID/audit-logs", organizationRoleRequired(handlers.organizationService, models.MemberRoleAdmin), handlers.AuditLogs.List)
+	protected.Get("/organizations/:organizationID/api-keys", organizationRoleRequired(handlers.organizationService, models.MemberRoleMember), handlers.APIKeys.List)
+	protected.Post("/organizations/:organizationID/api-keys", organizationRoleRequired(handlers.organizationService, models.MemberRoleAdmin), handlers.APIKeys.Create)
+	protected.Delete("/organizations/:organizationID/api-keys/:apiKeyID", organizationRoleRequired(handlers.organizationService, models.MemberRoleAdmin), handlers.APIKeys.Revoke)
 	protected.Get("/organizations/:organizationID/billing", organizationRoleRequired(handlers.organizationService, models.MemberRoleViewer), handlers.Billing.Status)
+	protected.Get("/organizations/:organizationID/billing/invoices", organizationRoleRequired(handlers.organizationService, models.MemberRoleViewer), handlers.Billing.Invoices)
 	protected.Post("/organizations/:organizationID/billing/checkout", organizationRoleRequired(handlers.organizationService, models.MemberRoleOwner), handlers.Billing.Checkout)
 	protected.Get("/organizations/:organizationID/billing/portal", organizationRoleRequired(handlers.organizationService, models.MemberRoleOwner), handlers.Billing.Portal)
 	protected.Post("/organizations/:organizationID/billing/cancel", organizationRoleRequired(handlers.organizationService, models.MemberRoleOwner), handlers.Billing.Cancel)
@@ -77,7 +88,6 @@ func RegisterRoutes(app *fiber.App, handlers Handlers, options RouterOptions) er
 	protected.Get("/tunnels/:tunnelID", apiKeyResourceScopeRequired(handlers.organizationService, "tunnels:read", "tunnelID", handlers.Tunnels.OrganizationID), handlers.Tunnels.Inspect)
 	protected.Delete("/tunnels/:tunnelID", apiKeyResourceScopeRequired(handlers.organizationService, "tunnels:write", "tunnelID", handlers.Tunnels.OrganizationID), handlers.Tunnels.Revoke)
 	protected.Post("/domains/:domainID/verify", apiKeyResourceScopeRequired(handlers.organizationService, "domains:write", "domainID", handlers.Domains.OrganizationID), handlers.Domains.Verify)
-	protected.Post("/agents/:agentID/heartbeat", apiKeyResourceScopeRequired(handlers.organizationService, "agents:write", "agentID", handlers.Agents.OrganizationID), handlers.Agents.Heartbeat)
 	protected.Delete("/agents/:agentID", apiKeyResourceScopeRequired(handlers.organizationService, "agents:write", "agentID", handlers.Agents.OrganizationID), handlers.Agents.Revoke)
 
 	admin := protected.Group("/admin", platformAdminRequired(handlers.authService))
@@ -91,13 +101,25 @@ func RegisterRoutes(app *fiber.App, handlers Handlers, options RouterOptions) er
 	admin.Get("/audit-logs", handlers.Admin.AuditLogs)
 	admin.Post("/tunnels/:tunnelID/revoke", handlers.Tunnels.Revoke)
 
-	if options.InternalAPISecret != "" {
-		app.Get("/internal/health", internalSecretRequired(options.InternalAPISecret), handlers.Health.Readiness)
-		app.Get("/internal/agents/authenticate", internalSecretRequired(options.InternalAPISecret), handlers.Agents.Authenticate)
-		app.Get("/internal/tunnels/:tunnelID/policy", internalSecretRequired(options.InternalAPISecret), handlers.Tunnels.Policy)
-		app.Post("/internal/tunnels/:tunnelID/password", internalSecretRequired(options.InternalAPISecret), requestRateLimitBy(10, time.Minute, func(c *fiber.Ctx) string { return c.IP() + ":" + c.Params("tunnelID") }), handlers.Tunnels.VerifyPassword)
-		app.Post("/internal/usage", internalSecretRequired(options.InternalAPISecret), handlers.Usage.Ingest)
+	return nil
+}
+
+func RegisterInternalRoutes(app *fiber.App, handlers Handlers, options RouterOptions) error {
+
+	if app == nil {
+		return fmt.Errorf("fiber app is required")
 	}
+
+	if options.InternalAPISecret == "" {
+		return fmt.Errorf("internal api secret is required")
+	}
+
+	app.Use(securityHeadersMiddleware(options.CookieSecure))
+	app.Get("/internal/health", internalSecretRequired(options.InternalAPISecret), handlers.Health.Readiness)
+	app.Get("/internal/agents/authenticate", internalSecretRequired(options.InternalAPISecret), handlers.Agents.Authenticate)
+	app.Get("/internal/tunnels/:tunnelID/policy", internalSecretRequired(options.InternalAPISecret), handlers.Tunnels.Policy)
+	app.Post("/internal/tunnels/:tunnelID/password", internalSecretRequired(options.InternalAPISecret), requestRateLimitBy(10, time.Minute, func(c *fiber.Ctx) string { return c.IP() + ":" + c.Params("tunnelID") }), handlers.Tunnels.VerifyPassword)
+	app.Post("/internal/usage", internalSecretRequired(options.InternalAPISecret), handlers.Usage.Ingest)
 
 	return nil
 }

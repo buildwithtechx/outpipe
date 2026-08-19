@@ -2,6 +2,7 @@ package client
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net"
 	"net/http"
@@ -17,6 +18,32 @@ type RelayConfig struct {
 	URL         string
 	Token       string
 	HTTPHeaders http.Header
+}
+
+type RelayRejectedError struct{ Message string }
+
+func (e *RelayRejectedError) Error() string {
+	return "relay rejected tunnel: " + e.Message
+}
+
+func RelayOwnerFromError(err error) string {
+	var rejected *RelayRejectedError
+
+	if err == nil || !errors.As(err, &rejected) {
+		return ""
+	}
+
+	const marker = "connected through relay "
+
+	_, owner, found := strings.Cut(rejected.Message, marker)
+
+	if found {
+		if owner = strings.TrimSpace(owner); owner != "" {
+			return owner
+		}
+	}
+
+	return ""
 }
 
 type RelayConnection struct {
@@ -92,7 +119,7 @@ func OpenRelay(ctx context.Context, cfg RelayConfig, open protocol.OpenTunnel) (
 		var failure protocol.ErrorMessage
 		_ = protocol.DecodePayload(envelope, &failure)
 		_ = connection.Close()
-		return nil, fmt.Errorf("relay rejected tunnel: %s", failure.Message)
+		return nil, &RelayRejectedError{Message: failure.Message}
 	}
 
 	if envelope.Type != protocol.MessageTypeOpenTunnelAck {

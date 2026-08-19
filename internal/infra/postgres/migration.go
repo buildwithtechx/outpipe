@@ -98,6 +98,8 @@ func migrations() []migration {
 		return db.AutoMigrate(&models.UsageEvent{})
 	}}, {version: 9, name: "nullable_usage_client_ip", up: func(db *gorm.DB) error {
 		return db.AutoMigrate(&models.UsageEvent{})
+	}}, {version: 10, name: "billing_invoices_and_receipts", up: func(db *gorm.DB) error {
+		return db.AutoMigrate(&models.Invoice{}, &models.Receipt{})
 	}}}
 }
 

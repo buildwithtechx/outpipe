@@ -172,13 +172,18 @@ func (h *Handler) claimTunnel(ctx context.Context, tunnelID string) error {
 		return nil
 	}
 
-	claimed, err := h.affinity.Claim(ctx, tunnelID, h.relayID, h.affinityTTL)
+	claimed, owner, err := h.affinity.Claim(ctx, tunnelID, h.relayID, h.affinityTTL)
 
 	if err != nil {
 		return fmt.Errorf("claim relay affinity: %w", err)
 	}
 
 	if !claimed {
+
+		if owner != "" {
+			return fmt.Errorf("tunnel is connected through relay %s", owner)
+		}
+
 		return fmt.Errorf("tunnel is connected through another relay")
 	}
 
@@ -325,5 +330,10 @@ func (h *Handler) closeTunnel(organizationID string, message protocol.Envelope, 
 	h.router.RemoveTunnel(closeMessage.TunnelID)
 	h.tcp.CloseTunnel(closeMessage.TunnelID)
 	h.udp.CloseTunnel(closeMessage.TunnelID)
+
+	if h.affinity != nil {
+		_ = h.affinity.Release(context.Background(), closeMessage.TunnelID, h.relayID)
+	}
+
 	return nil
 }

@@ -89,6 +89,35 @@ func (h *OrganizationHandler) CheckSlug(c *fiber.Ctx) error {
 	return c.JSON(fiber.Map{"available": available})
 }
 
+func (h *OrganizationHandler) Detail(c *fiber.Ctx) error {
+	organization, err := h.organizations.Get(c.UserContext(), c.Params("organizationID"))
+
+	if err != nil {
+		return writeError(c, fiber.StatusNotFound, err)
+	}
+
+	return c.JSON(organization)
+}
+
+func (h *OrganizationHandler) ListMembers(c *fiber.Ctx) error {
+	members, err := h.organizations.ListMembers(c.UserContext(), c.Params("organizationID"))
+
+	if err != nil {
+		return writeError(c, fiber.StatusNotFound, err)
+	}
+
+	return c.JSON(members)
+}
+
+func (h *OrganizationHandler) RemoveMember(c *fiber.Ctx) error {
+
+	if err := h.organizations.RemoveMember(c.UserContext(), c.Params("organizationID"), c.Params("memberID")); err != nil {
+		return writeError(c, fiber.StatusBadRequest, err)
+	}
+
+	return c.SendStatus(fiber.StatusNoContent)
+}
+
 func (h *OrganizationHandler) AddMember(c *fiber.Ctx) error {
 	var input AddMemberRequest
 

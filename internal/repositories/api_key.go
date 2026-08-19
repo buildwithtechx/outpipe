@@ -39,6 +39,33 @@ func (r *GormAPIKeyRepository) FindByPrefix(ctx context.Context, prefix string) 
 	return key, nil
 }
 
+func (r *GormAPIKeyRepository) FindByID(ctx context.Context, id string) (models.APIKey, error) {
+	var key models.APIKey
+
+	if err := r.db.WithContext(ctx).Where("id = ?", id).First(&key).Error; err != nil {
+		return models.APIKey{}, mapError(err)
+	}
+
+	return key, nil
+}
+
+func (r *GormAPIKeyRepository) ListByUser(ctx context.Context, userID string, organizationID *string) ([]models.APIKey, error) {
+	var keys []models.APIKey
+	query := r.db.WithContext(ctx).Where("user_id = ?", userID)
+
+	if organizationID != nil {
+		query = query.Where("organization_id = ?", *organizationID)
+	} else {
+		query = query.Where("organization_id IS NULL")
+	}
+
+	if err := query.Order("created_at DESC").Find(&keys).Error; err != nil {
+		return nil, fmt.Errorf("list user api keys: %w", err)
+	}
+
+	return keys, nil
+}
+
 func (r *GormAPIKeyRepository) Touch(ctx context.Context, id string, at time.Time) error {
 	return wrap(r.db.WithContext(ctx).Model(&models.APIKey{}).Where("id = ? AND revoked_at IS NULL", id).Updates(map[string]any{"last_used_at": at}).Error, "touch api key")
 }
