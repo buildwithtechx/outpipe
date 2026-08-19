@@ -91,6 +91,7 @@ func SaveCLI(cfg CLIConfig) error {
 		return fmt.Errorf("create config directory: %w", err)
 	}
 
+	cfg.Version = CurrentCLIConfigVersion
 	data, err := json.MarshalIndent(cfg, "", "  ")
 
 	if err != nil {
@@ -112,13 +113,30 @@ func LoadCLIFile(path string) (CLIConfig, error) {
 		return CLIConfig{}, fmt.Errorf("read cli config: %w", err)
 	}
 
+	return decodeCLIFile(data)
+}
+
+func decodeCLIFile(data []byte) (CLIConfig, error) {
 	var cfg CLIConfig
 
 	if err := json.Unmarshal(data, &cfg); err != nil {
 		return CLIConfig{}, fmt.Errorf("decode cli config: %w", err)
 	}
 
+	if cfg.Version > CurrentCLIConfigVersion {
+		return CLIConfig{}, fmt.Errorf("cli config version %d is newer than supported version %d", cfg.Version, CurrentCLIConfigVersion)
+	}
+
+	if cfg.Version == 0 {
+		return migrateCLIFile(&cfg), nil
+	}
+
 	return cfg, nil
+}
+
+func migrateCLIFile(cfg *CLIConfig) CLIConfig {
+	cfg.Version = CurrentCLIConfigVersion
+	return *cfg
 }
 
 func parse[T any](cfg *T) error {

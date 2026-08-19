@@ -3,7 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
-	"log"
+	"os"
 )
 
 const bashCompletion = `_outpipe_completion() {
@@ -43,10 +43,14 @@ _outpipe "$@"
 const fishCompletion = `complete -c outpipe -n "__fish_use_subcommand" -a "login open create list inspect start stop revoke http tcp health completion version"
 `
 
-func runCompletion(args []string) {
-	flags := flag.NewFlagSet("completion", flag.ExitOnError)
+func runCompletion(args []string) error {
+	flags := flag.NewFlagSet("completion", flag.ContinueOnError)
+	flags.SetOutput(os.Stderr)
 	shell := flags.String("shell", "bash", "shell type: bash, zsh, fish")
-	_ = flags.Parse(args)
+
+	if err := flags.Parse(args); err != nil {
+		return fmt.Errorf("parse completion flags: %w", err)
+	}
 
 	switch *shell {
 	case "bash":
@@ -56,6 +60,8 @@ func runCompletion(args []string) {
 	case "fish":
 		fmt.Print(fishCompletion)
 	default:
-		log.Fatalf("unsupported shell %q; supported: bash, zsh, fish", *shell)
+		return fmt.Errorf("unsupported shell %q; supported: bash, zsh, fish", *shell)
 	}
+
+	return nil
 }

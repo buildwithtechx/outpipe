@@ -38,6 +38,7 @@ type CheckConfig struct {
 }
 
 type CLIConfig struct {
+	Version      int    `json:"version" env:"-"`
 	APIURL       string `env:"OUTPIPE_API_URL" envDefault:"http://localhost:8080"`
 	RelayURL     string `env:"OUTPIPE_RELAY_URL" envDefault:"ws://localhost:8081"`
 	PublicDomain string `env:"OUTPIPE_DOMAIN" envDefault:"outpipe.app"`
@@ -46,6 +47,8 @@ type CLIConfig struct {
 	Password     string `env:"OUTPIPE_PASSWORD"`
 	ConfigPath   string `env:"OUTPIPE_CONFIG_PATH" envDefault:".config/outpipe/config.json"`
 }
+
+const CurrentCLIConfigVersion = 1
 
 type ServiceConfig struct {
 	InternalAPIURL    string `env:"INTERNAL_API_URL" envDefault:"http://127.0.0.1:9090"`

@@ -4,7 +4,6 @@ import (
 	"context"
 	"flag"
 	"fmt"
-	"log"
 	"net/http"
 	"os"
 	"time"
@@ -13,22 +12,25 @@ import (
 	"outpipe.dev/outpipe/pkg/client"
 )
 
-func runLogin(cfg config.CLIConfig) {
-	flags := flag.NewFlagSet("login", flag.ExitOnError)
+func runLogin(cfg config.CLIConfig, args []string) error {
+	flags := flag.NewFlagSet("login", flag.ContinueOnError)
+	flags.SetOutput(os.Stderr)
 	token := flags.String("agent-token", "", "agent token issued by the dashboard")
 	code := flags.String("code", "", "existing browser device code")
 	apiKey := flags.String("api-key", cfg.APIKey, "API key for management commands")
-	_ = flags.Parse(os.Args[2:])
+
+	if err := flags.Parse(args); err != nil {
+		return fmt.Errorf("parse login flags: %w", err)
+	}
 
 	if *token != "" {
-		saveLogin(cfg, *token, *apiKey)
-		return
+		return saveLogin(cfg, *token, *apiKey)
 	}
 
 	apiClient, err := client.New(client.Config{BaseURL: cfg.APIURL})
 
 	if err != nil {
-		log.Fatal(err)
+		return fmt.Errorf("initialize client: %w", err)
 	}
 
 	deviceCode := *code
@@ -38,7 +40,7 @@ func runLogin(cfg config.CLIConfig) {
 			Code string `json:"code"`
 		}
 		if err := apiClient.Do(context.Background(), http.MethodPost, "/api/v1/auth/device/start", nil, &started); err != nil {
-			log.Fatal(err)
+			return fmt.Errorf("start device login: %w", err)
 		}
 
 		deviceCode = started.Code
@@ -51,25 +53,25 @@ func runLogin(cfg config.CLIConfig) {
 			Token  string `json:"token"`
 		}
 		if err := apiClient.Do(context.Background(), http.MethodGet, "/api/v1/auth/device/poll?code="+deviceCode, nil, &result); err != nil {
-			log.Fatal(err)
+			return fmt.Errorf("poll device login: %w", err)
 		}
 
 		if result.Token != "" {
-			saveLogin(cfg, result.Token, *apiKey)
-			return
+			return saveLogin(cfg, result.Token, *apiKey)
 		}
 
 		time.Sleep(2 * time.Second)
 	}
 }
 
-func saveLogin(cfg config.CLIConfig, token, apiKey string) {
+func saveLogin(cfg config.CLIConfig, token, apiKey string) error {
 	cfg.AgentToken = token
 	cfg.APIKey = apiKey
 
 	if err := config.SaveCLI(cfg); err != nil {
-		log.Fatalf("save credentials: %v", err)
+		return fmt.Errorf("save credentials: %w", err)
 	}
 
 	fmt.Println("credentials saved")
+	return nil
 }

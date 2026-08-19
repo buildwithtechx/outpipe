@@ -2,9 +2,9 @@ package main
 
 import (
 	"context"
+	"errors"
 	"flag"
 	"fmt"
-	"log"
 	"net/http"
 	"os"
 	"os/signal"
@@ -20,10 +20,25 @@ import (
 var version = "dev"
 
 func main() {
+
+	if err := run(os.Args[1:]); err != nil {
+		fmt.Fprintf(os.Stderr, "outpipe: %v\n", err)
+
+		if errors.Is(err, errUnknownCommand) {
+			os.Exit(2)
+		}
+
+		os.Exit(1)
+	}
+}
+
+var errUnknownCommand = fmt.Errorf("unknown command")
+
+func run(args []string) error {
 	cfg, err := config.LoadCLI()
 
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 
 	if stored, loadErr := config.LoadCLIFile(cfg.ConfigPath); loadErr == nil {
@@ -35,52 +50,61 @@ func main() {
 		if _, ok := os.LookupEnv("OUTPIPE_AGENT_TOKEN"); !ok {
 			cfg.AgentToken = stored.AgentToken
 		}
+	} else if !os.IsNotExist(errors.Unwrap(loadErr)) {
+		fmt.Fprintf(os.Stderr, "outpipe: warning: could not load config file %s: %v\n", cfg.ConfigPath, loadErr)
 	}
 
-	if len(os.Args) < 2 || os.Args[1] == "help" {
+	if len(args) == 0 || args[0] == "help" {
 		printUsage()
-		return
+		return nil
 	}
 
-	command := os.Args[1]
-
-	switch command {
+	switch args[0] {
 	case "version":
 		fmt.Println(version)
 	case "login":
-		runLogin(cfg)
+		return runLogin(cfg, args[1:])
 	case "open", "http", "tcp":
-		openTunnel(cfg, command, os.Args[2:])
+		return openTunnel(cfg, args[0], args[1:])
 	case "create", "list", "inspect", "start", "stop", "revoke":
-		runTunnelsCommand(cfg, os.Args[1:])
+		return runTunnelsCommand(cfg, args)
 	case "completion":
-		runCompletion(os.Args[2:])
+		return runCompletion(args[1:])
 	case "health":
-		runHealth(cfg, os.Args[2:])
+		return runHealth(cfg, args[1:])
 	default:
-		log.Fatalf("unknown command %q", command)
+		return fmt.Errorf("%w %q", errUnknownCommand, args[0])
 	}
+
+	return nil
 }
 
-func runHealth(cfg config.CLIConfig, args []string) {
-	flags := flag.NewFlagSet("health", flag.ExitOnError)
+func runHealth(cfg config.CLIConfig, args []string) error {
+	flags := flag.NewFlagSet("health", flag.ContinueOnError)
+	flags.SetOutput(os.Stderr)
 	apiURL := flags.String("api-url", cfg.APIURL, "tunnel API URL")
-	_ = flags.Parse(args)
+
+	if err := flags.Parse(args); err != nil {
+		return fmt.Errorf("parse health flags: %w", err)
+	}
+
 	apiClient, err := client.New(client.Config{BaseURL: *apiURL, APIKey: cfg.APIKey})
 
 	if err != nil {
-		log.Fatal(err)
+		return fmt.Errorf("initialize client: %w", err)
 	}
 
 	if err := apiClient.Do(context.Background(), http.MethodGet, "/readyz", nil, nil); err != nil {
-		log.Fatal(err)
+		return fmt.Errorf("health check: %w", err)
 	}
 
 	fmt.Println("ready")
+	return nil
 }
 
-func openTunnel(cfg config.CLIConfig, cmdName string, args []string) {
-	flags := flag.NewFlagSet(cmdName, flag.ExitOnError)
+func openTunnel(cfg config.CLIConfig, cmdName string, args []string) error {
+	flags := flag.NewFlagSet(cmdName, flag.ContinueOnError)
+	flags.SetOutput(os.Stderr)
 	port := flags.Int("port", 3000, "local port")
 	defaultProtocol := "http"
 
@@ -93,7 +117,10 @@ func openTunnel(cfg config.CLIConfig, cmdName string, args []string) {
 	password := flags.String("password", cfg.Password, "require this password for HTTP access")
 	agentToken := flags.String("agent-token", cfg.AgentToken, "agent token for CI/CD usage")
 	tunnelIDFlag := flags.String("tunnel-id", "", "resume a managed tunnel")
-	_ = flags.Parse(args)
+
+	if err := flags.Parse(args); err != nil {
+		return fmt.Errorf("parse %s flags: %w", cmdName, err)
+	}
 
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
@@ -111,7 +138,7 @@ func openTunnel(cfg config.CLIConfig, cmdName string, args []string) {
 		resolvedSubdomain, err := resolveManagedTunnel(ctx, cfg, tunnelID, *subdomain)
 
 		if err != nil {
-			log.Fatal(err)
+			return err
 		}
 
 		resolvedHostname = resolvedSubdomain
@@ -139,19 +166,19 @@ func openTunnel(cfg config.CLIConfig, cmdName string, args []string) {
 		if err != nil {
 
 			if ctx.Err() != nil {
-				return
+				return nil
 			}
 
 			if ownerRelay := client.RelayOwnerFromError(err); ownerRelay != "" {
-				log.Printf("tunnel %q is connected through relay %s; retrying on the owning relay in %s", tunnelID, ownerRelay, 2*time.Second)
+				fmt.Fprintf(os.Stderr, "outpipe: tunnel %q is connected through relay %s; retrying on the owning relay in %s\n", tunnelID, ownerRelay, 2*time.Second)
 				delay = 2 * time.Second
 			} else {
-				log.Printf("relay connection failed: %v; retrying in %s", err, delay)
+				fmt.Fprintf(os.Stderr, "outpipe: relay connection failed: %v; retrying in %s\n", err, delay)
 			}
 
 			select {
 			case <-ctx.Done():
-				return
+				return nil
 			case <-time.After(delay):
 			}
 
@@ -195,9 +222,11 @@ func openTunnel(cfg config.CLIConfig, cmdName string, args []string) {
 		<-done
 
 		if serveErr != nil && ctx.Err() == nil {
-			log.Printf("relay connection closed: %v; reconnecting", serveErr)
+			fmt.Fprintf(os.Stderr, "outpipe: relay connection closed: %v; reconnecting\n", serveErr)
 		}
 	}
+
+	return nil
 }
 
 func resolveManagedTunnel(ctx context.Context, cfg config.CLIConfig, tunnelID, requestedSubdomain string) (string, error) {

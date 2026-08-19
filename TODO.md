@@ -17,7 +17,7 @@ The Go backend, CLI, protocol package, and current TypeScript framework adapters
 - [x] Keep internal health, usage ingestion, relay handoff, and agent authentication strictly private.
 - [x] Route wildcard tunnel traffic through `*.outpipe.app` (for example `myapp.outpipe.app`), not through control-plane handlers. (Implemented in the relay: a single wildcard match on `*.outpipe.app` from `OUTPIPE_TUNNEL_DOMAIN` feeds the engine HTTP proxy; the control plane serves only `/api/v1/`, `/healthz`, `/readyz`, `/metrics`, and internal routes. See docs/edge-routing.md.)
 - [x] Finalize secure hosted cookie configuration: Secure, HttpOnly, SameSite=Lax, and a shared dashboard/API domain policy.
-- [ ] Add backend integration tests for OAuth, organization authorization, billing, webhooks, relay authentication, and tunnel lifecycle.
+- [ ] Add backend integration tests for OAuth, organization authorization, billing, webhooks, relay authentication, and tunnel lifecycle. (Partial: internal/http/cli_api_key_scopes_test.go covers tunnel-management authorization via API keys; OAuth flows, billing webhooks, and relay authentication still lack end-to-end tests.)
 
 ### cmd/tunnel
 
@@ -34,10 +34,10 @@ The CLI currently supports login, device login, health, tunnel opening, reconnec
 
 Remaining work:
 
-- [ ] Add comprehensive CLI tests.
+- [x] Add comprehensive CLI tests (cmd/cli/main_test.go covers command dispatch, health, every management command against an httptest API, managed-tunnel resolution, login flows, completion, stored credentials; internal/config/migration_test.go covers the config file format).
 - [x] Finish installation and release scripts and platform binaries (scripts/build-binaries.sh, scripts/build-images.sh, scripts/install-cli.sh, and the release workflow publishing CLI binaries for linux/darwin/windows).
-- [ ] Verify CLI and API-key scope behavior against every management command.
-- [ ] Add polished error handling and configuration migration for existing users.
+- [x] Verify CLI and API-key scope behavior against every management command (internal/http/cli_api_key_scopes_test.go drives the real router, middleware, and GORM-backed services on in-memory sqlite: create/list require organization:write/read, inspect/start/stop/revoke and open --tunnel-id require tunnels:read/write, higher ranks imply lower ones, org-restricted keys are denied, health stays unauthenticated. Found and fixed a bug where auth.NewToken rejected every 8/24-byte token, breaking API-key, tunnel-token, and device-code creation).
+- [x] Add polished error handling and configuration migration for existing users (commands now return errors with a consistent `outpipe: <error>` prefix and exit codes 1/2, config files are versioned at v1, legacy files migrate on load, corrupt or newer-version files are rejected, and unreadable config files produce a warning instead of silent failure).
 
 ### cmd/cron
 

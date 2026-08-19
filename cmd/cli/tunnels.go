@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
-	"log"
 	"net/http"
 	"os"
 
@@ -44,60 +43,60 @@ func printOutput(jsonOutput bool, value any) {
 	}
 }
 
-func runTunnelsCommand(cfg config.CLIConfig, args []string) {
+func runTunnelsCommand(cfg config.CLIConfig, args []string) error {
 
 	if len(args) == 0 {
-		log.Fatal("tunnel action required: create, list, inspect, start, stop, revoke")
+		return fmt.Errorf("tunnel action required: create, list, inspect, start, stop, revoke")
 	}
 
 	action := args[0]
-	flags := flag.NewFlagSet(action, flag.ExitOnError)
+	flags := flag.NewFlagSet(action, flag.ContinueOnError)
+	flags.SetOutput(os.Stderr)
 	jsonOutput := flags.Bool("json", false, "output in JSON format")
 	organizationID := flags.String("organization", "", "organization ID")
 	targetHost := flags.String("target-host", "127.0.0.1", "target host")
 	targetPort := flags.Int("target-port", 3000, "target port")
 	publicHostname := flags.String("hostname", "", "public hostname")
 	password := flags.String("password", cfg.Password, "require this password for HTTP access")
-	_ = flags.Parse(args[1:])
+
+	if err := flags.Parse(args[1:]); err != nil {
+		return fmt.Errorf("parse %s flags: %w", action, err)
+	}
 
 	apiClient, err := client.New(client.Config{BaseURL: cfg.APIURL, APIKey: cfg.APIKey})
 
 	if err != nil {
-		log.Fatalf("initialize client: %v", err)
+		return fmt.Errorf("initialize client: %w", err)
 	}
 
 	switch action {
 	case "list":
 		if *organizationID == "" {
-			log.Fatal("list requires --organization")
+			return fmt.Errorf("list requires --organization")
 		}
 
 		var tunnels []TunnelDTO
 
 		if err := apiClient.Do(context.Background(), http.MethodGet, "/api/v1/organizations/"+*organizationID+"/tunnels", nil, &tunnels); err != nil {
-			log.Fatalf("list tunnels: %v", err)
+			return fmt.Errorf("list tunnels: %w", err)
 		}
 
 		printOutput(*jsonOutput, tunnels)
 	case "inspect":
 		if flags.NArg() < 1 {
-			log.Fatal("tunnel ID required")
+			return fmt.Errorf("tunnel ID required")
 		}
 
 		var tunnel TunnelDTO
 
 		if err := apiClient.Do(context.Background(), http.MethodGet, "/api/v1/tunnels/"+flags.Arg(0), nil, &tunnel); err != nil {
-			log.Fatalf("inspect tunnel: %v", err)
+			return fmt.Errorf("inspect tunnel: %w", err)
 		}
 
 		printOutput(*jsonOutput, tunnel)
 	case "create":
 		if *organizationID == "" || flags.NArg() < 1 {
-			log.Fatal("create requires --organization and tunnel name")
-		}
-
-		if flags.NArg() < 1 {
-			log.Fatal("tunnel name/protocol required")
+			return fmt.Errorf("create requires --organization and tunnel name")
 		}
 
 		var tunnel TunnelDTO
@@ -110,13 +109,13 @@ func runTunnelsCommand(cfg config.CLIConfig, args []string) {
 		payload := map[string]any{"name": flags.Arg(0), "protocol": protocolName, "targetHost": *targetHost, "targetPort": *targetPort, "publicHostname": *publicHostname, "password": *password}
 
 		if err := apiClient.Do(context.Background(), http.MethodPost, "/api/v1/organizations/"+*organizationID+"/tunnels", payload, &tunnel); err != nil {
-			log.Fatalf("create tunnel: %v", err)
+			return fmt.Errorf("create tunnel: %w", err)
 		}
 
 		printOutput(*jsonOutput, tunnel)
 	case "start", "stop":
 		if flags.NArg() < 1 {
-			log.Fatal("tunnel ID required")
+			return fmt.Errorf("tunnel ID required")
 		}
 
 		status := "active"
@@ -126,7 +125,7 @@ func runTunnelsCommand(cfg config.CLIConfig, args []string) {
 		}
 
 		if err := apiClient.Do(context.Background(), http.MethodPatch, "/api/v1/tunnels/"+flags.Arg(0)+"/status", map[string]string{"status": status}, nil); err != nil {
-			log.Fatalf("%s tunnel: %v", action, err)
+			return fmt.Errorf("%s tunnel: %w", action, err)
 		}
 
 		verb := "started"
@@ -138,15 +137,17 @@ func runTunnelsCommand(cfg config.CLIConfig, args []string) {
 		fmt.Printf("tunnel %s\n", verb)
 	case "revoke":
 		if flags.NArg() < 1 {
-			log.Fatal("tunnel ID required")
+			return fmt.Errorf("tunnel ID required")
 		}
 
 		if err := apiClient.Do(context.Background(), http.MethodDelete, "/api/v1/tunnels/"+flags.Arg(0), nil, nil); err != nil {
-			log.Fatalf("revoke tunnel: %v", err)
+			return fmt.Errorf("revoke tunnel: %w", err)
 		}
 
 		fmt.Println("tunnel revoked")
 	default:
-		log.Fatalf("unknown action %q", action)
+		return fmt.Errorf("unknown action %q", action)
 	}
+
+	return nil
 }

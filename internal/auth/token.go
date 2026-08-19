@@ -11,8 +11,8 @@ import (
 
 func NewToken(prefix string, size int) (string, error) {
 
-	if size < 32 {
-		return "", fmt.Errorf("token size must be at least 32 bytes")
+	if size < 8 {
+		return "", fmt.Errorf("token size must be at least 8 bytes")
 	}
 
 	value := make([]byte, size)
