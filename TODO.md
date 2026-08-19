@@ -15,7 +15,7 @@ The Go backend, CLI, protocol package, and current TypeScript framework adapters
 - [x] Add organization detail, member list/removal, profile, API-key, audit-log, request-log, and invoice endpoints.
 - [x] Move agent heartbeat authentication to agent/relay credentials instead of browser/API-key auth.
 - [x] Keep internal health, usage ingestion, relay handoff, and agent authentication strictly private.
-- [ ] Route wildcard tunnel traffic through `*.outpipe.app` (for example `myapp.outpipe.app`), not through control-plane handlers.
+- [x] Route wildcard tunnel traffic through `*.outpipe.app` (for example `myapp.outpipe.app`), not through control-plane handlers. (Implemented in the relay: a single wildcard match on `*.outpipe.app` from `OUTPIPE_TUNNEL_DOMAIN` feeds the engine HTTP proxy; the control plane serves only `/api/v1/`, `/healthz`, `/readyz`, `/metrics`, and internal routes. See docs/edge-routing.md.)
 - [x] Finalize secure hosted cookie configuration: Secure, HttpOnly, SameSite=Lax, and a shared dashboard/API domain policy.
 - [ ] Add backend integration tests for OAuth, organization authorization, billing, webhooks, relay authentication, and tunnel lifecycle.
 
@@ -35,7 +35,7 @@ The CLI currently supports login, device login, health, tunnel opening, reconnec
 Remaining work:
 
 - [ ] Add comprehensive CLI tests.
-- [ ] Finish installation and release scripts and platform binaries.
+- [x] Finish installation and release scripts and platform binaries (scripts/build-binaries.sh, scripts/build-images.sh, scripts/install-cli.sh, and the release workflow publishing CLI binaries for linux/darwin/windows).
 - [ ] Verify CLI and API-key scope behavior against every management command.
 - [ ] Add polished error handling and configuration migration for existing users.
 
@@ -299,7 +299,7 @@ The control-plane API should remain versioned under `/api/v1`:
 - [x] Keep liveness, readiness, and metrics outside the versioned API at `/healthz`, `/readyz`, and `/metrics`.
 - [x] Keep relay WebSocket transport separate at `wss://relay.outpipe.app/v1/connect`.
 - [x] Add platform-admin authorization and admin users, organizations, tunnels, subscriptions, usage, audit, and action routes.
-- [ ] Route wildcard public tunnel traffic through `*.outpipe.app` (for example `myapp.outpipe.app`), not through control-plane handlers.
+- [x] Route wildcard public tunnel traffic through `*.outpipe.app` (for example `myapp.outpipe.app`), not through control-plane handlers. (Relay-side wildcard routing; see docs/edge-routing.md.)
 
 - [ ] Keep `integrations/outpipe/` as an optional external adapter.
 

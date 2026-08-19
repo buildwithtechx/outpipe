@@ -18,7 +18,7 @@ type RelayConfig struct {
 	Redis   RedisConfig   `envPrefix:"OUTPIPE_"`
 	Tunnel  TunnelConfig  `envPrefix:"OUTPIPE_"`
 	Service ServiceConfig `envPrefix:"OUTPIPE_"`
-	RelayID string        `env:"RELAY_ID"`
+	RelayID string        `env:"OUTPIPE_RELAY_ID"`
 }
 
 type CronConfig struct {
@@ -34,7 +34,7 @@ type CheckConfig struct {
 	Service  ServiceConfig  `envPrefix:"OUTPIPE_"`
 	Database DatabaseConfig `envPrefix:"OUTPIPE_"`
 	Redis    RedisConfig    `envPrefix:"OUTPIPE_"`
-	RelayURL string         `env:"CHECK_RELAY_URL"`
+	RelayURL string         `env:"OUTPIPE_CHECK_RELAY_URL"`
 }
 
 type CLIConfig struct {

@@ -25,7 +25,7 @@ When the relay is directly exposed on the public network, provision a certificat
 OUTPIPE_REQUIRE_TLS=true
 OUTPIPE_TLS_CERT_FILE=/run/secrets/tunnel/fullchain.pem
 OUTPIPE_TLS_KEY_FILE=/run/secrets/tunnel/privkey.pem
-OUTPIPE_DOMAIN=outpipe.app
+OUTPIPE_TUNNEL_DOMAIN=outpipe.app
 ```
 
 The relay reloads the certificate on the next TLS handshake after either mounted file changes. A deployment can renew the certificate atomically by writing new files beside the existing files and replacing them with a rename.
@@ -58,6 +58,5 @@ Use the local example values:
 
 ```text
 OUTPIPE_REQUIRE_TLS=false
-OUTPIPE_REQUIRE_TLS=false
-OUTPIPE_DOMAIN=outpipe.localhost
+OUTPIPE_TUNNEL_DOMAIN=outpipe.localhost
 ```

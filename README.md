@@ -88,6 +88,8 @@ Each independently deployed command has a focused environment example:
 | Check service | `cmd/check/.env.example`  |
 | CLI           | `cmd/cli/.env.example`    |
 
+See [docs/configuration.md](docs/configuration.md) for descriptions of every variable.
+
 ## Provisioning platform administrators
 
 Users authenticate with Google or GitHub before they can be granted platform-admin access. The server does not promote users automatically during signup. After the user has signed in once, provision an administrator explicitly:
