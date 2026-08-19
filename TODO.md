@@ -30,7 +30,7 @@ The relay is implemented, but these remain:
 
 ### cmd/cli
 
-The CLI currently supports login, device login, health, tunnel opening, reconnects, completions, and managed tunnels.
+The CLI supports login, device login, health, tunnel opening, reconnects, completions, and managed tunnels, built on Cobra (auto-generated bash/zsh/fish/powershell completions, `--version`, standard help).
 
 Remaining work:
 
