@@ -2,14 +2,6 @@
 
 Remaining work: production hardening and tests, dashboard functionality, desktop integration, optional integrations, and release operations.
 
-## cmd/server / Go API
-
-- [ ] Add backend integration tests for OAuth, organization authorization, billing, webhooks, relay authentication, and tunnel lifecycle. (Partial: internal/http/cli_api_key_scopes_test.go covers tunnel-management authorization via API keys; OAuth flows, billing webhooks, and relay authentication still lack end-to-end tests.)
-
-## Billing
-
-The API owns plans and billing. The web app must not own Polar or Paystack configuration.
-
 ## Standalone product principles
 
 - [ ] Provide Outpipe integration as an optional adapter, plugin, or external API client.

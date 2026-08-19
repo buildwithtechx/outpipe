@@ -39,8 +39,6 @@ var plans = map[string]Plan{
 	},
 }
 
-// annualPeriods is the number of monthly periods billed for a yearly
-// subscription (the equivalent of two months free).
 const annualPeriods = 10
 
 func annualPrice(monthlyMinor int64) int64 { return monthlyMinor * annualPeriods }
