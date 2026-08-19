@@ -6,7 +6,7 @@
   "build": {
     "beforeDevCommand": "npm run dev --workspace apps/web",
     "devUrl": "http://localhost:3000",
-    "beforeBuildCommand": "npm run build:web",
+    "beforeBuildCommand": "npm --prefix ../../.. run build:web",
     "frontendDist": "../../web/dist"
   },
   "app": {
@@ -26,6 +26,7 @@
   "bundle": {
     "active": true,
     "targets": "all",
-    "icon": ["icons/icon.png"]
+    "icon": ["icons/icon.png", "icons/icon.ico", "icons/icon.icns"],
+    "resources": ["resources/outpipe"]
   }
 }

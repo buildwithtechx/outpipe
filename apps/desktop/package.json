@@ -7,8 +7,9 @@
   "author": "TechX",
   "type": "module",
   "scripts": {
-    "dev": "tauri dev",
-    "build": "tauri build",
+    "dev": "npm run bundle:cli && tauri dev",
+    "build": "npm run bundle:cli && tauri build",
+    "bundle:cli": "go build -o src-tauri/resources/outpipe ../../cmd/cli",
     "typecheck": "tsc --noEmit",
     "test": "vitest run --passWithNoTests"
   },

@@ -220,15 +220,6 @@ packages/
 - [ ] Add audit history for tunnel and credential actions.
 - [ ] Add accessible loading, empty, error, and disconnected states.
 
-## Tauri desktop app
-
-- [ ] Define how the desktop app starts and supervises the Go CLI tunnel client.
-- [ ] Keep tunnel data-plane logic in Go rather than duplicating it in Rust or TypeScript.
-- [ ] Store credentials using the native operating-system secret store.
-- [ ] Add tray controls for tunnel status and quick start/stop.
-- [ ] Add native notifications for disconnects, expiry, and authentication failures.
-- [ ] Package the CLI and desktop application for macOS, Windows, and Linux.
-
 ## Codedock integration
 
 - [ ] Define an optional Codedock adapter that consumes the standalone tunnel API.
