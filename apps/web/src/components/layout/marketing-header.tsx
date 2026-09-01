@@ -24,6 +24,7 @@ const mobileLinks = [
   { label: 'Pricing', to: '/pricing' as const },
   { label: 'Changelog', to: '/changelog' as const },
   { label: 'Plugins', to: '/plugins' as const },
+  { label: 'SDKs', to: '/sdks' as const },
   { label: 'Contact', to: '/contact' as const },
   { label: 'Report a bug', to: '/report-bug' as const },
 ];
@@ -96,6 +97,12 @@ export function MarketingHeader() {
                   className="rounded-lg px-3 py-2 text-sm text-white/70 transition-colors hover:bg-indigo-300/10 hover:text-indigo-300"
                 >
                   All integrations
+                </Link>
+                <Link
+                  to="/sdks"
+                  className="rounded-lg px-3 py-2 text-sm text-white/70 transition-colors hover:bg-indigo-300/10 hover:text-indigo-300"
+                >
+                  SDKs
                 </Link>
               </div>
               <div className="grid grid-cols-2 gap-3">

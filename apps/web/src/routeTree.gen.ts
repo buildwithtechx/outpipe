@@ -32,6 +32,7 @@ import { Route as MarketingPluginsRouteImport } from './routes/_marketing/plugin
 import { Route as MarketingPricingRouteImport } from './routes/_marketing/pricing'
 import { Route as MarketingPrivacyRouteImport } from './routes/_marketing/privacy'
 import { Route as MarketingReportBugRouteImport } from './routes/_marketing/report-bug'
+import { Route as MarketingSdksRouteImport } from './routes/_marketing/sdks'
 import { Route as MarketingTermsRouteImport } from './routes/_marketing/terms'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as AdminActionsRouteImport } from './routes/admin/actions'
@@ -167,6 +168,11 @@ const MarketingPrivacyRoute = MarketingPrivacyRouteImport.update({
 const MarketingReportBugRoute = MarketingReportBugRouteImport.update({
   id: '/report-bug',
   path: '/report-bug',
+  getParentRoute: () => MarketingRoute,
+} as any)
+const MarketingSdksRoute = MarketingSdksRouteImport.update({
+  id: '/sdks',
+  path: '/sdks',
   getParentRoute: () => MarketingRoute,
 } as any)
 const MarketingTermsRoute = MarketingTermsRouteImport.update({
@@ -305,6 +311,7 @@ export interface FileRoutesByFullPath {
   '/pricing': typeof MarketingPricingRoute
   '/privacy': typeof MarketingPrivacyRoute
   '/report-bug': typeof MarketingReportBugRoute
+  '/sdks': typeof MarketingSdksRoute
   '/terms': typeof MarketingTermsRoute
   '/admin/actions': typeof AdminActionsRoute
   '/admin/audit-logs': typeof AdminAuditLogsRoute
@@ -347,6 +354,7 @@ export interface FileRoutesByTo {
   '/pricing': typeof MarketingPricingRoute
   '/privacy': typeof MarketingPrivacyRoute
   '/report-bug': typeof MarketingReportBugRoute
+  '/sdks': typeof MarketingSdksRoute
   '/terms': typeof MarketingTermsRoute
   '/admin/actions': typeof AdminActionsRoute
   '/admin/audit-logs': typeof AdminAuditLogsRoute
@@ -395,6 +403,7 @@ export interface FileRoutesById {
   '/_marketing/pricing': typeof MarketingPricingRoute
   '/_marketing/privacy': typeof MarketingPrivacyRoute
   '/_marketing/report-bug': typeof MarketingReportBugRoute
+  '/_marketing/sdks': typeof MarketingSdksRoute
   '/_marketing/terms': typeof MarketingTermsRoute
   '/admin/actions': typeof AdminActionsRoute
   '/admin/audit-logs': typeof AdminAuditLogsRoute
@@ -444,6 +453,7 @@ export interface FileRouteTypes {
     | '/pricing'
     | '/privacy'
     | '/report-bug'
+    | '/sdks'
     | '/terms'
     | '/admin/actions'
     | '/admin/audit-logs'
@@ -486,6 +496,7 @@ export interface FileRouteTypes {
     | '/pricing'
     | '/privacy'
     | '/report-bug'
+    | '/sdks'
     | '/terms'
     | '/admin/actions'
     | '/admin/audit-logs'
@@ -533,6 +544,7 @@ export interface FileRouteTypes {
     | '/_marketing/pricing'
     | '/_marketing/privacy'
     | '/_marketing/report-bug'
+    | '/_marketing/sdks'
     | '/_marketing/terms'
     | '/admin/actions'
     | '/admin/audit-logs'
@@ -732,6 +744,13 @@ declare module '@tanstack/react-router' {
       path: '/report-bug'
       fullPath: '/report-bug'
       preLoaderRoute: typeof MarketingReportBugRouteImport
+      parentRoute: typeof MarketingRoute
+    }
+    '/_marketing/sdks': {
+      id: '/_marketing/sdks'
+      path: '/sdks'
+      fullPath: '/sdks'
+      preLoaderRoute: typeof MarketingSdksRouteImport
       parentRoute: typeof MarketingRoute
     }
     '/_marketing/terms': {
@@ -950,6 +969,7 @@ interface MarketingRouteChildren {
   MarketingPricingRoute: typeof MarketingPricingRoute
   MarketingPrivacyRoute: typeof MarketingPrivacyRoute
   MarketingReportBugRoute: typeof MarketingReportBugRoute
+  MarketingSdksRoute: typeof MarketingSdksRoute
   MarketingTermsRoute: typeof MarketingTermsRoute
   MarketingIndexRoute: typeof MarketingIndexRoute
 }
@@ -961,6 +981,7 @@ const MarketingRouteChildren: MarketingRouteChildren = {
   MarketingPricingRoute: MarketingPricingRoute,
   MarketingPrivacyRoute: MarketingPrivacyRoute,
   MarketingReportBugRoute: MarketingReportBugRoute,
+  MarketingSdksRoute: MarketingSdksRoute,
   MarketingTermsRoute: MarketingTermsRoute,
   MarketingIndexRoute: MarketingIndexRoute,
 }

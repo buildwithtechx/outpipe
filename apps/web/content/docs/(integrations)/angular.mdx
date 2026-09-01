@@ -1,0 +1,49 @@
+---
+title: Angular SDK
+description: Use Outpipe API operations through Angular providers and services.
+icon: SiAngular
+---
+
+Install the Angular adapter:
+
+```sh
+npm install @outpipe/angular
+```
+
+Register the provider in a standalone application:
+
+```ts
+import { provideHttpClient } from '@angular/common/http';
+import { bootstrapApplication } from '@angular/platform-browser';
+import { provideOutpipe } from '@outpipe/angular';
+import { AppComponent } from './app.component';
+
+bootstrapApplication(AppComponent, {
+  providers: [
+    provideHttpClient(),
+    provideOutpipe({
+      apiUrl: 'https://api.outpipe.dev',
+      apiKey: 'agent-or-user-key',
+    }),
+  ],
+});
+```
+
+Inject `OutpipeApiService` where the UI needs tunnel data:
+
+```ts
+import { Component, inject } from '@angular/core';
+import { OutpipeApiService } from '@outpipe/angular';
+
+@Component({
+  selector: 'app-tunnels',
+  template: '{{ (tunnels | async)?.length ?? 0 }} tunnels',
+})
+export class TunnelsComponent {
+  private readonly outpipe = inject(OutpipeApiService);
+  readonly tunnels = this.outpipe.listTunnels('organization-id');
+}
+```
+
+Use `@outpipe/sdk` when Angular needs direct relay or protocol control beyond
+the management API service.

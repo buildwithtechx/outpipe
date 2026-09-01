@@ -20,6 +20,8 @@ bin/
 /check
 
 target/
+packages/rust/Cargo.lock
+packages/php/.phpunit.result.cache
 apps/desktop/src-tauri/gen/
 apps/desktop/src-tauri/target/
 apps/desktop/src-tauri/resources/

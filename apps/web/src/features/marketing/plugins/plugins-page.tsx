@@ -71,6 +71,13 @@ export function PluginsPage() {
             Framework adapters include the core SDK as a dependency. Install
             only the integration your project needs.
           </p>
+          <Link
+            to="/sdks"
+            className="mt-6 inline-flex items-center gap-2 text-sm font-medium text-indigo-300 transition-colors hover:text-indigo-200"
+          >
+            Browse Go, Rust, PHP, Angular, and TypeScript SDKs
+            <ArrowRight className="size-4" />
+          </Link>
         </div>
       </MarketingContainer>
     </section>

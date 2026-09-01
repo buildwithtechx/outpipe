@@ -5,12 +5,14 @@ import { LocalAccessSection } from './local-access';
 import { NetworkDiagram } from './network-diagram';
 import { OpenSourceSection } from './open-source';
 import { ProtocolsSection } from './protocols';
+import { SdkSection } from './sdk-section';
 
 export function LandingPage() {
   return (
     <>
       <Hero />
       <DeveloperExperience />
+      <SdkSection />
       <NetworkDiagram />
       <CustomDomainSection />
       <LocalAccessSection />

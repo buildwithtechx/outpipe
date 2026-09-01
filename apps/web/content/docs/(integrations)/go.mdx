@@ -1,0 +1,59 @@
+---
+title: Go SDK
+description: Manage Outpipe tunnels from Go services and command-line tools.
+icon: SiGo
+---
+
+Install the Go module:
+
+```sh
+go get outpipe.dev/outpipe-go
+```
+
+The SDK uses the same API key and organization model as the dashboard. Keep
+the key on the server and pass it through an environment variable.
+
+```go
+package main
+
+import (
+	"context"
+	"log"
+	"os"
+
+	"outpipe.dev/outpipe-go/client"
+	"outpipe.dev/outpipe-go/protocol"
+)
+
+func main() {
+	api, err := client.New(client.Config{
+		BaseURL: "https://api.outpipe.dev",
+		APIKey:  os.Getenv("OUTPIPE_API_KEY"),
+	})
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	tunnels, err := api.Tunnels(context.Background(), os.Getenv("OUTPIPE_ORG_ID"))
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	log.Printf("found %d tunnels", len(tunnels))
+}
+```
+
+For a long-running process, use the relay helper with an agent token. It
+handles the authenticated connection, heartbeats, and tunnel lifecycle while
+your service continues listening on its local port.
+
+```go
+relay, err := client.OpenRelay(ctx, client.RelayConfig{
+	URL:   os.Getenv("OUTPIPE_RELAY_URL"),
+	Token: os.Getenv("OUTPIPE_AGENT_TOKEN"),
+}, protocol.OpenRequest{LocalPort: 3000, Protocol: "http"})
+if err != nil {
+	log.Fatal(err)
+}
+defer relay.Close()
+```

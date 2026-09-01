@@ -42,6 +42,7 @@ export function MarketingFooter() {
               Documentation
             </Link>
             <FooterLink to="/plugins">Plugins</FooterLink>
+            <FooterLink to="/sdks">SDKs</FooterLink>
             <Link
               to="/docs/$"
               params={{ _splat: 'cli' }}

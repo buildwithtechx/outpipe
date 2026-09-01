@@ -7,6 +7,9 @@ icon: Blocks
 All TypeScript integrations use the same framework-neutral SDK. Framework
 packages add lifecycle helpers without creating a second protocol or client.
 
+For Go, Rust, PHP, and Angular, use the language-native package for management
+API access while keeping the same versioned authentication and tunnel model.
+
 | Package | Use it for |
 | --- | --- |
 | `@outpipe/sdk` | Node.js and browser client operations |
@@ -15,6 +18,10 @@ packages add lifecycle helpers without creating a second protocol or client.
 | `@outpipe/next` | Next.js server and route integration |
 | `@outpipe/nest` | NestJS module and service integration |
 | `@outpipe/express` | Express middleware integration |
+| `outpipe.dev/outpipe-go` | Go API client and relay helpers |
+| `outpipe` | Rust API client and protocol types |
+| `outpipe/outpipe-php` | PHP API client for Laravel and PHP applications |
+| `@outpipe/angular` | Angular injectable API service and providers |
 
 The protocol bindings and Tauri bridge are internal implementation packages.
 They are bundled or consumed by the applications and are not installed
