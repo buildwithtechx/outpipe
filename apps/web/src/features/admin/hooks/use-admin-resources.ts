@@ -1,9 +1,12 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
+  getAdminOrganization,
   getAdminOrganizations,
   getAdminOverview,
   getAdminSubscriptions,
   getAdminTunnels,
+  getAdminUsage,
+  getAdminUser,
   getAdminUsers,
   setAdminUserStatus,
 } from '../services/admin-service';
@@ -11,6 +14,23 @@ export function useAdminOverview() {
   return useQuery({
     queryKey: ['admin', 'overview'],
     queryFn: getAdminOverview,
+  });
+}
+export function useAdminUsage() {
+  return useQuery({ queryKey: ['admin', 'usage'], queryFn: getAdminUsage });
+}
+export function useAdminUser(userId: string) {
+  return useQuery({
+    queryKey: ['admin', 'user', userId],
+    queryFn: () => getAdminUser(userId),
+    enabled: Boolean(userId),
+  });
+}
+export function useAdminOrganization(organizationId: string) {
+  return useQuery({
+    queryKey: ['admin', 'organization', organizationId],
+    queryFn: () => getAdminOrganization(organizationId),
+    enabled: Boolean(organizationId),
   });
 }
 export function useAdminUsers() {

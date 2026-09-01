@@ -1,15 +1,10 @@
 import { createFileRoute } from '@tanstack/react-router';
-import { PagePlaceholder } from '#/components/layout/page-placeholder';
+import { AdminChartsPage } from '#/features/admin/admin-charts-page';
 
 export const Route = createFileRoute('/admin/charts')({
-  component: AdminChartsPage,
+  component: AdminChartsRoute,
 });
 
-function AdminChartsPage() {
-  return (
-    <PagePlaceholder
-      title="Charts"
-      description="Explore operational and business trends."
-    />
-  );
+function AdminChartsRoute() {
+  return <AdminChartsPage />;
 }

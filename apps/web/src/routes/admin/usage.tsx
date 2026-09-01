@@ -1,15 +1,10 @@
 import { createFileRoute } from '@tanstack/react-router';
-import { PagePlaceholder } from '#/components/layout/page-placeholder';
+import { AdminUsagePage } from '#/features/admin/admin-usage-page';
 
 export const Route = createFileRoute('/admin/usage')({
-  component: AdminUsagePage,
+  component: AdminUsageRoute,
 });
 
-function AdminUsagePage() {
-  return (
-    <PagePlaceholder
-      title="Usage"
-      description="Review platform-wide traffic, requests, errors, and retention."
-    />
-  );
+function AdminUsageRoute() {
+  return <AdminUsagePage />;
 }

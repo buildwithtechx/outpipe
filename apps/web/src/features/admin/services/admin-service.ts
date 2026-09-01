@@ -11,8 +11,24 @@ export type AdminOverview = {
   tunnels: number;
   subscriptions: number;
 };
+export type AdminUsage = {
+  bandwidthBytes: number;
+  requestCount: number;
+  errorCount: number;
+};
 export function getAdminOverview() {
   return apiClient.get<AdminOverview>('/api/v1/admin/overview');
+}
+export function getAdminUsage() {
+  return apiClient.get<AdminUsage>('/api/v1/admin/usage');
+}
+export function getAdminUser(userId: string) {
+  return apiClient.get<AuthUser>(`/api/v1/admin/users/${userId}`);
+}
+export function getAdminOrganization(organizationId: string) {
+  return apiClient.get<Organization>(
+    `/api/v1/admin/organizations/${organizationId}`,
+  );
 }
 export function getAdminUsers() {
   return apiClient.get<PaginatedResponse<AuthUser>>(

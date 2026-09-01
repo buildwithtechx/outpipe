@@ -45,6 +45,12 @@ func (h *AdminHandler) Users(c *fiber.Ctx) error {
 	return c.JSON(fiber.Map{"items": users, "total": total})
 }
 
+func (h *AdminHandler) User(c *fiber.Ctx) error {
+	user, err := h.admin.User(c.UserContext(), c.Params("userID"))
+	if err != nil { return writeError(c, fiber.StatusNotFound, err) }
+	return c.JSON(user)
+}
+
 func (h *AdminHandler) Organizations(c *fiber.Ctx) error {
 	organizations, total, err := h.admin.Organizations(c.UserContext(), pageValue(c, "limit"), pageValue(c, "offset"))
 
@@ -53,6 +59,12 @@ func (h *AdminHandler) Organizations(c *fiber.Ctx) error {
 	}
 
 	return c.JSON(fiber.Map{"items": organizations, "total": total})
+}
+
+func (h *AdminHandler) Organization(c *fiber.Ctx) error {
+	organization, err := h.admin.Organization(c.UserContext(), c.Params("organizationID"))
+	if err != nil { return writeError(c, fiber.StatusNotFound, err) }
+	return c.JSON(organization)
 }
 
 func (h *AdminHandler) Tunnels(c *fiber.Ctx) error {
