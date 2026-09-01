@@ -1,6 +1,11 @@
 package protocol
 
-import "testing"
+import (
+	"encoding/json"
+	"os"
+	"path/filepath"
+	"testing"
+)
 
 func TestRoundTrip(t *testing.T) {
 	encoded, err := EncodePayload(MessageTypeHeartbeat, "request-1", HeartbeatRequest{Timestamp: 123})
@@ -17,5 +22,31 @@ func TestRoundTrip(t *testing.T) {
 	}
 	if heartbeat.Timestamp != 123 {
 		t.Fatalf("timestamp = %d", heartbeat.Timestamp)
+	}
+}
+
+func TestConformanceFixtures(t *testing.T) {
+	data, err := os.ReadFile(filepath.Join("..", "..", "..", "protocol", "fixtures", "conformance_fixtures.json"))
+	if err != nil {
+		t.Fatalf("read fixtures: %v", err)
+	}
+	var file struct {
+		Fixtures []struct {
+			Name  string `json:"name"`
+			Raw   string `json:"raw"`
+			Valid bool   `json:"valid"`
+		} `json:"fixtures"`
+	}
+	if err := json.Unmarshal(data, &file); err != nil {
+		t.Fatalf("decode fixtures: %v", err)
+	}
+	for _, fixture := range file.Fixtures {
+		_, decodeErr := Decode([]byte(fixture.Raw))
+		if fixture.Valid && decodeErr != nil {
+			t.Errorf("%s: expected valid fixture: %v", fixture.Name, decodeErr)
+		}
+		if !fixture.Valid && decodeErr == nil {
+			t.Errorf("%s: expected invalid fixture", fixture.Name)
+		}
 	}
 }

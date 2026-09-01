@@ -1,7 +1,12 @@
 export const protocolVersion = 1 as const;
 
 export const messageTypes = [
-  'open_tunnel',
+	'auth',
+	'auth_response',
+	'version_negotiate',
+	'version_negotiate_ack',
+	'flow_control',
+	'open_tunnel',
   'open_tunnel_ack',
   'close_tunnel',
   'data',
@@ -31,7 +36,41 @@ export type OpenTunnel = {
   subdomain?: string;
   protocol: string;
   custom_domain?: string;
-  password?: string;
+	password?: string;
+};
+
+export type AuthRequest = {
+	token: string;
+	agent_id?: string;
+	requested_capabilities?: string[];
+};
+
+export type AuthResponse = {
+	authenticated: boolean;
+	agent_id?: string;
+	organization_id?: string;
+	granted_capabilities?: string[];
+	error?: string;
+};
+
+export type VersionNegotiate = {
+	min_version: number;
+	max_version: number;
+	client_name?: string;
+	client_version?: string;
+};
+
+export type VersionNegotiateAck = {
+	negotiated_version: number;
+	supported_versions: number[];
+	server_name?: string;
+	server_version?: string;
+};
+
+export type FlowControl = {
+	stream_id: string;
+	action: 'pause' | 'resume';
+	window_size?: number;
 };
 
 export type OpenTunnelAck = {

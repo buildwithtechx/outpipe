@@ -42,13 +42,17 @@ type GormAdminRepository struct{ db *gorm.DB }
 
 func (r *GormAdminRepository) FindUser(ctx context.Context, id string) (models.User, error) {
 	var user models.User
-	if err := r.db.WithContext(ctx).Where("id = ? AND deleted_at IS NULL", id).First(&user).Error; err != nil { return models.User{}, mapError(err) }
+	if err := r.db.WithContext(ctx).Where("id = ? AND deleted_at IS NULL", id).First(&user).Error; err != nil {
+		return models.User{}, mapError(err)
+	}
 	return user, nil
 }
 
 func (r *GormAdminRepository) FindOrganization(ctx context.Context, id string) (models.Organization, error) {
 	var organization models.Organization
-	if err := r.db.WithContext(ctx).First(&organization, "id = ?", id).Error; err != nil { return models.Organization{}, mapError(err) }
+	if err := r.db.WithContext(ctx).First(&organization, "id = ?", id).Error; err != nil {
+		return models.Organization{}, mapError(err)
+	}
 	return organization, nil
 }
 

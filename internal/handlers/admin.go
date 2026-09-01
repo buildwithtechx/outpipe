@@ -47,7 +47,9 @@ func (h *AdminHandler) Users(c *fiber.Ctx) error {
 
 func (h *AdminHandler) User(c *fiber.Ctx) error {
 	user, err := h.admin.User(c.UserContext(), c.Params("userID"))
-	if err != nil { return writeError(c, fiber.StatusNotFound, err) }
+	if err != nil {
+		return writeError(c, fiber.StatusNotFound, err)
+	}
 	return c.JSON(user)
 }
 
@@ -63,7 +65,9 @@ func (h *AdminHandler) Organizations(c *fiber.Ctx) error {
 
 func (h *AdminHandler) Organization(c *fiber.Ctx) error {
 	organization, err := h.admin.Organization(c.UserContext(), c.Params("organizationID"))
-	if err != nil { return writeError(c, fiber.StatusNotFound, err) }
+	if err != nil {
+		return writeError(c, fiber.StatusNotFound, err)
+	}
 	return c.JSON(organization)
 }
 

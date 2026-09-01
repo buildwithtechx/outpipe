@@ -3,6 +3,26 @@ use serde::{de::DeserializeOwned, Deserialize, Serialize};
 pub const VERSION: u8 = 1;
 pub const MAX_FRAME_SIZE: usize = 32 * 1024 * 1024;
 
+const MESSAGE_TYPES: &[&str] = &[
+    "auth",
+    "auth_response",
+    "version_negotiate",
+    "version_negotiate_ack",
+    "flow_control",
+    "open_tunnel",
+    "open_tunnel_ack",
+    "close_tunnel",
+    "data",
+    "heartbeat",
+    "error",
+    "http_request",
+    "http_response",
+    "tcp_data",
+    "tcp_close",
+    "udp_data",
+    "udp_response",
+];
+
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct Envelope<T = serde_json::Value> {
     pub version: u8,
@@ -20,7 +40,7 @@ pub fn encode<T: Serialize>(message: &Envelope<T>) -> crate::Result<Vec<u8>> {
             "unsupported protocol version".into(),
         ));
     }
-    if message.message_type.is_empty() {
+    if !MESSAGE_TYPES.contains(&message.message_type.as_str()) {
         return Err(crate::Error::Protocol("message type is required".into()));
     }
     let data = serde_json::to_vec(message)?;
@@ -35,7 +55,7 @@ pub fn decode<T: DeserializeOwned>(data: &[u8]) -> crate::Result<Envelope<T>> {
         return Err(crate::Error::Protocol("frame exceeds maximum size".into()));
     }
     let message: Envelope<T> = serde_json::from_slice(data)?;
-    if message.version != VERSION || message.message_type.is_empty() {
+    if message.version != VERSION || !MESSAGE_TYPES.contains(&message.message_type.as_str()) {
         return Err(crate::Error::Protocol("invalid protocol envelope".into()));
     }
     Ok(message)
@@ -59,6 +79,23 @@ pub struct VersionNegotiate {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub struct AuthResponse {
+    pub authenticated: bool,
+    pub agent_id: Option<String>,
+    pub organization_id: Option<String>,
+    pub granted_capabilities: Option<Vec<String>>,
+    pub error: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub struct VersionNegotiateAck {
+    pub negotiated_version: u8,
+    pub supported_versions: Vec<u8>,
+    pub server_name: Option<String>,
+    pub server_version: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct OpenTunnel {
     pub token: String,
     pub local_port: u16,
@@ -69,6 +106,8 @@ pub struct OpenTunnel {
     pub subdomain: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub custom_domain: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub password: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
@@ -138,4 +177,21 @@ pub struct UdpResponse {
     pub target_address: String,
     pub target_port: u16,
     pub data: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub struct CloseTunnel {
+    pub tunnel_id: String,
+    pub reason: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub struct Heartbeat {
+    pub timestamp: i64,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub struct ErrorMessage {
+    pub code: String,
+    pub message: String,
 }

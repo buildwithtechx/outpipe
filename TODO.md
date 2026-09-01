@@ -169,8 +169,8 @@ The browser flow requires these API changes before the dashboard UI is wired:
 - [x] Create an official Rust SDK for native services and desktop tooling (`packages/rust`).
 - [x] Create an official Go SDK for Go services and tunnel-aware workers (`packages/go`).
 - [x] Create an official Angular adapter over the shared client contract (`packages/angular`).
-- [ ] Keep every SDK aligned with the versioned protocol and authentication model.
-- [ ] Publish language-specific SDKs only after compatibility, security, and conformance tests pass.
+- [x] Keep every SDK aligned with the versioned protocol and authentication model.
+- [x] Publish language-specific SDKs only after compatibility, security, and conformance tests pass.
 
 ```text
 packages/

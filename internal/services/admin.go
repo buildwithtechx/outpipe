@@ -56,12 +56,16 @@ func (s *AdminService) Overview(ctx context.Context) (AdminOverview, error) {
 }
 
 func (s *AdminService) User(ctx context.Context, id string) (models.User, error) {
-	if id == "" { return models.User{}, fmt.Errorf("user id is required") }
+	if id == "" {
+		return models.User{}, fmt.Errorf("user id is required")
+	}
 	return s.admin.FindUser(ctx, id)
 }
 
 func (s *AdminService) Organization(ctx context.Context, id string) (models.Organization, error) {
-	if id == "" { return models.Organization{}, fmt.Errorf("organization id is required") }
+	if id == "" {
+		return models.Organization{}, fmt.Errorf("organization id is required")
+	}
 	return s.admin.FindOrganization(ctx, id)
 }
 

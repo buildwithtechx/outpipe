@@ -15,9 +15,11 @@ const (
 	MessageTypeAuthResponse        MessageType = "auth_response"
 	MessageTypeVersionNegotiate    MessageType = "version_negotiate"
 	MessageTypeVersionNegotiateAck MessageType = "version_negotiate_ack"
+	MessageTypeFlowControl         MessageType = "flow_control"
 	MessageTypeOpenTunnel          MessageType = "open_tunnel"
 	MessageTypeOpenTunnelAck       MessageType = "open_tunnel_ack"
 	MessageTypeCloseTunnel         MessageType = "close_tunnel"
+	MessageTypeData                MessageType = "data"
 	MessageTypeHeartbeat           MessageType = "heartbeat"
 	MessageTypeError               MessageType = "error"
 	MessageTypeHTTPRequest         MessageType = "http_request"
@@ -27,6 +29,17 @@ const (
 	MessageTypeUDPData             MessageType = "udp_data"
 	MessageTypeUDPResponse         MessageType = "udp_response"
 )
+
+var messageTypes = map[MessageType]struct{}{
+	MessageTypeAuth: {}, MessageTypeAuthResponse: {},
+	MessageTypeVersionNegotiate: {}, MessageTypeVersionNegotiateAck: {},
+	MessageTypeFlowControl: {}, MessageTypeOpenTunnel: {},
+	MessageTypeOpenTunnelAck: {}, MessageTypeCloseTunnel: {},
+	MessageTypeData: {}, MessageTypeHeartbeat: {}, MessageTypeError: {},
+	MessageTypeHTTPRequest: {}, MessageTypeHTTPResponse: {},
+	MessageTypeTCPData: {}, MessageTypeTCPClose: {},
+	MessageTypeUDPData: {}, MessageTypeUDPResponse: {},
+}
 
 type Envelope struct {
 	Version   int             `json:"version"`
@@ -41,10 +54,11 @@ type AuthRequest struct {
 	RequestedCapabilities []string `json:"requested_capabilities,omitempty"`
 }
 type AuthResponse struct {
-	Authenticated  bool   `json:"authenticated"`
-	AgentID        string `json:"agent_id,omitempty"`
-	OrganizationID string `json:"organization_id,omitempty"`
-	Error          string `json:"error,omitempty"`
+	Authenticated       bool     `json:"authenticated"`
+	AgentID             string   `json:"agent_id,omitempty"`
+	OrganizationID      string   `json:"organization_id,omitempty"`
+	GrantedCapabilities []string `json:"granted_capabilities,omitempty"`
+	Error               string   `json:"error,omitempty"`
 }
 type VersionRequest struct {
 	MinVersion    int    `json:"min_version"`
@@ -63,6 +77,7 @@ type OpenRequest struct {
 	Protocol     string `json:"protocol"`
 	Subdomain    string `json:"subdomain,omitempty"`
 	CustomDomain string `json:"custom_domain,omitempty"`
+	Password     string `json:"password,omitempty"`
 }
 type OpenAck struct {
 	TunnelID   string `json:"tunnel_id"`
@@ -155,6 +170,9 @@ func Decode(data []byte) (Envelope, error) {
 	}
 	if message.Version != Version || message.Type == "" {
 		return Envelope{}, fmt.Errorf("invalid protocol envelope")
+	}
+	if _, ok := messageTypes[message.Type]; !ok {
+		return Envelope{}, fmt.Errorf("invalid protocol message type %q", message.Type)
 	}
 	return message, nil
 }
