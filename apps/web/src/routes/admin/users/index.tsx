@@ -1,15 +1,10 @@
 import { createFileRoute } from '@tanstack/react-router';
-import { PagePlaceholder } from '#/components/layout/page-placeholder';
+import { AdminUsersPage } from '#/features/admin/admin-users-page';
 
 export const Route = createFileRoute('/admin/users/')({
-  component: AdminUsersPage,
+  component: AdminUsersRoute,
 });
 
-function AdminUsersPage() {
-  return (
-    <PagePlaceholder
-      title="Users"
-      description="Manage platform users and account status."
-    />
-  );
+function AdminUsersRoute() {
+  return <AdminUsersPage />;
 }

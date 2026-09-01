@@ -1,15 +1,10 @@
 import { createFileRoute } from '@tanstack/react-router';
-import { PagePlaceholder } from '#/components/layout/page-placeholder';
+import { AdminSubscriptionsPage } from '#/features/admin/admin-subscriptions-page';
 
 export const Route = createFileRoute('/admin/subscriptions')({
-  component: AdminSubscriptionsPage,
+  component: AdminSubscriptionsRoute,
 });
 
-function AdminSubscriptionsPage() {
-  return (
-    <PagePlaceholder
-      title="Subscriptions"
-      description="Review plans, subscriptions, and billing state."
-    />
-  );
+function AdminSubscriptionsRoute() {
+  return <AdminSubscriptionsPage />;
 }
