@@ -1,15 +1,11 @@
 import { createFileRoute } from '@tanstack/react-router';
-import { PagePlaceholder } from '#/components/layout/page-placeholder';
+import { BillingPage } from '#/features/billing';
 
 export const Route = createFileRoute('/$orgSlug/billing')({
-  component: BillingPage,
+  component: BillingRoute,
 });
 
-function BillingPage() {
-  return (
-    <PagePlaceholder
-      title="Billing"
-      description="Manage the organization plan, payment, and subscription state."
-    />
-  );
+function BillingRoute() {
+  const { orgSlug } = Route.useParams();
+  return <BillingPage orgSlug={orgSlug} />;
 }

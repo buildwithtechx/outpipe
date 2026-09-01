@@ -1,15 +1,11 @@
 import { createFileRoute } from '@tanstack/react-router';
-import { PagePlaceholder } from '#/components/layout/page-placeholder';
+import { UsagePage } from '#/features/usage';
 
 export const Route = createFileRoute('/$orgSlug/usage')({
-  component: UsagePage,
+  component: UsageRoute,
 });
 
-function UsagePage() {
-  return (
-    <PagePlaceholder
-      title="Usage"
-      description="Track bandwidth, requests, connections, and retention."
-    />
-  );
+function UsageRoute() {
+  const { orgSlug } = Route.useParams();
+  return <UsagePage orgSlug={orgSlug} />;
 }

@@ -1,1 +1,1 @@
-export {};
+export { BillingPage } from './billing-page';
