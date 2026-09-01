@@ -168,7 +168,7 @@ The browser flow requires these API changes before the dashboard UI is wired:
 - [x] Create an official Laravel/PHP SDK over the public HTTP and relay APIs (`packages/php`).
 - [ ] Create an official Rust SDK for native services and desktop tooling.
 - [ ] Create an official Go SDK for Go services and tunnel-aware workers.
-- [ ] Create an official Angular adapter over the shared client contract.
+- [x] Create an official Angular adapter over the shared client contract (`packages/angular`).
 - [ ] Keep every SDK aligned with the versioned protocol and authentication model.
 - [ ] Publish language-specific SDKs only after compatibility, security, and conformance tests pass.
 
@@ -208,13 +208,14 @@ packages/
 │   └── README.md
 └── angular/
     ├── src/
-    │   ├── guards/
-    │   ├── interceptors/
-    │   ├── models/
+    │   ├── interfaces.ts
+    │   ├── providers.ts
     │   ├── services/
-    │   └── tokens/
-    ├── tests/
+    │   ├── tests/
+    │   └── tokens.ts
     ├── package.json
+    ├── tsconfig.json
+    ├── tsup.config.ts
     └── README.md
 ```
 

@@ -1,0 +1,39 @@
+{
+  "name": "@outpipe/angular",
+  "version": "0.1.0",
+  "publishConfig": {
+    "access": "public"
+  },
+  "type": "module",
+  "scripts": {
+    "build": "tsup && npm run build:types",
+    "build:types": "tsc --emitDeclarationOnly --noEmit false",
+    "dev": "tsup --watch",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run --passWithNoTests"
+  },
+  "description": "Angular integration for Outpipe",
+  "files": ["dist"],
+  "dependencies": {
+    "@outpipe/sdk": "0.1.0"
+  },
+  "peerDependencies": {
+    "@angular/common": ">=17",
+    "@angular/core": ">=17"
+  },
+  "devDependencies": {
+    "@angular/common": "^21.0.0",
+    "@angular/compiler": "^21.0.0",
+    "@angular/core": "^21.0.0",
+    "@angular/platform-browser": "^21.0.0",
+    "rxjs": "^7.8.0"
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  }
+}
