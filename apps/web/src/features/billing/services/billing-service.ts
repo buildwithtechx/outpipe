@@ -8,6 +8,23 @@ export function getBilling(organizationId: string) {
   );
 }
 
+export function getBillingPlans(organizationId: string) {
+  return apiClient.get<{ plans: Plan[] }>(
+    `/api/v1/organizations/${organizationId}/billing/plans`,
+  );
+}
+
+export function checkoutBilling(
+  organizationId: string,
+  planKey: string,
+  billingInterval: 'month' | 'year',
+) {
+  return apiClient.post<{ url: string }>(
+    `/api/v1/organizations/${organizationId}/billing/checkout`,
+    { planKey, billingInterval },
+  );
+}
+
 export function getInvoices(organizationId: string) {
   return apiClient.get<{ invoices: Invoice[] }>(
     `/api/v1/organizations/${organizationId}/billing/invoices`,

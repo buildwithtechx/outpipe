@@ -1,14 +1,17 @@
 import { Button } from '#/components/ui/button';
 import { useOrganization } from '#/features/organizations/hooks/use-organization';
+import { BillingPlanPicker } from './components/billing-plan-picker';
 import { useBilling } from './hooks/use-billing';
 import { useBillingActions } from './hooks/use-billing-actions';
 import { useBillingInvoices } from './hooks/use-billing-invoices';
+import { useBillingPlans } from './hooks/use-billing-plans';
 
 export function BillingPage({ orgSlug }: { orgSlug: string }) {
   const organizationQuery = useOrganization(orgSlug);
   const query = useBilling(organizationQuery.organization?.id);
   const actions = useBillingActions(organizationQuery.organization?.id);
   const invoices = useBillingInvoices(organizationQuery.organization?.id);
+  const plans = useBillingPlans(organizationQuery.organization?.id);
   if (organizationQuery.isLoading || query.isLoading)
     return <p className="p-8 text-sm text-white/55">Loading billing…</p>;
   if (
@@ -79,6 +82,12 @@ export function BillingPage({ orgSlug }: { orgSlug: string }) {
           )}
         </div>
       </section>
+      {!plans.isLoading && plans.data?.plans && (
+        <BillingPlanPicker
+          organizationId={organization.id}
+          plans={plans.data.plans}
+        />
+      )}
       <section className="mt-8 rounded-2xl border border-white/10 bg-white/[0.025] p-6">
         <h2 className="text-lg font-medium">Invoices</h2>
         <div className="mt-4 grid gap-3">

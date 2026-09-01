@@ -54,6 +54,14 @@ func (h *BillingHandler) Status(c *fiber.Ctx) error {
 	return c.JSON(fiber.Map{"plan": plan, "subscription": subscription})
 }
 
+func (h *BillingHandler) Plans(c *fiber.Ctx) error {
+	plans, err := h.billing.ListPlans(c.UserContext())
+	if err != nil {
+		return writeError(c, fiber.StatusInternalServerError, err)
+	}
+	return c.JSON(fiber.Map{"plans": plans})
+}
+
 func (h *BillingHandler) Checkout(c *fiber.Ctx) error {
 	var input CheckoutRequest
 

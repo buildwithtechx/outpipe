@@ -34,3 +34,8 @@ export type CreateTunnelRequest = {
   publicHostname?: string;
   password?: string;
 };
+
+export type UpdateTunnelConfigurationRequest = {
+  accessPolicy: string;
+  expiresAt?: string;
+};

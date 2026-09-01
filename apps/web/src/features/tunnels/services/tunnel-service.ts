@@ -1,4 +1,8 @@
-import type { CreateTunnelRequest, Tunnel } from '#/interfaces/tunnel';
+import type {
+  CreateTunnelRequest,
+  Tunnel,
+  UpdateTunnelConfigurationRequest,
+} from '#/interfaces/tunnel';
 import { apiClient } from '#/lib/api-client';
 
 export function getTunnels(organizationID: string) {
@@ -33,5 +37,15 @@ export function setTunnelStatus(tunnelID: string, status: Tunnel['status']) {
 export function revokeTunnel(tunnelID: string) {
   return apiClient.delete<void>(
     `/api/v1/tunnels/${encodeURIComponent(tunnelID)}`,
+  );
+}
+
+export function updateTunnelConfiguration(
+  tunnelID: string,
+  request: UpdateTunnelConfigurationRequest,
+) {
+  return apiClient.patch<Tunnel>(
+    `/api/v1/tunnels/${encodeURIComponent(tunnelID)}/config`,
+    request,
   );
 }

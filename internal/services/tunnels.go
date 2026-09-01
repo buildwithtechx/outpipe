@@ -60,6 +60,32 @@ func (s *TunnelService) Policy(ctx context.Context, id string) (models.Tunnel, e
 	return s.Find(ctx, id)
 }
 
+func (s *TunnelService) UpdateConfiguration(ctx context.Context, id, accessPolicy string, expiresAt *time.Time) (models.Tunnel, error) {
+	if id == "" {
+		return models.Tunnel{}, fmt.Errorf("tunnel id is required")
+	}
+	trimmedPolicy := strings.TrimSpace(accessPolicy)
+	if trimmedPolicy == "" || !json.Valid([]byte(trimmedPolicy)) || trimmedPolicy[0] != '{' {
+		return models.Tunnel{}, fmt.Errorf("access policy must be a JSON object")
+	}
+	if len(trimmedPolicy) > 16*1024 {
+		return models.Tunnel{}, fmt.Errorf("access policy is too large")
+	}
+	if expiresAt != nil && !expiresAt.After(s.now()) {
+		return models.Tunnel{}, fmt.Errorf("expiration must be in the future")
+	}
+	tunnel, err := s.Find(ctx, id)
+	if err != nil {
+		return models.Tunnel{}, err
+	}
+	tunnel.AccessPolicy = trimmedPolicy
+	tunnel.ExpiresAt = expiresAt
+	if err := s.tunnels.Update(ctx, &tunnel); err != nil {
+		return models.Tunnel{}, fmt.Errorf("update tunnel configuration: %w", err)
+	}
+	return tunnel, nil
+}
+
 func (s *TunnelService) List(ctx context.Context, organizationID string) ([]models.Tunnel, error) {
 
 	if organizationID == "" {

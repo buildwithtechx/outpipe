@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"outpipe.dev/outpipe/internal/models"
@@ -32,6 +33,11 @@ type CreateTunnelRequest struct {
 
 type UpdateTunnelStatusRequest struct {
 	Status models.TunnelStatus `json:"status"`
+}
+
+type UpdateTunnelConfigurationRequest struct {
+	AccessPolicy string  `json:"accessPolicy"`
+	ExpiresAt    *string `json:"expiresAt,omitempty"`
 }
 
 func NewTunnelHandler(tunnels *services.TunnelService) (*TunnelHandler, error) {
@@ -126,6 +132,26 @@ func (h *TunnelHandler) SetStatus(c *fiber.Ctx) error {
 	}
 
 	return c.SendStatus(fiber.StatusNoContent)
+}
+
+func (h *TunnelHandler) UpdateConfiguration(c *fiber.Ctx) error {
+	var input UpdateTunnelConfigurationRequest
+	if err := c.BodyParser(&input); err != nil {
+		return writeError(c, fiber.StatusBadRequest, fmt.Errorf("decode tunnel configuration request: %w", err))
+	}
+	var expiresAt *time.Time
+	if input.ExpiresAt != nil && strings.TrimSpace(*input.ExpiresAt) != "" {
+		parsed, err := time.Parse(time.RFC3339, strings.TrimSpace(*input.ExpiresAt))
+		if err != nil {
+			return writeError(c, fiber.StatusBadRequest, fmt.Errorf("expiresAt must be RFC3339"))
+		}
+		expiresAt = &parsed
+	}
+	tunnel, err := h.tunnels.UpdateConfiguration(c.UserContext(), c.Params("tunnelID"), input.AccessPolicy, expiresAt)
+	if err != nil {
+		return writeError(c, fiber.StatusBadRequest, err)
+	}
+	return c.JSON(tunnel)
 }
 
 func (h *TunnelHandler) Revoke(c *fiber.Ctx) error {

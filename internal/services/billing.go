@@ -23,6 +23,14 @@ type BillingService struct {
 	dashboardURL   string
 }
 
+func (s *BillingService) ListPlans(ctx context.Context) ([]models.Plan, error) {
+	plans, err := s.billing.ListActivePlans(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("list billing plans: %w", err)
+	}
+	return plans, nil
+}
+
 type BillingMailer interface {
 	SendBillingUpdate(context.Context, string, string) error
 	SendPaymentFailed(context.Context, string, string, string, string, string, int, bool) error

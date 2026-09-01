@@ -1,7 +1,10 @@
+import { OrganizationDangerZone } from './components/organization-danger-zone';
+import { useMembers } from './hooks/use-members';
 import { useOrganization } from './hooks/use-organization';
 
 export function OrganizationSettingsPage({ orgSlug }: { orgSlug: string }) {
   const query = useOrganization(orgSlug);
+  const members = useMembers(query.organization?.id);
   if (query.isLoading)
     return (
       <p className="p-8 text-sm text-white/55">Loading workspace settings…</p>
@@ -44,6 +47,10 @@ export function OrganizationSettingsPage({ orgSlug }: { orgSlug: string }) {
           <p className="mt-2 font-mono text-white/65">{organization.ownerId}</p>
         </div>
       </section>
+      <OrganizationDangerZone
+        organizationId={organization.id}
+        members={members.data ?? []}
+      />
     </main>
   );
 }
