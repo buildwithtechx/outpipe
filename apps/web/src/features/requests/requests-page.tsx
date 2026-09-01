@@ -1,5 +1,5 @@
-import { useOrganization } from "#/features/organizations/hooks/use-organization";
-import { useRequestEvents } from "./hooks/use-request-events";
+import { useOrganization } from '#/features/organizations/hooks/use-organization';
+import { useRequestEvents } from './hooks/use-request-events';
 
 export function RequestsPage({ orgSlug }: { orgSlug: string }) {
   const organizationQuery = useOrganization(orgSlug);
@@ -40,15 +40,15 @@ export function RequestsPage({ orgSlug }: { orgSlug: string }) {
               key={event.id}
               className="grid grid-cols-[80px_minmax(0,1fr)_80px_80px] gap-4 border-b border-white/5 px-5 py-4 font-mono text-sm last:border-0"
             >
-              <span className="text-white/55">{event.method ?? "—"}</span>
+              <span className="text-white/55">{event.method ?? '—'}</span>
               <span className="truncate text-white/80">
                 {event.path ?? event.eventType}
               </span>
               <span className={statusColor(event.statusCode)}>
-                {event.statusCode ?? "—"}
+                {event.statusCode ?? '—'}
               </span>
               <span className="text-right text-white/45">
-                {event.durationMillis ? `${event.durationMillis}ms` : "—"}
+                {event.durationMillis ? `${event.durationMillis}ms` : '—'}
               </span>
             </div>
           ))
@@ -64,8 +64,8 @@ export function RequestsPage({ orgSlug }: { orgSlug: string }) {
 
 function statusColor(status?: number) {
   return status && status >= 500
-    ? "text-rose-200"
+    ? 'text-rose-200'
     : status && status >= 400
-      ? "text-amber-200"
-      : "text-emerald-200";
+      ? 'text-amber-200'
+      : 'text-emerald-200';
 }

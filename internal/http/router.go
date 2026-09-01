@@ -72,6 +72,7 @@ func RegisterRoutes(app *fiber.App, handlers Handlers, options RouterOptions) er
 	protected.Post("/organizations/:organizationID/agents", organizationRoleRequired(handlers.organizationService, models.MemberRoleAdmin), handlers.Agents.Register)
 	protected.Get("/organizations/:organizationID/agents", organizationRoleRequired(handlers.organizationService, models.MemberRoleViewer), handlers.Agents.List)
 	protected.Post("/organizations/:organizationID/domains", organizationRoleRequired(handlers.organizationService, models.MemberRoleAdmin), handlers.Domains.Create)
+	protected.Get("/organizations/:organizationID/domains", organizationRoleRequired(handlers.organizationService, models.MemberRoleViewer), handlers.Domains.List)
 	protected.Get("/organizations/:organizationID/usage/events", organizationRoleRequired(handlers.organizationService, models.MemberRoleViewer), handlers.Usage.Events)
 	protected.Get("/organizations/:organizationID/usage/requests", organizationRoleRequired(handlers.organizationService, models.MemberRoleViewer), handlers.Usage.Requests)
 	protected.Get("/organizations/:organizationID/usage/snapshot", organizationRoleRequired(handlers.organizationService, models.MemberRoleViewer), handlers.Usage.Snapshot)

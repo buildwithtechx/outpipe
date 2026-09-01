@@ -1,1 +1,1 @@
-export {};
+export { AuditLogsPage } from './audit-logs-page';

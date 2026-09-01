@@ -1,9 +1,12 @@
+import { Button } from '#/components/ui/button';
 import { useOrganization } from '#/features/organizations/hooks/use-organization';
+import { useApiKeyMutations } from './hooks/use-api-key-mutations';
 import { useApiKeys } from './hooks/use-api-keys';
 
 export function ApiKeysPage({ orgSlug }: { orgSlug: string }) {
   const organizationQuery = useOrganization(orgSlug);
   const query = useApiKeys(organizationQuery.organization?.id);
+  const mutations = useApiKeyMutations(organizationQuery.organization?.id);
   if (organizationQuery.isLoading || query.isLoading)
     return <p className="p-8 text-sm text-white/55">Loading API keys…</p>;
   if (
@@ -15,14 +18,31 @@ export function ApiKeysPage({ orgSlug }: { orgSlug: string }) {
       <p className="p-8 text-sm text-rose-200">We could not load API keys.</p>
     );
   const organization = organizationQuery.organization;
+  const createKey = () => {
+    const name = window.prompt('Name this API key');
+    if (!name?.trim()) return;
+    mutations.create.mutate({
+      name: name.trim(),
+      scopes: ['tunnels:read'],
+    });
+  };
   return (
     <main className="mx-auto w-full max-w-6xl px-6 py-12 text-white sm:px-8 lg:py-16">
       <header className="border-b border-white/10 pb-8">
         <p className="mb-3 text-sm text-indigo-200">{organization.name}</p>
         <h1 className="text-3xl font-semibold tracking-tight">API keys</h1>
-        <p className="mt-3 text-sm text-white/55">
-          Credentials used by tools and automation to access this workspace.
-        </p>
+        <div className="mt-3 flex flex-wrap items-center justify-between gap-4">
+          <p className="text-sm text-white/55">
+            Credentials used by tools and automation to access this workspace.
+          </p>
+          <Button
+            type="button"
+            onClick={createKey}
+            disabled={mutations.create.isPending}
+          >
+            {mutations.create.isPending ? 'Creating…' : 'Create API key'}
+          </Button>
+        </div>
       </header>
       <section className="mt-8 overflow-hidden rounded-2xl border border-white/10 bg-white/[0.025]">
         {query.data?.length ? (
@@ -40,6 +60,16 @@ export function ApiKeysPage({ orgSlug }: { orgSlug: string }) {
               <div className="text-right text-xs text-white/45">
                 <p>{key.revokedAt ? 'Revoked' : 'Active'}</p>
                 <p className="mt-1">{key.scopes}</p>
+                {!key.revokedAt && (
+                  <button
+                    type="button"
+                    className="mt-2 text-rose-200 hover:text-rose-100"
+                    onClick={() => mutations.revoke.mutate(key.id)}
+                    disabled={mutations.revoke.isPending}
+                  >
+                    Revoke
+                  </button>
+                )}
               </div>
             </div>
           ))

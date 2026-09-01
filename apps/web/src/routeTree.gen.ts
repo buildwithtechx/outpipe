@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as OrgSlugRouteImport } from './routes/$orgSlug'
 import { Route as MarketingRouteImport } from './routes/_marketing'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as LoginRouteImport } from './routes/login'
@@ -17,6 +18,7 @@ import { Route as SignupRouteImport } from './routes/signup'
 import { Route as OrgSlugIndexRouteImport } from './routes/$orgSlug/index'
 import { Route as OrgSlugAgentsRouteImport } from './routes/$orgSlug/agents'
 import { Route as OrgSlugApiKeysRouteImport } from './routes/$orgSlug/api-keys'
+import { Route as OrgSlugAuditLogsRouteImport } from './routes/$orgSlug/audit-logs'
 import { Route as OrgSlugBillingRouteImport } from './routes/$orgSlug/billing'
 import { Route as OrgSlugDomainsRouteImport } from './routes/$orgSlug/domains'
 import { Route as OrgSlugMembersRouteImport } from './routes/$orgSlug/members'
@@ -52,6 +54,11 @@ import { Route as AdminOrganizationsOrganizationIDRouteImport } from './routes/a
 import { Route as AdminUsersIndexRouteImport } from './routes/admin/users/index'
 import { Route as AdminUsersUserIdRouteImport } from './routes/admin/users/$userId'
 
+const OrgSlugRoute = OrgSlugRouteImport.update({
+  id: '/$orgSlug',
+  path: '/$orgSlug',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const MarketingRoute = MarketingRouteImport.update({
   id: '/_marketing',
   getParentRoute: () => rootRouteImport,
@@ -77,44 +84,49 @@ const SignupRoute = SignupRouteImport.update({
   getParentRoute: () => rootRouteImport,
 } as any)
 const OrgSlugIndexRoute = OrgSlugIndexRouteImport.update({
-  id: '/$orgSlug/',
-  path: '/$orgSlug/',
-  getParentRoute: () => rootRouteImport,
+  id: '/',
+  path: '/',
+  getParentRoute: () => OrgSlugRoute,
 } as any)
 const OrgSlugAgentsRoute = OrgSlugAgentsRouteImport.update({
-  id: '/$orgSlug/agents',
-  path: '/$orgSlug/agents',
-  getParentRoute: () => rootRouteImport,
+  id: '/agents',
+  path: '/agents',
+  getParentRoute: () => OrgSlugRoute,
 } as any)
 const OrgSlugApiKeysRoute = OrgSlugApiKeysRouteImport.update({
-  id: '/$orgSlug/api-keys',
-  path: '/$orgSlug/api-keys',
-  getParentRoute: () => rootRouteImport,
+  id: '/api-keys',
+  path: '/api-keys',
+  getParentRoute: () => OrgSlugRoute,
+} as any)
+const OrgSlugAuditLogsRoute = OrgSlugAuditLogsRouteImport.update({
+  id: '/audit-logs',
+  path: '/audit-logs',
+  getParentRoute: () => OrgSlugRoute,
 } as any)
 const OrgSlugBillingRoute = OrgSlugBillingRouteImport.update({
-  id: '/$orgSlug/billing',
-  path: '/$orgSlug/billing',
-  getParentRoute: () => rootRouteImport,
+  id: '/billing',
+  path: '/billing',
+  getParentRoute: () => OrgSlugRoute,
 } as any)
 const OrgSlugDomainsRoute = OrgSlugDomainsRouteImport.update({
-  id: '/$orgSlug/domains',
-  path: '/$orgSlug/domains',
-  getParentRoute: () => rootRouteImport,
+  id: '/domains',
+  path: '/domains',
+  getParentRoute: () => OrgSlugRoute,
 } as any)
 const OrgSlugMembersRoute = OrgSlugMembersRouteImport.update({
-  id: '/$orgSlug/members',
-  path: '/$orgSlug/members',
-  getParentRoute: () => rootRouteImport,
+  id: '/members',
+  path: '/members',
+  getParentRoute: () => OrgSlugRoute,
 } as any)
 const OrgSlugRequestsRoute = OrgSlugRequestsRouteImport.update({
-  id: '/$orgSlug/requests',
-  path: '/$orgSlug/requests',
-  getParentRoute: () => rootRouteImport,
+  id: '/requests',
+  path: '/requests',
+  getParentRoute: () => OrgSlugRoute,
 } as any)
 const OrgSlugUsageRoute = OrgSlugUsageRouteImport.update({
-  id: '/$orgSlug/usage',
-  path: '/$orgSlug/usage',
-  getParentRoute: () => rootRouteImport,
+  id: '/usage',
+  path: '/usage',
+  getParentRoute: () => OrgSlugRoute,
 } as any)
 const MarketingIndexRoute = MarketingIndexRouteImport.update({
   id: '/',
@@ -207,30 +219,30 @@ const DocsSplatRoute = DocsSplatRouteImport.update({
   getParentRoute: () => rootRouteImport,
 } as any)
 const OrgSlugSettingsIndexRoute = OrgSlugSettingsIndexRouteImport.update({
-  id: '/$orgSlug/settings/',
-  path: '/$orgSlug/settings/',
-  getParentRoute: () => rootRouteImport,
+  id: '/settings/',
+  path: '/settings/',
+  getParentRoute: () => OrgSlugRoute,
 } as any)
 const OrgSlugSettingsOrganizationRoute =
   OrgSlugSettingsOrganizationRouteImport.update({
-    id: '/$orgSlug/settings/organization',
-    path: '/$orgSlug/settings/organization',
-    getParentRoute: () => rootRouteImport,
+    id: '/settings/organization',
+    path: '/settings/organization',
+    getParentRoute: () => OrgSlugRoute,
   } as any)
 const OrgSlugSettingsProfileRoute = OrgSlugSettingsProfileRouteImport.update({
-  id: '/$orgSlug/settings/profile',
-  path: '/$orgSlug/settings/profile',
-  getParentRoute: () => rootRouteImport,
+  id: '/settings/profile',
+  path: '/settings/profile',
+  getParentRoute: () => OrgSlugRoute,
 } as any)
 const OrgSlugTunnelsIndexRoute = OrgSlugTunnelsIndexRouteImport.update({
-  id: '/$orgSlug/tunnels/',
-  path: '/$orgSlug/tunnels/',
-  getParentRoute: () => rootRouteImport,
+  id: '/tunnels/',
+  path: '/tunnels/',
+  getParentRoute: () => OrgSlugRoute,
 } as any)
 const OrgSlugTunnelsTunnelIdRoute = OrgSlugTunnelsTunnelIdRouteImport.update({
-  id: '/$orgSlug/tunnels/$tunnelId',
-  path: '/$orgSlug/tunnels/$tunnelId',
-  getParentRoute: () => rootRouteImport,
+  id: '/tunnels/$tunnelId',
+  path: '/tunnels/$tunnelId',
+  getParentRoute: () => OrgSlugRoute,
 } as any)
 const MarketingPluginsIndexRoute = MarketingPluginsIndexRouteImport.update({
   id: '/',
@@ -266,6 +278,7 @@ const AdminUsersUserIdRoute = AdminUsersUserIdRouteImport.update({
 } as any)
 
 export interface FileRoutesByFullPath {
+  '/$orgSlug': typeof OrgSlugRouteWithChildren
   '/': typeof MarketingIndexRoute
   '/admin': typeof AdminRouteWithChildren
   '/login': typeof LoginRoute
@@ -273,6 +286,7 @@ export interface FileRoutesByFullPath {
   '/signup': typeof SignupRoute
   '/$orgSlug/agents': typeof OrgSlugAgentsRoute
   '/$orgSlug/api-keys': typeof OrgSlugApiKeysRoute
+  '/$orgSlug/audit-logs': typeof OrgSlugAuditLogsRoute
   '/$orgSlug/billing': typeof OrgSlugBillingRoute
   '/$orgSlug/domains': typeof OrgSlugDomainsRoute
   '/$orgSlug/members': typeof OrgSlugMembersRoute
@@ -314,6 +328,7 @@ export interface FileRoutesByTo {
   '/signup': typeof SignupRoute
   '/$orgSlug/agents': typeof OrgSlugAgentsRoute
   '/$orgSlug/api-keys': typeof OrgSlugApiKeysRoute
+  '/$orgSlug/audit-logs': typeof OrgSlugAuditLogsRoute
   '/$orgSlug/billing': typeof OrgSlugBillingRoute
   '/$orgSlug/domains': typeof OrgSlugDomainsRoute
   '/$orgSlug/members': typeof OrgSlugMembersRoute
@@ -351,6 +366,7 @@ export interface FileRoutesByTo {
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
+  '/$orgSlug': typeof OrgSlugRouteWithChildren
   '/_marketing': typeof MarketingRouteWithChildren
   '/admin': typeof AdminRouteWithChildren
   '/login': typeof LoginRoute
@@ -358,6 +374,7 @@ export interface FileRoutesById {
   '/signup': typeof SignupRoute
   '/$orgSlug/agents': typeof OrgSlugAgentsRoute
   '/$orgSlug/api-keys': typeof OrgSlugApiKeysRoute
+  '/$orgSlug/audit-logs': typeof OrgSlugAuditLogsRoute
   '/$orgSlug/billing': typeof OrgSlugBillingRoute
   '/$orgSlug/domains': typeof OrgSlugDomainsRoute
   '/$orgSlug/members': typeof OrgSlugMembersRoute
@@ -397,6 +414,7 @@ export interface FileRoutesById {
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
+    | '/$orgSlug'
     | '/'
     | '/admin'
     | '/login'
@@ -404,6 +422,7 @@ export interface FileRouteTypes {
     | '/signup'
     | '/$orgSlug/agents'
     | '/$orgSlug/api-keys'
+    | '/$orgSlug/audit-logs'
     | '/$orgSlug/billing'
     | '/$orgSlug/domains'
     | '/$orgSlug/members'
@@ -445,6 +464,7 @@ export interface FileRouteTypes {
     | '/signup'
     | '/$orgSlug/agents'
     | '/$orgSlug/api-keys'
+    | '/$orgSlug/audit-logs'
     | '/$orgSlug/billing'
     | '/$orgSlug/domains'
     | '/$orgSlug/members'
@@ -481,6 +501,7 @@ export interface FileRouteTypes {
     | '/admin/users'
   id:
     | '__root__'
+    | '/$orgSlug'
     | '/_marketing'
     | '/admin'
     | '/login'
@@ -488,6 +509,7 @@ export interface FileRouteTypes {
     | '/signup'
     | '/$orgSlug/agents'
     | '/$orgSlug/api-keys'
+    | '/$orgSlug/audit-logs'
     | '/$orgSlug/billing'
     | '/$orgSlug/domains'
     | '/$orgSlug/members'
@@ -526,31 +548,26 @@ export interface FileRouteTypes {
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
+  OrgSlugRoute: typeof OrgSlugRouteWithChildren
   MarketingRoute: typeof MarketingRouteWithChildren
   AdminRoute: typeof AdminRouteWithChildren
   LoginRoute: typeof LoginRoute
   SelectRoute: typeof SelectRoute
   SignupRoute: typeof SignupRoute
-  OrgSlugAgentsRoute: typeof OrgSlugAgentsRoute
-  OrgSlugApiKeysRoute: typeof OrgSlugApiKeysRoute
-  OrgSlugBillingRoute: typeof OrgSlugBillingRoute
-  OrgSlugDomainsRoute: typeof OrgSlugDomainsRoute
-  OrgSlugMembersRoute: typeof OrgSlugMembersRoute
-  OrgSlugRequestsRoute: typeof OrgSlugRequestsRoute
-  OrgSlugUsageRoute: typeof OrgSlugUsageRoute
   ApiSearchRoute: typeof ApiSearchRoute
   CliLoginRoute: typeof CliLoginRoute
   DocsSplatRoute: typeof DocsSplatRoute
-  OrgSlugIndexRoute: typeof OrgSlugIndexRoute
-  OrgSlugSettingsOrganizationRoute: typeof OrgSlugSettingsOrganizationRoute
-  OrgSlugSettingsProfileRoute: typeof OrgSlugSettingsProfileRoute
-  OrgSlugTunnelsTunnelIdRoute: typeof OrgSlugTunnelsTunnelIdRoute
-  OrgSlugSettingsIndexRoute: typeof OrgSlugSettingsIndexRoute
-  OrgSlugTunnelsIndexRoute: typeof OrgSlugTunnelsIndexRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/$orgSlug': {
+      id: '/$orgSlug'
+      path: '/$orgSlug'
+      fullPath: '/$orgSlug'
+      preLoaderRoute: typeof OrgSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_marketing': {
       id: '/_marketing'
       path: ''
@@ -588,59 +605,66 @@ declare module '@tanstack/react-router' {
     }
     '/$orgSlug/': {
       id: '/$orgSlug/'
-      path: '/$orgSlug'
+      path: '/'
       fullPath: '/$orgSlug/'
       preLoaderRoute: typeof OrgSlugIndexRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof OrgSlugRoute
     }
     '/$orgSlug/agents': {
       id: '/$orgSlug/agents'
-      path: '/$orgSlug/agents'
+      path: '/agents'
       fullPath: '/$orgSlug/agents'
       preLoaderRoute: typeof OrgSlugAgentsRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof OrgSlugRoute
     }
     '/$orgSlug/api-keys': {
       id: '/$orgSlug/api-keys'
-      path: '/$orgSlug/api-keys'
+      path: '/api-keys'
       fullPath: '/$orgSlug/api-keys'
       preLoaderRoute: typeof OrgSlugApiKeysRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof OrgSlugRoute
+    }
+    '/$orgSlug/audit-logs': {
+      id: '/$orgSlug/audit-logs'
+      path: '/audit-logs'
+      fullPath: '/$orgSlug/audit-logs'
+      preLoaderRoute: typeof OrgSlugAuditLogsRouteImport
+      parentRoute: typeof OrgSlugRoute
     }
     '/$orgSlug/billing': {
       id: '/$orgSlug/billing'
-      path: '/$orgSlug/billing'
+      path: '/billing'
       fullPath: '/$orgSlug/billing'
       preLoaderRoute: typeof OrgSlugBillingRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof OrgSlugRoute
     }
     '/$orgSlug/domains': {
       id: '/$orgSlug/domains'
-      path: '/$orgSlug/domains'
+      path: '/domains'
       fullPath: '/$orgSlug/domains'
       preLoaderRoute: typeof OrgSlugDomainsRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof OrgSlugRoute
     }
     '/$orgSlug/members': {
       id: '/$orgSlug/members'
-      path: '/$orgSlug/members'
+      path: '/members'
       fullPath: '/$orgSlug/members'
       preLoaderRoute: typeof OrgSlugMembersRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof OrgSlugRoute
     }
     '/$orgSlug/requests': {
       id: '/$orgSlug/requests'
-      path: '/$orgSlug/requests'
+      path: '/requests'
       fullPath: '/$orgSlug/requests'
       preLoaderRoute: typeof OrgSlugRequestsRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof OrgSlugRoute
     }
     '/$orgSlug/usage': {
       id: '/$orgSlug/usage'
-      path: '/$orgSlug/usage'
+      path: '/usage'
       fullPath: '/$orgSlug/usage'
       preLoaderRoute: typeof OrgSlugUsageRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof OrgSlugRoute
     }
     '/_marketing/': {
       id: '/_marketing/'
@@ -770,38 +794,38 @@ declare module '@tanstack/react-router' {
     }
     '/$orgSlug/settings/': {
       id: '/$orgSlug/settings/'
-      path: '/$orgSlug/settings'
+      path: '/settings'
       fullPath: '/$orgSlug/settings/'
       preLoaderRoute: typeof OrgSlugSettingsIndexRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof OrgSlugRoute
     }
     '/$orgSlug/settings/organization': {
       id: '/$orgSlug/settings/organization'
-      path: '/$orgSlug/settings/organization'
+      path: '/settings/organization'
       fullPath: '/$orgSlug/settings/organization'
       preLoaderRoute: typeof OrgSlugSettingsOrganizationRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof OrgSlugRoute
     }
     '/$orgSlug/settings/profile': {
       id: '/$orgSlug/settings/profile'
-      path: '/$orgSlug/settings/profile'
+      path: '/settings/profile'
       fullPath: '/$orgSlug/settings/profile'
       preLoaderRoute: typeof OrgSlugSettingsProfileRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof OrgSlugRoute
     }
     '/$orgSlug/tunnels/': {
       id: '/$orgSlug/tunnels/'
-      path: '/$orgSlug/tunnels'
+      path: '/tunnels'
       fullPath: '/$orgSlug/tunnels/'
       preLoaderRoute: typeof OrgSlugTunnelsIndexRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof OrgSlugRoute
     }
     '/$orgSlug/tunnels/$tunnelId': {
       id: '/$orgSlug/tunnels/$tunnelId'
-      path: '/$orgSlug/tunnels/$tunnelId'
+      path: '/tunnels/$tunnelId'
       fullPath: '/$orgSlug/tunnels/$tunnelId'
       preLoaderRoute: typeof OrgSlugTunnelsTunnelIdRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof OrgSlugRoute
     }
     '/_marketing/plugins/': {
       id: '/_marketing/plugins/'
@@ -847,6 +871,43 @@ declare module '@tanstack/react-router' {
     }
   }
 }
+
+interface OrgSlugRouteChildren {
+  OrgSlugAgentsRoute: typeof OrgSlugAgentsRoute
+  OrgSlugApiKeysRoute: typeof OrgSlugApiKeysRoute
+  OrgSlugAuditLogsRoute: typeof OrgSlugAuditLogsRoute
+  OrgSlugBillingRoute: typeof OrgSlugBillingRoute
+  OrgSlugDomainsRoute: typeof OrgSlugDomainsRoute
+  OrgSlugMembersRoute: typeof OrgSlugMembersRoute
+  OrgSlugRequestsRoute: typeof OrgSlugRequestsRoute
+  OrgSlugUsageRoute: typeof OrgSlugUsageRoute
+  OrgSlugIndexRoute: typeof OrgSlugIndexRoute
+  OrgSlugSettingsOrganizationRoute: typeof OrgSlugSettingsOrganizationRoute
+  OrgSlugSettingsProfileRoute: typeof OrgSlugSettingsProfileRoute
+  OrgSlugTunnelsTunnelIdRoute: typeof OrgSlugTunnelsTunnelIdRoute
+  OrgSlugSettingsIndexRoute: typeof OrgSlugSettingsIndexRoute
+  OrgSlugTunnelsIndexRoute: typeof OrgSlugTunnelsIndexRoute
+}
+
+const OrgSlugRouteChildren: OrgSlugRouteChildren = {
+  OrgSlugAgentsRoute: OrgSlugAgentsRoute,
+  OrgSlugApiKeysRoute: OrgSlugApiKeysRoute,
+  OrgSlugAuditLogsRoute: OrgSlugAuditLogsRoute,
+  OrgSlugBillingRoute: OrgSlugBillingRoute,
+  OrgSlugDomainsRoute: OrgSlugDomainsRoute,
+  OrgSlugMembersRoute: OrgSlugMembersRoute,
+  OrgSlugRequestsRoute: OrgSlugRequestsRoute,
+  OrgSlugUsageRoute: OrgSlugUsageRoute,
+  OrgSlugIndexRoute: OrgSlugIndexRoute,
+  OrgSlugSettingsOrganizationRoute: OrgSlugSettingsOrganizationRoute,
+  OrgSlugSettingsProfileRoute: OrgSlugSettingsProfileRoute,
+  OrgSlugTunnelsTunnelIdRoute: OrgSlugTunnelsTunnelIdRoute,
+  OrgSlugSettingsIndexRoute: OrgSlugSettingsIndexRoute,
+  OrgSlugTunnelsIndexRoute: OrgSlugTunnelsIndexRoute,
+}
+
+const OrgSlugRouteWithChildren =
+  OrgSlugRoute._addFileChildren(OrgSlugRouteChildren)
 
 interface MarketingPluginsRouteChildren {
   MarketingPluginsPluginIdRoute: typeof MarketingPluginsPluginIdRoute
@@ -918,27 +979,15 @@ const AdminRouteChildren: AdminRouteChildren = {
 const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
+  OrgSlugRoute: OrgSlugRouteWithChildren,
   MarketingRoute: MarketingRouteWithChildren,
   AdminRoute: AdminRouteWithChildren,
   LoginRoute: LoginRoute,
   SelectRoute: SelectRoute,
   SignupRoute: SignupRoute,
-  OrgSlugAgentsRoute: OrgSlugAgentsRoute,
-  OrgSlugApiKeysRoute: OrgSlugApiKeysRoute,
-  OrgSlugBillingRoute: OrgSlugBillingRoute,
-  OrgSlugDomainsRoute: OrgSlugDomainsRoute,
-  OrgSlugMembersRoute: OrgSlugMembersRoute,
-  OrgSlugRequestsRoute: OrgSlugRequestsRoute,
-  OrgSlugUsageRoute: OrgSlugUsageRoute,
   ApiSearchRoute: ApiSearchRoute,
   CliLoginRoute: CliLoginRoute,
   DocsSplatRoute: DocsSplatRoute,
-  OrgSlugIndexRoute: OrgSlugIndexRoute,
-  OrgSlugSettingsOrganizationRoute: OrgSlugSettingsOrganizationRoute,
-  OrgSlugSettingsProfileRoute: OrgSlugSettingsProfileRoute,
-  OrgSlugTunnelsTunnelIdRoute: OrgSlugTunnelsTunnelIdRoute,
-  OrgSlugSettingsIndexRoute: OrgSlugSettingsIndexRoute,
-  OrgSlugTunnelsIndexRoute: OrgSlugTunnelsIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

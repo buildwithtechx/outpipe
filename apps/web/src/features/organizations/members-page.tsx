@@ -1,9 +1,12 @@
+import { Button } from '#/components/ui/button';
+import { useMemberMutations } from './hooks/use-member-mutations';
 import { useMembers } from './hooks/use-members';
 import { useOrganization } from './hooks/use-organization';
 
 export function MembersPage({ orgSlug }: { orgSlug: string }) {
   const organizationQuery = useOrganization(orgSlug);
   const query = useMembers(organizationQuery.organization?.id);
+  const mutations = useMemberMutations(organizationQuery.organization?.id);
   if (organizationQuery.isLoading || query.isLoading)
     return <p className="p-8 text-sm text-white/55">Loading members…</p>;
   if (
@@ -17,14 +20,28 @@ export function MembersPage({ orgSlug }: { orgSlug: string }) {
       </p>
     );
   const organization = organizationQuery.organization;
+  const invite = () => {
+    const email = window.prompt('Email address to invite');
+    if (!email?.trim()) return;
+    mutations.invite.mutate({ email: email.trim(), role: 'member' });
+  };
   return (
     <main className="mx-auto w-full max-w-6xl px-6 py-12 text-white sm:px-8 lg:py-16">
       <header className="border-b border-white/10 pb-8">
         <p className="mb-3 text-sm text-indigo-200">{organization.name}</p>
         <h1 className="text-3xl font-semibold tracking-tight">Members</h1>
-        <p className="mt-3 text-sm text-white/55">
-          People with access to this workspace.
-        </p>
+        <div className="mt-3 flex flex-wrap items-center justify-between gap-4">
+          <p className="text-sm text-white/55">
+            People with access to this workspace.
+          </p>
+          <Button
+            type="button"
+            onClick={invite}
+            disabled={mutations.invite.isPending}
+          >
+            {mutations.invite.isPending ? 'Sending…' : 'Invite member'}
+          </Button>
+        </div>
       </header>
       <section className="mt-8 overflow-hidden rounded-2xl border border-white/10 bg-white/[0.025]">
         {query.data?.length ? (
@@ -41,9 +58,21 @@ export function MembersPage({ orgSlug }: { orgSlug: string }) {
                   Joined {formatDate(member.createdAt)}
                 </p>
               </div>
-              <span className="rounded-full border border-white/10 px-3 py-1 text-xs text-white/55">
-                {member.role}
-              </span>
+              <div className="flex items-center gap-3">
+                <span className="rounded-full border border-white/10 px-3 py-1 text-xs text-white/55">
+                  {member.role}
+                </span>
+                {member.role !== 'owner' && (
+                  <button
+                    type="button"
+                    className="text-xs text-rose-200 hover:text-rose-100"
+                    onClick={() => mutations.remove.mutate(member.userId)}
+                    disabled={mutations.remove.isPending}
+                  >
+                    Remove
+                  </button>
+                )}
+              </div>
             </div>
           ))
         ) : (

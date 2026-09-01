@@ -49,6 +49,17 @@ func (s *DomainService) Find(ctx context.Context, id string) (models.Domain, err
 	return domain, nil
 }
 
+func (s *DomainService) ListByOrganization(ctx context.Context, organizationID string) ([]models.Domain, error) {
+	if strings.TrimSpace(organizationID) == "" {
+		return nil, fmt.Errorf("organization is required")
+	}
+	domains, err := s.domains.FindByOrganization(ctx, organizationID)
+	if err != nil {
+		return nil, fmt.Errorf("list organization domains: %w", err)
+	}
+	return domains, nil
+}
+
 func NewDomainService(domains repositories.DomainRepository) (*DomainService, error) {
 
 	if domains == nil {

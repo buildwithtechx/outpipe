@@ -51,6 +51,14 @@ func (h *DomainHandler) Create(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusCreated).JSON(fiber.Map{"domain": domain, "verificationToken": token})
 }
 
+func (h *DomainHandler) List(c *fiber.Ctx) error {
+	domains, err := h.domains.ListByOrganization(c.UserContext(), strings.TrimSpace(c.Params("organizationID")))
+	if err != nil {
+		return writeError(c, fiber.StatusBadRequest, err)
+	}
+	return c.JSON(domains)
+}
+
 func (h *DomainHandler) Verify(c *fiber.Ctx) error {
 	var input VerifyDomainRequest
 

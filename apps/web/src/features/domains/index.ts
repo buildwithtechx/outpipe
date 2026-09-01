@@ -1,1 +1,1 @@
-export {};
+export { DomainsPage } from './domains-page';
