@@ -1,9 +1,14 @@
+import { Button } from '#/components/ui/button';
 import { useOrganization } from '#/features/organizations/hooks/use-organization';
 import { useBilling } from './hooks/use-billing';
+import { useBillingActions } from './hooks/use-billing-actions';
+import { useBillingInvoices } from './hooks/use-billing-invoices';
 
 export function BillingPage({ orgSlug }: { orgSlug: string }) {
   const organizationQuery = useOrganization(orgSlug);
   const query = useBilling(organizationQuery.organization?.id);
+  const actions = useBillingActions(organizationQuery.organization?.id);
+  const invoices = useBillingInvoices(organizationQuery.organization?.id);
   if (organizationQuery.isLoading || query.isLoading)
     return <p className="p-8 text-sm text-white/55">Loading billing…</p>;
   if (
@@ -44,6 +49,67 @@ export function BillingPage({ orgSlug }: { orgSlug: string }) {
         <p className="mt-3 text-sm text-white/55">
           {formatPrice(plan.priceMinor, plan.currency)} · {plan.billingInterval}
         </p>
+        <div className="mt-5 flex flex-wrap gap-3">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => actions.portal.mutate()}
+            disabled={actions.portal.isPending}
+          >
+            Manage billing
+          </Button>
+          {subscription.cancelAtPeriodEnd ? (
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => actions.resume.mutate()}
+              disabled={actions.resume.isPending}
+            >
+              Resume subscription
+            </Button>
+          ) : (
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => actions.cancel.mutate()}
+              disabled={actions.cancel.isPending}
+            >
+              Cancel at period end
+            </Button>
+          )}
+        </div>
+      </section>
+      <section className="mt-8 rounded-2xl border border-white/10 bg-white/[0.025] p-6">
+        <h2 className="text-lg font-medium">Invoices</h2>
+        <div className="mt-4 grid gap-3">
+          {invoices.data?.invoices?.length ? (
+            invoices.data.invoices.map((invoice) => (
+              <div
+                key={invoice.id}
+                className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-white/5 px-4 py-3 text-sm"
+              >
+                <span className="text-white/70">
+                  {formatPrice(invoice.amountMinor, invoice.currency)}
+                </span>
+                <span className="text-white/45">{invoice.status}</span>
+                {invoice.invoiceUrl && (
+                  <a
+                    className="text-indigo-200 hover:text-indigo-100"
+                    href={invoice.invoiceUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    View invoice
+                  </a>
+                )}
+              </div>
+            ))
+          ) : (
+            <p className="text-sm text-white/45">
+              No invoices have been issued yet.
+            </p>
+          )}
+        </div>
       </section>
     </main>
   );
