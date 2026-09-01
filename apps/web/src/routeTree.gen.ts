@@ -24,6 +24,7 @@ import { Route as OrgSlugDomainsRouteImport } from './routes/$orgSlug/domains'
 import { Route as OrgSlugMembersRouteImport } from './routes/$orgSlug/members'
 import { Route as OrgSlugRequestsRouteImport } from './routes/$orgSlug/requests'
 import { Route as OrgSlugUsageRouteImport } from './routes/$orgSlug/usage'
+import { Route as OrgSlugWebhooksRouteImport } from './routes/$orgSlug/webhooks'
 import { Route as MarketingIndexRouteImport } from './routes/_marketing/index'
 import { Route as MarketingChangelogRouteImport } from './routes/_marketing/changelog'
 import { Route as MarketingContactRouteImport } from './routes/_marketing/contact'
@@ -126,6 +127,11 @@ const OrgSlugRequestsRoute = OrgSlugRequestsRouteImport.update({
 const OrgSlugUsageRoute = OrgSlugUsageRouteImport.update({
   id: '/usage',
   path: '/usage',
+  getParentRoute: () => OrgSlugRoute,
+} as any)
+const OrgSlugWebhooksRoute = OrgSlugWebhooksRouteImport.update({
+  id: '/webhooks',
+  path: '/webhooks',
   getParentRoute: () => OrgSlugRoute,
 } as any)
 const MarketingIndexRoute = MarketingIndexRouteImport.update({
@@ -292,6 +298,7 @@ export interface FileRoutesByFullPath {
   '/$orgSlug/members': typeof OrgSlugMembersRoute
   '/$orgSlug/requests': typeof OrgSlugRequestsRoute
   '/$orgSlug/usage': typeof OrgSlugUsageRoute
+  '/$orgSlug/webhooks': typeof OrgSlugWebhooksRoute
   '/changelog': typeof MarketingChangelogRoute
   '/contact': typeof MarketingContactRoute
   '/plugins': typeof MarketingPluginsRouteWithChildren
@@ -334,6 +341,7 @@ export interface FileRoutesByTo {
   '/$orgSlug/members': typeof OrgSlugMembersRoute
   '/$orgSlug/requests': typeof OrgSlugRequestsRoute
   '/$orgSlug/usage': typeof OrgSlugUsageRoute
+  '/$orgSlug/webhooks': typeof OrgSlugWebhooksRoute
   '/changelog': typeof MarketingChangelogRoute
   '/contact': typeof MarketingContactRoute
   '/pricing': typeof MarketingPricingRoute
@@ -380,6 +388,7 @@ export interface FileRoutesById {
   '/$orgSlug/members': typeof OrgSlugMembersRoute
   '/$orgSlug/requests': typeof OrgSlugRequestsRoute
   '/$orgSlug/usage': typeof OrgSlugUsageRoute
+  '/$orgSlug/webhooks': typeof OrgSlugWebhooksRoute
   '/_marketing/changelog': typeof MarketingChangelogRoute
   '/_marketing/contact': typeof MarketingContactRoute
   '/_marketing/plugins': typeof MarketingPluginsRouteWithChildren
@@ -428,6 +437,7 @@ export interface FileRouteTypes {
     | '/$orgSlug/members'
     | '/$orgSlug/requests'
     | '/$orgSlug/usage'
+    | '/$orgSlug/webhooks'
     | '/changelog'
     | '/contact'
     | '/plugins'
@@ -470,6 +480,7 @@ export interface FileRouteTypes {
     | '/$orgSlug/members'
     | '/$orgSlug/requests'
     | '/$orgSlug/usage'
+    | '/$orgSlug/webhooks'
     | '/changelog'
     | '/contact'
     | '/pricing'
@@ -515,6 +526,7 @@ export interface FileRouteTypes {
     | '/$orgSlug/members'
     | '/$orgSlug/requests'
     | '/$orgSlug/usage'
+    | '/$orgSlug/webhooks'
     | '/_marketing/changelog'
     | '/_marketing/contact'
     | '/_marketing/plugins'
@@ -664,6 +676,13 @@ declare module '@tanstack/react-router' {
       path: '/usage'
       fullPath: '/$orgSlug/usage'
       preLoaderRoute: typeof OrgSlugUsageRouteImport
+      parentRoute: typeof OrgSlugRoute
+    }
+    '/$orgSlug/webhooks': {
+      id: '/$orgSlug/webhooks'
+      path: '/webhooks'
+      fullPath: '/$orgSlug/webhooks'
+      preLoaderRoute: typeof OrgSlugWebhooksRouteImport
       parentRoute: typeof OrgSlugRoute
     }
     '/_marketing/': {
@@ -881,6 +900,7 @@ interface OrgSlugRouteChildren {
   OrgSlugMembersRoute: typeof OrgSlugMembersRoute
   OrgSlugRequestsRoute: typeof OrgSlugRequestsRoute
   OrgSlugUsageRoute: typeof OrgSlugUsageRoute
+  OrgSlugWebhooksRoute: typeof OrgSlugWebhooksRoute
   OrgSlugIndexRoute: typeof OrgSlugIndexRoute
   OrgSlugSettingsOrganizationRoute: typeof OrgSlugSettingsOrganizationRoute
   OrgSlugSettingsProfileRoute: typeof OrgSlugSettingsProfileRoute
@@ -898,6 +918,7 @@ const OrgSlugRouteChildren: OrgSlugRouteChildren = {
   OrgSlugMembersRoute: OrgSlugMembersRoute,
   OrgSlugRequestsRoute: OrgSlugRequestsRoute,
   OrgSlugUsageRoute: OrgSlugUsageRoute,
+  OrgSlugWebhooksRoute: OrgSlugWebhooksRoute,
   OrgSlugIndexRoute: OrgSlugIndexRoute,
   OrgSlugSettingsOrganizationRoute: OrgSlugSettingsOrganizationRoute,
   OrgSlugSettingsProfileRoute: OrgSlugSettingsProfileRoute,

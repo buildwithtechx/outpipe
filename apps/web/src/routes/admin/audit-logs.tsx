@@ -1,15 +1,10 @@
 import { createFileRoute } from '@tanstack/react-router';
-import { PagePlaceholder } from '#/components/layout/page-placeholder';
+import { AdminAuditLogsPage } from '#/features/admin/audit-logs-page';
 
 export const Route = createFileRoute('/admin/audit-logs')({
-  component: AdminAuditLogsPage,
+  component: AdminAuditLogsRoute,
 });
 
-function AdminAuditLogsPage() {
-  return (
-    <PagePlaceholder
-      title="Audit logs"
-      description="Review sensitive platform and account actions."
-    />
-  );
+function AdminAuditLogsRoute() {
+  return <AdminAuditLogsPage />;
 }
