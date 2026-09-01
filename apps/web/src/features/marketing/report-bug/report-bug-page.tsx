@@ -143,7 +143,7 @@ export function ReportBugPage() {
                     required
                     name="name"
                     placeholder="Ada Lovelace"
-                    className="rounded-2xl border border-white/5 bg-black/45 px-4 py-3.5 text-white outline-none placeholder:text-white/20 focus:border-indigo-300/45 focus:ring-1 focus:ring-indigo-300/30"
+                    className="rounded-2xl border border-white/5 bg-black/45 px-4 py-3.5 text-white outline-hidden placeholder:text-white/20 focus:border-indigo-300/45 focus:ring-1 focus:ring-indigo-300/30"
                   />
                 </label>
                 <label className="grid gap-2 text-sm text-white/55">
@@ -153,7 +153,7 @@ export function ReportBugPage() {
                     type="email"
                     name="email"
                     placeholder="ada@example.com"
-                    className="rounded-2xl border border-white/5 bg-black/45 px-4 py-3.5 text-white outline-none placeholder:text-white/20 focus:border-indigo-300/45 focus:ring-1 focus:ring-indigo-300/30"
+                    className="rounded-2xl border border-white/5 bg-black/45 px-4 py-3.5 text-white outline-hidden placeholder:text-white/20 focus:border-indigo-300/45 focus:ring-1 focus:ring-indigo-300/30"
                   />
                 </label>
               </div>
@@ -164,7 +164,7 @@ export function ReportBugPage() {
                     required
                     name="category"
                     defaultValue=""
-                    className="rounded-2xl border border-white/5 bg-black/45 px-4 py-3.5 text-white outline-none focus:border-indigo-300/45 focus:ring-1 focus:ring-indigo-300/30"
+                    className="rounded-2xl border border-white/5 bg-black/45 px-4 py-3.5 text-white outline-hidden focus:border-indigo-300/45 focus:ring-1 focus:ring-indigo-300/30"
                   >
                     <option value="" disabled>
                       Select an area
@@ -180,7 +180,7 @@ export function ReportBugPage() {
                     required
                     name="summary"
                     placeholder="The tunnel disconnects after the first request"
-                    className="rounded-2xl border border-white/5 bg-black/45 px-4 py-3.5 text-white outline-none placeholder:text-white/20 focus:border-indigo-300/45 focus:ring-1 focus:ring-indigo-300/30"
+                    className="rounded-2xl border border-white/5 bg-black/45 px-4 py-3.5 text-white outline-hidden placeholder:text-white/20 focus:border-indigo-300/45 focus:ring-1 focus:ring-indigo-300/30"
                   />
                 </label>
               </div>
@@ -191,7 +191,7 @@ export function ReportBugPage() {
                   name="reproduction"
                   rows={5}
                   placeholder="1. Run ...  2. Open ...  3. Request ..."
-                  className="resize-none rounded-2xl border border-white/5 bg-black/45 px-4 py-3.5 text-white outline-none placeholder:text-white/20 focus:border-indigo-300/45 focus:ring-1 focus:ring-indigo-300/30"
+                  className="resize-none rounded-2xl border border-white/5 bg-black/45 px-4 py-3.5 text-white outline-hidden placeholder:text-white/20 focus:border-indigo-300/45 focus:ring-1 focus:ring-indigo-300/30"
                 />
               </label>
               <div className="grid gap-5 md:grid-cols-2">
@@ -202,7 +202,7 @@ export function ReportBugPage() {
                     name="expected"
                     rows={4}
                     placeholder="The request reaches my local service"
-                    className="resize-none rounded-2xl border border-white/5 bg-black/45 px-4 py-3.5 text-white outline-none placeholder:text-white/20 focus:border-indigo-300/45 focus:ring-1 focus:ring-indigo-300/30"
+                    className="resize-none rounded-2xl border border-white/5 bg-black/45 px-4 py-3.5 text-white outline-hidden placeholder:text-white/20 focus:border-indigo-300/45 focus:ring-1 focus:ring-indigo-300/30"
                   />
                 </label>
                 <label className="grid gap-2 text-sm text-white/55">
@@ -212,7 +212,7 @@ export function ReportBugPage() {
                     name="actual"
                     rows={4}
                     placeholder="The connection closes with ..."
-                    className="resize-none rounded-2xl border border-white/5 bg-black/45 px-4 py-3.5 text-white outline-none placeholder:text-white/20 focus:border-indigo-300/45 focus:ring-1 focus:ring-indigo-300/30"
+                    className="resize-none rounded-2xl border border-white/5 bg-black/45 px-4 py-3.5 text-white outline-hidden placeholder:text-white/20 focus:border-indigo-300/45 focus:ring-1 focus:ring-indigo-300/30"
                   />
                 </label>
               </div>

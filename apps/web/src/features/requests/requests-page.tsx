@@ -27,7 +27,7 @@ export function RequestsPage({ orgSlug }: { orgSlug: string }) {
           Recent traffic observed across your public endpoints.
         </p>
       </header>
-      <section className="mt-8 overflow-hidden rounded-2xl border border-white/10 bg-white/2.5">
+      <section className="mt-8 overflow-hidden rounded-2xl border border-white/10 bg-white/[0.025]">
         <div className="grid grid-cols-[80px_minmax(0,1fr)_80px_80px] gap-4 border-b border-white/10 px-5 py-3 text-xs uppercase tracking-wider text-white/35">
           <span>Method</span>
           <span>Path</span>

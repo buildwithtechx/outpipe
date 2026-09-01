@@ -70,7 +70,7 @@ export function Hero() {
         </Canvas>
       </div>
       <MarketingContainer className="relative z-10 flex flex-col items-center">
-        <div className="mt-20 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/4 px-3 py-1.5 text-xs text-white/55 backdrop-blur-sm">
+        <div className="mt-20 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/4 px-3 py-1.5 text-xs text-white/55 backdrop-blur-xs">
           <span className="size-1.5 rounded-full bg-cyan-300" />
           Open-source tunnel infrastructure for developers
         </div>

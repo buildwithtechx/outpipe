@@ -38,7 +38,7 @@ export function ProtocolsSection() {
             TCP, and UDP services.
           </p>
         </div>
-        <div className="mx-auto mt-10 max-w-4xl overflow-hidden rounded-3xl border border-white/10 bg-white/2.5 p-3 sm:p-4">
+        <div className="mx-auto mt-10 max-w-4xl overflow-hidden rounded-3xl border border-white/10 bg-white/[0.025] p-3 sm:p-4">
           <div className="mb-2 flex items-center justify-between px-3 py-2 font-mono text-xs text-white/35">
             <span>protocols</span>
             <span className="text-emerald-300">ready</span>

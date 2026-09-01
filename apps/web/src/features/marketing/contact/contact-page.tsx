@@ -143,7 +143,7 @@ export function ContactPage() {
                     required
                     name="name"
                     placeholder="Ada Lovelace"
-                    className="rounded-2xl border border-white/5 bg-black/45 px-4 py-3.5 text-white outline-none placeholder:text-white/20 focus:border-indigo-300/45 focus:ring-1 focus:ring-indigo-300/30"
+                    className="rounded-2xl border border-white/5 bg-black/45 px-4 py-3.5 text-white outline-hidden placeholder:text-white/20 focus:border-indigo-300/45 focus:ring-1 focus:ring-indigo-300/30"
                   />
                 </label>
                 <label className="grid gap-2 text-sm text-white/55">
@@ -153,7 +153,7 @@ export function ContactPage() {
                     type="email"
                     name="email"
                     placeholder="ada@example.com"
-                    className="rounded-2xl border border-white/5 bg-black/45 px-4 py-3.5 text-white outline-none placeholder:text-white/20 focus:border-indigo-300/45 focus:ring-1 focus:ring-indigo-300/30"
+                    className="rounded-2xl border border-white/5 bg-black/45 px-4 py-3.5 text-white outline-hidden placeholder:text-white/20 focus:border-indigo-300/45 focus:ring-1 focus:ring-indigo-300/30"
                   />
                 </label>
               </div>
@@ -163,7 +163,7 @@ export function ContactPage() {
                   required
                   name="topic"
                   placeholder="What would you like to discuss?"
-                  className="rounded-2xl border border-white/5 bg-black/45 px-4 py-3.5 text-white outline-none placeholder:text-white/20 focus:border-indigo-300/45 focus:ring-1 focus:ring-indigo-300/30"
+                  className="rounded-2xl border border-white/5 bg-black/45 px-4 py-3.5 text-white outline-hidden placeholder:text-white/20 focus:border-indigo-300/45 focus:ring-1 focus:ring-indigo-300/30"
                 />
               </label>
               <label className="grid gap-2 text-sm text-white/55">
@@ -173,7 +173,7 @@ export function ContactPage() {
                   name="message"
                   rows={6}
                   placeholder="Share the useful context, without credentials or private tunnel data."
-                  className="resize-none rounded-2xl border border-white/5 bg-black/45 px-4 py-3.5 text-white outline-none placeholder:text-white/20 focus:border-indigo-300/45 focus:ring-1 focus:ring-indigo-300/30"
+                  className="resize-none rounded-2xl border border-white/5 bg-black/45 px-4 py-3.5 text-white outline-hidden placeholder:text-white/20 focus:border-indigo-300/45 focus:ring-1 focus:ring-indigo-300/30"
                 />
               </label>
               <button

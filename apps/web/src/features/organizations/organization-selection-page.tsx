@@ -149,7 +149,7 @@ export function OrganizationSelectionPage() {
               placeholder="Acme Labs"
               maxLength={120}
               required
-              className="h-12 w-full rounded-xl border border-white/10 bg-[#111] px-4 text-sm text-white outline-none placeholder:text-white/30 focus:border-indigo-300/60 focus:ring-2 focus:ring-indigo-300/20"
+              className="h-12 w-full rounded-xl border border-white/10 bg-[#111] px-4 text-sm text-white outline-hidden placeholder:text-white/30 focus:border-indigo-300/60 focus:ring-2 focus:ring-indigo-300/20"
             />
           </label>
           <label className="block space-y-2 text-sm text-white/65">
@@ -164,7 +164,7 @@ export function OrganizationSelectionPage() {
                 placeholder="acme-labs"
                 maxLength={63}
                 required
-                className="h-12 w-full rounded-xl border border-white/10 bg-[#111] px-4 font-mono text-sm text-white outline-none placeholder:text-white/30 focus:border-indigo-300/60 focus:ring-2 focus:ring-indigo-300/20"
+                className="h-12 w-full rounded-xl border border-white/10 bg-[#111] px-4 font-mono text-sm text-white outline-hidden placeholder:text-white/30 focus:border-indigo-300/60 focus:ring-2 focus:ring-indigo-300/20"
               />
               {slugQuery.data?.available && (
                 <Check className="absolute right-4 top-1/2 size-4 -translate-y-1/2 text-emerald-300" />

@@ -37,7 +37,7 @@ export function UsagePage({ orgSlug }: { orgSlug: string }) {
         {cards.map(([label, value]) => (
           <div
             key={label}
-            className="rounded-2xl border border-white/10 bg-white/2.5 p-5"
+            className="rounded-2xl border border-white/10 bg-white/[0.025] p-5"
           >
             <p className="text-sm text-white/50">{label}</p>
             <p className="mt-5 text-3xl font-semibold">{value}</p>
