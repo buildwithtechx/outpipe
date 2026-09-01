@@ -165,7 +165,7 @@ The browser flow requires these API changes before the dashboard UI is wired:
 
 ## Future SDKs
 
-- [ ] Create an official Laravel/PHP SDK over the public HTTP and relay APIs.
+- [x] Create an official Laravel/PHP SDK over the public HTTP and relay APIs (`packages/php`).
 - [ ] Create an official Rust SDK for native services and desktop tooling.
 - [ ] Create an official Go SDK for Go services and tunnel-aware workers.
 - [ ] Create an official Angular adapter over the shared client contract.
