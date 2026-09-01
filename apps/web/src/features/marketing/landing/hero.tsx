@@ -55,7 +55,7 @@ export function Hero() {
 
   async function copyCommand() {
     await navigator.clipboard.writeText(
-      'curl -fsSL https://outpipe.dev/install.sh | bash',
+      'curl -fsSL https://cli.outpipe.dev | bash',
     );
     setCopied(true);
     setTimeout(() => setCopied(false), 1800);
@@ -189,7 +189,7 @@ function TerminalWindow() {
         <p className="text-cyan-300">Connecting to Outpipe...</p>
         <p className="text-emerald-300">Linked to local port 3000</p>
         <p className="text-fuchsia-300">
-          Tunnel ready: https://quiet-moon.outpipe.dev
+          Tunnel ready: https://quiet-moon.outpipe.app
         </p>
         <p className="text-amber-300">
           Keep this process running to keep the tunnel active.

@@ -4,7 +4,7 @@ import { MarketingContainer } from '#/components/layout';
 const endpoints = [
   {
     label: 'Reserved endpoint',
-    value: 'checkout.outpipe.dev',
+    value: 'checkout.outpipe.app',
     detail: 'Keep a recognizable URL for repeatable previews.',
     color: 'text-indigo-300',
   },
@@ -33,7 +33,7 @@ export function CustomDomainSection() {
           </p>
         </div>
         <div className="relative mx-auto mt-8 max-w-5xl overflow-hidden rounded-3xl border border-white/10 bg-white/[0.025] p-4 sm:p-5">
-          <div className="absolute inset-x-20 top-0 h-px bg-gradient-to-r from-transparent via-indigo-300/50 to-transparent" />
+          <div className="absolute inset-x-20 top-0 h-px bg-linear-to-r from-transparent via-indigo-300/50 to-transparent" />
           <div className="flex items-center justify-between border-b border-white/10 pb-4 font-mono text-xs text-white/35">
             <span>endpoint routing</span>
             <span className="flex items-center gap-2 text-emerald-300">

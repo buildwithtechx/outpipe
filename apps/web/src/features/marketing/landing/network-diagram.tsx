@@ -17,7 +17,7 @@ const connectionSteps = [
   },
   {
     title: 'Public endpoint',
-    detail: 'preview.outpipe.dev',
+    detail: 'preview.outpipe.app',
     icon: Globe2,
     color: 'text-cyan-300',
   },

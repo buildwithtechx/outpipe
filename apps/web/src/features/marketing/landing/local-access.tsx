@@ -65,7 +65,7 @@ export function LocalAccessSection() {
                 --password
               </p>
               <p className="text-indigo-300">
-                Tunnel: https://preview.outpipe.dev
+                Tunnel: https://preview.outpipe.app
               </p>
               <p className="text-cyan-300">Protection: password required</p>
               <p className="text-white/35">

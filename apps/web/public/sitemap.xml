@@ -17,6 +17,11 @@
   <url><loc>https://outpipe.dev/docs/integrations/next</loc></url>
   <url><loc>https://outpipe.dev/docs/integrations/nest</loc></url>
   <url><loc>https://outpipe.dev/docs/integrations/express</loc></url>
+  <url><loc>https://outpipe.dev/docs/integrations/go</loc></url>
+  <url><loc>https://outpipe.dev/docs/integrations/rust</loc></url>
+  <url><loc>https://outpipe.dev/docs/integrations/php</loc></url>
+  <url><loc>https://outpipe.dev/docs/integrations/angular</loc></url>
+  <url><loc>https://outpipe.dev/sdks</loc></url>
   <url><loc>https://outpipe.dev/docs/reference/architecture</loc></url>
   <url><loc>https://outpipe.dev/docs/reference/cli</loc></url>
 </urlset>
