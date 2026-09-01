@@ -10,7 +10,7 @@
     "dev": "npm run bundle:cli && tauri dev",
     "build": "npm run bundle:cli && tauri build",
     "bundle:cli": "go build -o src-tauri/resources/outpipe ../../cmd/cli",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "cargo check --manifest-path src-tauri/Cargo.toml",
     "test": "vitest run --passWithNoTests"
   },
   "dependencies": {

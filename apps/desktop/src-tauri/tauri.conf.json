@@ -6,8 +6,8 @@
   "build": {
     "beforeDevCommand": "npm run dev --workspace apps/web",
     "devUrl": "http://localhost:3000",
-    "beforeBuildCommand": "npm --prefix ../../.. run build:web",
-    "frontendDist": "../../web/dist"
+    "beforeBuildCommand": "npm --prefix ../.. run build:web",
+    "frontendDist": "../../web/.output/public"
   },
   "app": {
     "windows": [
