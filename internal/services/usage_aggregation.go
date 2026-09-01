@@ -50,7 +50,7 @@ func (s *UsageAggregationService) Aggregate(ctx context.Context, now time.Time) 
 			sub, err := s.billing.FindSubscription(ctx, organization.ID)
 
 			if err == nil {
-				plan, err := s.billing.FindPlan(ctx, sub.PlanID)
+				plan, err := s.billing.FindPlanByID(ctx, sub.PlanID)
 
 				if err == nil && plan.BandwidthBytes > 0 && snapshot.BandwidthBytes > plan.BandwidthBytes {
 					_ = s.alerts.AlertQuotaInconsistency(ctx, organization.ID, snapshot.BandwidthBytes, plan.BandwidthBytes)

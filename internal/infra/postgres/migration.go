@@ -102,7 +102,35 @@ func migrations() []migration {
 		return db.AutoMigrate(&models.Invoice{}, &models.Receipt{})
 	}}, {version: 11, name: "webhook_subscriptions_and_tunnel_metadata", up: func(db *gorm.DB) error {
 		return db.AutoMigrate(&models.Tunnel{}, &models.APIKey{}, &models.WebhookSubscription{}, &models.WebhookDelivery{})
-	}}}
+	}}, {version: 12, name: "default_billing_plans", up: seedDefaultBillingPlans}}
+}
+
+func seedDefaultBillingPlans(db *gorm.DB) error {
+
+	plans := []models.Plan{
+		{Key: "free", Name: "Free", Currency: "USD", MaxTunnels: 2, MaxDomains: 0, MaxMembers: 1, MaxConnections: 10, BandwidthBytes: 2 * 1024 * 1024 * 1024, RetentionDays: 3, Features: `{}`, Active: true},
+		{Key: "link", Name: "Link", PriceMinor: 700, Currency: "USD", MaxTunnels: 3, MaxDomains: 1, MaxMembers: 3, MaxConnections: 50, BandwidthBytes: 25 * 1024 * 1024 * 1024, RetentionDays: 14, Features: `{"customDomains":true}`, Active: true},
+		{Key: "route", Name: "Route", PriceMinor: 1500, Currency: "USD", MaxTunnels: 5, MaxDomains: 5, MaxMembers: 5, MaxConnections: 100, BandwidthBytes: 100 * 1024 * 1024 * 1024, RetentionDays: 30, Features: `{"customDomains":true,"prioritySupport":true}`, Active: true},
+		{Key: "edge", Name: "Edge", PriceMinor: 12000, Currency: "USD", MaxTunnels: 20, MaxDomains: 25, MaxMembers: -1, MaxConnections: 500, BandwidthBytes: 1024 * 1024 * 1024 * 1024, RetentionDays: 90, Features: `{"customDomains":true,"prioritySupport":true}`, Active: true},
+	}
+
+	for _, plan := range plans {
+		var count int64
+
+		if err := db.Model(&models.Plan{}).Where("key = ?", plan.Key).Count(&count).Error; err != nil {
+			return fmt.Errorf("check default plan %q: %w", plan.Key, err)
+		}
+
+		if count > 0 {
+			continue
+		}
+
+		if err := db.Create(&plan).Error; err != nil {
+			return fmt.Errorf("create default plan %q: %w", plan.Key, err)
+		}
+	}
+
+	return nil
 }
 
 func WithTransaction(db *gorm.DB, fn func(*gorm.DB) error) error {

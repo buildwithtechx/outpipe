@@ -12,7 +12,9 @@ import (
 type BillingRepository interface {
 	CreatePlan(context.Context, *models.Plan) error
 	FindPlan(context.Context, string) (models.Plan, error)
+	FindPlanByID(context.Context, string) (models.Plan, error)
 	ListActivePlans(context.Context) ([]models.Plan, error)
+	CreateSubscription(context.Context, *models.Subscription) error
 	FindSubscription(context.Context, string) (models.Subscription, error)
 	FindSubscriptionByProvider(context.Context, models.BillingProvider, string) (models.Subscription, error)
 	ListSubscriptions(context.Context) ([]models.Subscription, error)
@@ -57,6 +59,16 @@ func (r *GormBillingRepository) FindPlan(ctx context.Context, key string) (model
 	return plan, nil
 }
 
+func (r *GormBillingRepository) FindPlanByID(ctx context.Context, id string) (models.Plan, error) {
+	var plan models.Plan
+
+	if err := r.db.WithContext(ctx).Where("id = ?", id).First(&plan).Error; err != nil {
+		return models.Plan{}, mapError(err)
+	}
+
+	return plan, nil
+}
+
 func (r *GormBillingRepository) ListActivePlans(ctx context.Context) ([]models.Plan, error) {
 	var plans []models.Plan
 
@@ -65,6 +77,15 @@ func (r *GormBillingRepository) ListActivePlans(ctx context.Context) ([]models.P
 	}
 
 	return plans, nil
+}
+
+func (r *GormBillingRepository) CreateSubscription(ctx context.Context, subscription *models.Subscription) error {
+
+	if subscription == nil {
+		return fmt.Errorf("subscription is required")
+	}
+
+	return wrap(r.db.WithContext(ctx).Create(subscription).Error, "create subscription")
 }
 
 func (r *GormBillingRepository) FindSubscription(ctx context.Context, organizationID string) (models.Subscription, error) {

@@ -16,6 +16,7 @@ const (
 type BillingProvider string
 
 const (
+	BillingProviderInternal BillingProvider = "internal"
 	BillingProviderPolar    BillingProvider = "polar"
 	BillingProviderPaystack BillingProvider = "paystack"
 )

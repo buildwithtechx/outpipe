@@ -40,6 +40,21 @@ func (s *AgentService) Find(ctx context.Context, id string) (models.Agent, error
 	return agent, nil
 }
 
+func (s *AgentService) List(ctx context.Context, organizationID string) ([]models.Agent, error) {
+
+	if organizationID == "" {
+		return nil, fmt.Errorf("organization id is required")
+	}
+
+	agents, err := s.agents.FindByOrganization(ctx, organizationID)
+
+	if err != nil {
+		return nil, fmt.Errorf("list agents: %w", err)
+	}
+
+	return agents, nil
+}
+
 func (s *AgentService) Register(ctx context.Context, organizationID, name string) (string, models.Agent, error) {
 
 	if organizationID == "" || strings.TrimSpace(name) == "" {

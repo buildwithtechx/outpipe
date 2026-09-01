@@ -72,7 +72,7 @@ func TestInternalRelayAuthentication(t *testing.T) {
 
 	plan := seededActivePlan(t, stack, "route")
 
-	subscription := models.Subscription{OrganizationID: stack.organizationID, PlanID: plan.Key, Provider: models.BillingProviderPolar, ProviderSubID: "sub_relay", Status: models.SubscriptionStatusActive, BillingInterval: models.BillingIntervalMonth}
+	subscription := models.Subscription{OrganizationID: stack.organizationID, PlanID: plan.ID, Provider: models.BillingProviderPolar, ProviderSubID: "sub_relay", Status: models.SubscriptionStatusActive, BillingInterval: models.BillingIntervalMonth}
 
 	if err := stack.db.Create(&subscription).Error; err != nil {
 		t.Fatal(err)

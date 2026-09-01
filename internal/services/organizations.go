@@ -50,6 +50,12 @@ func (s *OrganizationService) Create(ctx context.Context, ownerID, name, slug st
 		return models.Organization{}, fmt.Errorf("add organization owner: %w", err)
 	}
 
+	if s.billing != nil {
+		if err := s.billing.ProvisionFreeSubscription(ctx, organization.ID); err != nil {
+			return models.Organization{}, fmt.Errorf("provision free subscription: %w", err)
+		}
+	}
+
 	return organization, nil
 }
 

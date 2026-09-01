@@ -1,10 +1,8 @@
 import { useNavigate } from '@tanstack/react-router';
 import { useEffect } from 'react';
 import { useAuthSession } from '#/features/auth/hooks/use-auth-session';
-import {
-  getLastOrganizationSlug,
-  getOrganizations,
-} from '#/features/auth/services/auth-service';
+import { getLastOrganizationSlug } from '#/features/auth/services/auth-service';
+import { getOrganizations } from '#/features/organizations/services/organization-service';
 
 export function useAuthRedirect() {
   const navigate = useNavigate();

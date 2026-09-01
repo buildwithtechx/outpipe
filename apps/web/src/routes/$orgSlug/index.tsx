@@ -1,15 +1,11 @@
 import { createFileRoute } from '@tanstack/react-router';
-import { PagePlaceholder } from '#/components/layout/page-placeholder';
+import { OrganizationOverviewPage } from '#/features/organizations';
 
 export const Route = createFileRoute('/$orgSlug/')({
-  component: OrganizationOverviewPage,
+  component: OrganizationOverviewRoute,
 });
 
-function OrganizationOverviewPage() {
-  return (
-    <PagePlaceholder
-      title="Organization overview"
-      description="See tunnel health, recent activity, and usage for this organization."
-    />
-  );
+function OrganizationOverviewRoute() {
+  const { orgSlug } = Route.useParams();
+  return <OrganizationOverviewPage orgSlug={orgSlug} />;
 }

@@ -2,11 +2,13 @@ package config
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
 
 	"github.com/caarlos0/env/v11"
+	"github.com/joho/godotenv"
 )
 
 func LoadAPI() (APIConfig, error) {
@@ -140,6 +142,9 @@ func migrateCLIFile(cfg *CLIConfig) CLIConfig {
 }
 
 func parse[T any](cfg *T) error {
+	if err := godotenv.Load(); err != nil && !errors.Is(err, os.ErrNotExist) {
+		return fmt.Errorf("load .env: %w", err)
+	}
 
 	if err := env.Parse(cfg); err != nil {
 		return fmt.Errorf("parse environment: %w", err)

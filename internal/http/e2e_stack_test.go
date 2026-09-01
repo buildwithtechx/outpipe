@@ -300,11 +300,5 @@ func seededActivePlan(t *testing.T, stack *e2eStack, key string) models.Plan {
 		t.Fatal(err)
 	}
 
-	plan.Key = plan.ID
-
-	if err := stack.db.Save(&plan).Error; err != nil {
-		t.Fatal(err)
-	}
-
 	return plan
 }

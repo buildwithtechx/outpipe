@@ -44,7 +44,7 @@ func (s *RetentionService) Enforce(ctx context.Context, now time.Time) error {
 			return fmt.Errorf("find retention subscription: %w", err)
 		}
 
-		plan, err := s.billing.FindPlan(ctx, subscription.PlanID)
+		plan, err := s.billing.FindPlanByID(ctx, subscription.PlanID)
 
 		if err != nil {
 			return fmt.Errorf("find retention plan: %w", err)

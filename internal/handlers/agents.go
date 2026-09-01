@@ -52,6 +52,16 @@ func (h *AgentHandler) Register(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusCreated).JSON(fiber.Map{"agent": agent, "token": token})
 }
 
+func (h *AgentHandler) List(c *fiber.Ctx) error {
+	agents, err := h.agents.List(c.UserContext(), strings.TrimSpace(c.Params("organizationID")))
+
+	if err != nil {
+		return writeError(c, fiber.StatusBadRequest, err)
+	}
+
+	return c.JSON(agents)
+}
+
 func (h *AgentHandler) Heartbeat(c *fiber.Ctx) error {
 	var input AgentHeartbeatRequest
 

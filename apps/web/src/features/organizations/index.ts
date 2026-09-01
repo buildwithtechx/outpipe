@@ -1,1 +1,1 @@
-export {};
+export { OrganizationOverviewPage } from './organization-overview-page';

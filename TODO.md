@@ -2,6 +2,15 @@
 
 Remaining work: production hardening and tests, dashboard functionality, desktop integration, optional integrations, and release operations.
 
+## Integration delivery workflow
+
+- [ ] Run the API, relay, and web application together while building dashboard features.
+- [ ] Connect each dashboard feature to its real API endpoint before marking it complete.
+- [ ] Add loading, empty, authorization, and failure states from observed API responses.
+- [ ] Fix Go API contracts, validation, authorization, persistence, and relay behavior when end-to-end testing exposes a defect.
+- [ ] Add or update focused Go and web tests for every defect fixed during integration.
+- [ ] Mark a feature complete only after its browser flow works against local PostgreSQL, Redis, API, and relay services.
+
 ## Route structure
 
 Dashboard routes should remain browser-only and organization-scoped:

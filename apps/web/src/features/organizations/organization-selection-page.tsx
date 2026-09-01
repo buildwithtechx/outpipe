@@ -7,7 +7,7 @@ import {
   checkOrganizationSlug,
   createOrganization,
   getOrganizations,
-} from '#/features/auth/services/auth-service';
+} from '#/features/organizations/services/organization-service';
 
 const slugPattern = /^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$/;
 
