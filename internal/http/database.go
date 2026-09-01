@@ -335,17 +335,5 @@ func NewDatabaseDependencies(db *gorm.DB, cfg config.APIConfig) (Dependencies, e
 
 	tunnelService.SetWebhooks(webhookService)
 
-	return Dependencies{Auth: authService, DeviceLogin: deviceService, Organizations: organizationService, Invitations: invitationService, Tunnels: tunnelService, Agents: agentService, Domains: domainService, Usage: usageService, Billing: billingService, Account: accountService, Admin: adminService, Audit: auditService, APIKeys: apiKeyService, Webhooks: webhookService, WelcomeMailer: welcomeMailer, Ready: func(ctx context.Context) error {
-		sqlDB, err := db.DB()
-
-		if err != nil {
-			return fmt.Errorf("get database connection: %w", err)
-		}
-
-		if err := sqlDB.PingContext(ctx); err != nil {
-			return fmt.Errorf("ping database: %w", err)
-		}
-
-		return nil
-	}}, nil
+	return Dependencies{Auth: authService, DeviceLogin: deviceService, Organizations: organizationService, Invitations: invitationService, Tunnels: tunnelService, Agents: agentService, Domains: domainService, Usage: usageService, Billing: billingService, Account: accountService, Admin: adminService, Audit: auditService, APIKeys: apiKeyService, Webhooks: webhookService, WelcomeMailer: welcomeMailer, Ready: databaseReady(db)}, nil
 }
