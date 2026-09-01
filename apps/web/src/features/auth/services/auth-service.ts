@@ -5,6 +5,10 @@ export function getAuthSession() {
   return apiClient.get<AuthSession>('/api/v1/auth/session');
 }
 
+export function logout() {
+  return apiClient.post<void>('/api/v1/auth/logout');
+}
+
 export function getLastOrganizationSlug() {
   if (typeof window === 'undefined') return null;
   return window.localStorage.getItem('outpipe_last_organization');

@@ -1,0 +1,16 @@
+.git
+.github
+node_modules
+**/node_modules
+.output
+**/.output
+dist
+**/dist
+build
+bin
+**/target
+.data
+coverage
+**/.tanstack
+**/.source
+*.log

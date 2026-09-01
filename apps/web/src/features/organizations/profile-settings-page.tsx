@@ -1,7 +1,10 @@
+import { Button } from '#/components/ui/button';
 import { useAuthSession } from '#/features/auth/hooks/use-auth-session';
+import { useLogout } from '#/features/auth/hooks/use-logout';
 
 export function ProfileSettingsPage() {
   const sessionQuery = useAuthSession();
+  const logout = useLogout();
   if (sessionQuery.isLoading)
     return <p className="p-8 text-sm text-white/55">Loading profile…</p>;
   if (sessionQuery.isError || !sessionQuery.user)
@@ -38,6 +41,21 @@ export function ProfileSettingsPage() {
           </p>
           <p className="mt-2 text-emerald-200">{user.status}</p>
         </div>
+      </section>
+      <section className="mt-8 rounded-2xl border border-white/10 bg-white/[0.025] p-6">
+        <h2 className="text-lg font-medium">Session</h2>
+        <p className="mt-2 text-sm text-white/50">
+          Sign out on shared or temporary machines.
+        </p>
+        <Button
+          type="button"
+          variant="outline"
+          className="mt-5"
+          disabled={logout.isPending}
+          onClick={() => logout.mutate()}
+        >
+          {logout.isPending ? 'Signing out…' : 'Sign out'}
+        </Button>
       </section>
     </main>
   );

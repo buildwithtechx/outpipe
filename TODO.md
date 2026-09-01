@@ -1,15 +1,15 @@
 # Outpipe TODO
 
-Remaining work: production hardening and tests, dashboard functionality, desktop integration, optional integrations, and release operations.
+Remaining work: optional SDKs, desktop integration, optional integrations, and release operations.
 
 ## Integration delivery workflow
 
-- [ ] Run the API, relay, and web application together while building dashboard features.
-- [ ] Connect each dashboard feature to its real API endpoint before marking it complete.
-- [ ] Add loading, empty, authorization, and failure states from observed API responses.
-- [ ] Fix Go API contracts, validation, authorization, persistence, and relay behavior when end-to-end testing exposes a defect.
-- [ ] Add or update focused Go and web tests for every defect fixed during integration.
-- [ ] Mark a feature complete only after its browser flow works against local PostgreSQL, Redis, API, and relay services.
+- [x] Run the API, relay, and web application together while building dashboard features.
+- [x] Connect each dashboard feature to its real API endpoint before marking it complete.
+- [x] Add loading, empty, authorization, and failure states from observed API responses.
+- [x] Fix Go API contracts, validation, authorization, persistence, and relay behavior when end-to-end testing exposes a defect.
+- [x] Add or update focused Go and web tests for every defect fixed during integration.
+- [x] Mark a feature complete only after its browser flow works against local PostgreSQL, Redis, API, and relay services.
 
 ## Route structure
 
@@ -120,15 +120,15 @@ apps/web/src/
 └── env.ts
 ```
 
-- [ ] Keep route files focused on loaders, route metadata, and page composition.
-- [ ] Protect `/admin/*` with a separate platform-admin authorization guard.
-- [ ] Keep admin features and components isolated from organization-member features.
-- [ ] Keep domain behavior inside `features/`, not inside route files.
-- [ ] Keep shared visual primitives inside `components/ui/`.
-- [ ] Keep API contracts and frontend DTOs inside `interfaces/`.
-- [ ] Keep cross-feature clients, guards, query setup, and utilities inside `lib/`.
-- [ ] Keep global client state in focused Zustand stores under `stores/`.
-- [ ] Keep feature-specific hooks beside their feature unless shared by multiple domains.
+- [x] Keep route files focused on loaders, route metadata, and page composition.
+- [x] Protect `/admin/*` with a separate platform-admin authorization guard.
+- [x] Keep admin features and components isolated from organization-member features.
+- [x] Keep domain behavior inside `features/`, not inside route files.
+- [x] Keep shared visual primitives inside `components/ui/`.
+- [x] Keep API contracts and frontend DTOs inside `interfaces/`.
+- [x] Keep cross-feature clients, guards, query setup, and utilities inside `lib/`.
+- [x] Keep global client state in focused Zustand stores under `stores/`.
+- [x] Keep feature-specific hooks beside their feature unless shared by multiple domains.
 
 ### Dashboard authentication
 
@@ -155,13 +155,13 @@ apps/web/src/features/auth/
 └── index.ts
 ```
 
-- [ ] Add logout and session-expiry UI states when the authenticated dashboard shell is implemented.
-- [ ] Add route guards only after session loading distinguishes unauthenticated from pending state.
-- [ ] Add focused tests for provider selection, redirect construction, session synchronization, and callback errors.
+- [x] Add logout and session-expiry UI states when the authenticated dashboard shell is implemented.
+- [x] Add route guards only after session loading distinguishes unauthenticated from pending state.
+- [x] Add focused tests for provider selection, redirect construction, session synchronization, and callback errors.
 
 The browser flow requires these API changes before the dashboard UI is wired:
 
-- [ ] Set API cookie `Secure`, `HttpOnly`, `SameSite=Lax`, and an intentional shared-domain cookie policy for hosted dashboard/API subdomains.
+- [x] Set API cookie `Secure`, `HttpOnly`, `SameSite=Lax`, and an intentional shared-domain cookie policy for hosted dashboard/API subdomains.
 
 ## Future SDKs
 
@@ -220,11 +220,11 @@ packages/
 
 ## Dashboard
 
-- [ ] Create the tunnel dashboard workspace.
-- [ ] Implement tunnel creation and target configuration.
-- [ ] Display connection status, public URL, client version, and last heartbeat.
-- [ ] Add start, stop, rotate credentials, and revoke actions.
-- [ ] Display active connections and bandwidth usage.
-- [ ] Add tunnel expiration and access policy controls.
-- [ ] Add audit history for tunnel and credential actions.
-- [ ] Add accessible loading, empty, error, and disconnected states.
+- [x] Create the tunnel dashboard workspace.
+- [x] Implement tunnel creation and target configuration.
+- [x] Display connection status, public URL, client version, and last heartbeat.
+- [x] Add start, stop, rotate credentials, and revoke actions.
+- [x] Display active connections and bandwidth usage.
+- [x] Add tunnel expiration and access policy controls.
+- [x] Add audit history for tunnel and credential actions.
+- [x] Add accessible loading, empty, error, and disconnected states.
