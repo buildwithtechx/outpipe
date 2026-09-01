@@ -27,11 +27,52 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version-file: .nvmrc
+          node-version: 24
           cache: npm
       - run: npm ci
       - run: npm run format
       - run: npm run typecheck
+      - run: npm run build:web
+      - run: npm run typecheck:packages
+      - run: npm run test --workspaces --if-present
+
+  sdk-go:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.25.13"
+      - run: go vet ./...
+        working-directory: packages/go
+      - run: go test ./...
+        working-directory: packages/go
+
+  sdk-rust:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions-rust-lang/setup-rust-toolchain@v1
+      - run: cargo fmt --all -- --check
+        working-directory: packages/rust
+      - run: cargo test
+        working-directory: packages/rust
+
+  sdk-php:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.4"
+          extensions: curl
+          tools: composer
+      - run: composer install --no-interaction --prefer-dist
+        working-directory: packages/php
+      - run: composer validate --strict --no-check-publish
+        working-directory: packages/php
+      - run: composer test
+        working-directory: packages/php
 
   dependency-audit:
     runs-on: ubuntu-latest
@@ -39,7 +80,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version-file: .nvmrc
+          node-version: 24
           cache: npm
       - run: npm ci
       - run: npm audit --audit-level=moderate

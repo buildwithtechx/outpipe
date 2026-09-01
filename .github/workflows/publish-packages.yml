@@ -20,7 +20,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version-file: .nvmrc
+          node-version: 24
           cache: npm
           registry-url: https://registry.npmjs.org
 
@@ -38,6 +38,7 @@ jobs:
           npm pack --dry-run --workspace packages/next
           npm pack --dry-run --workspace packages/nest
           npm pack --dry-run --workspace packages/express
+          npm pack --dry-run --workspace packages/angular
 
       - name: Publish packages
         run: |
@@ -47,5 +48,6 @@ jobs:
           npm publish --workspace packages/next
           npm publish --workspace packages/nest
           npm publish --workspace packages/express
+          npm publish --workspace packages/angular
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

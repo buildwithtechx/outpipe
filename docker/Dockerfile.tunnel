@@ -22,6 +22,6 @@ COPY --from=build /out/tunnel /app/tunnel
 
 USER outpipe
 
-EXPOSE 8080
+EXPOSE 8081
 STOPSIGNAL SIGTERM
 ENTRYPOINT ["/app/tunnel"]
