@@ -7,8 +7,8 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
-	"net/url"
 	"slices"
 	"strings"
 	"time"
@@ -17,27 +17,62 @@ import (
 	"outpipe.dev/outpipe/internal/models"
 	"outpipe.dev/outpipe/internal/repositories"
 	"outpipe.dev/outpipe/internal/security"
+	"outpipe.dev/outpipe/internal/validation"
 )
 
 const webhookDeliveryTimeout = 5 * time.Second
+const webhookMaxDeliveryAttempts = 5
 
 type WebhookService struct {
 	subscriptions repositories.WebhookRepository
 	client        *http.Client
 	now           func() time.Time
+	validateURL   func(string) error
+	synchronous   bool
 }
 
-func NewWebhookService(subscriptions repositories.WebhookRepository) (*WebhookService, error) {
+type WebhookServiceOption func(*WebhookService)
+
+func WithWebhookHTTPClient(client *http.Client) WebhookServiceOption {
+	return func(service *WebhookService) {
+		if client != nil {
+			service.client = client
+		}
+	}
+}
+
+func WithWebhookURLValidator(validateURL func(string) error) WebhookServiceOption {
+	return func(service *WebhookService) {
+		if validateURL != nil {
+			service.validateURL = validateURL
+		}
+	}
+}
+
+// WithWebhookSynchronousDelivery is intended for integration tests only. The
+// production service queues deliveries for the cron worker.
+func WithWebhookSynchronousDelivery() WebhookServiceOption {
+	return func(service *WebhookService) { service.synchronous = true }
+}
+
+func NewWebhookService(subscriptions repositories.WebhookRepository, options ...WebhookServiceOption) (*WebhookService, error) {
 
 	if subscriptions == nil {
 		return nil, fmt.Errorf("webhook repository is required")
 	}
 
-	return &WebhookService{
+	service := &WebhookService{
 		subscriptions: subscriptions,
-		client:        &http.Client{Timeout: webhookDeliveryTimeout},
+		client:        validation.NewSafeHTTPClient(webhookDeliveryTimeout),
 		now:           time.Now,
-	}, nil
+		validateURL:   validation.ValidateWebhookURL,
+	}
+
+	for _, option := range options {
+		option(service)
+	}
+
+	return service, nil
 }
 
 func (s *WebhookService) Create(ctx context.Context, organizationID, name, webhookURL string, events []string) (models.WebhookSubscription, string, error) {
@@ -46,10 +81,8 @@ func (s *WebhookService) Create(ctx context.Context, organizationID, name, webho
 		return models.WebhookSubscription{}, "", fmt.Errorf("organization, name, and url are required")
 	}
 
-	parsed, err := url.ParseRequestURI(strings.TrimSpace(webhookURL))
-
-	if err != nil || (parsed.Scheme != "http" && parsed.Scheme != "https") || parsed.Host == "" {
-		return models.WebhookSubscription{}, "", fmt.Errorf("webhook url must be a valid http or https url")
+	if err := s.validateURL(webhookURL); err != nil {
+		return models.WebhookSubscription{}, "", err
 	}
 
 	for _, event := range events {
@@ -75,7 +108,7 @@ func (s *WebhookService) Create(ctx context.Context, organizationID, name, webho
 		return models.WebhookSubscription{}, "", err
 	}
 
-	subscription := models.WebhookSubscription{OrganizationID: organizationID, Name: strings.TrimSpace(name), URL: parsed.String(), Events: string(eventJSON), Secret: secret}
+	subscription := models.WebhookSubscription{OrganizationID: organizationID, Name: strings.TrimSpace(name), URL: strings.TrimSpace(webhookURL), Events: string(eventJSON), Secret: secret}
 
 	if err := s.subscriptions.Create(ctx, &subscription); err != nil {
 		return models.WebhookSubscription{}, "", fmt.Errorf("create webhook subscription: %w", err)
@@ -130,14 +163,26 @@ func (s *WebhookService) Dispatch(ctx context.Context, organizationID string, ev
 		return
 	}
 
+	payload := s.payloadFor(event, data)
 	for _, subscription := range subscriptions {
 
 		if !subscriptionReceives(subscription.Events, string(event)) {
 			continue
 		}
 
-		payload := s.payloadFor(event, data)
-		s.deliver(ctx, &subscription, payload)
+		delivery := &models.WebhookDelivery{
+			SubscriptionID: subscription.ID,
+			EventID:        eventID(payload),
+			EventType:      string(event),
+			Payload:        string(payload),
+			Status:         models.WebhookDeliveryPending,
+			AvailableAt:    s.now().UTC(),
+		}
+		_ = s.subscriptions.CreateDelivery(ctx, delivery)
+	}
+
+	if s.synchronous {
+		_ = s.ProcessPending(ctx, len(subscriptions))
 	}
 }
 
@@ -161,17 +206,73 @@ func newEventID() string {
 	return uuid.New().String()
 }
 
-func (s *WebhookService) deliver(ctx context.Context, subscription *models.WebhookSubscription, payload []byte) {
+func (s *WebhookService) ProcessPending(ctx context.Context, limit int) error {
+	if limit <= 0 || limit > 100 {
+		limit = 100
+	}
+
+	deliveries, err := s.subscriptions.ClaimPendingDeliveries(ctx, s.now().UTC(), limit)
+	if err != nil {
+		return err
+	}
+
+	for i := range deliveries {
+		if err := s.deliver(ctx, &deliveries[i]); err != nil {
+			if deliveries[i].Attempts >= webhookMaxDeliveryAttempts {
+				deliveries[i].Status = models.WebhookDeliveryFailed
+				deliveries[i].AvailableAt = s.now().UTC()
+			} else {
+				deliveries[i].Status = models.WebhookDeliveryFailed
+				deliveries[i].AvailableAt = s.now().UTC().Add(webhookRetryDelay(deliveries[i].Attempts))
+			}
+			deliveries[i].Error = err.Error()
+			if updateErr := s.subscriptions.UpdateDelivery(ctx, &deliveries[i]); updateErr != nil {
+				return fmt.Errorf("mark webhook delivery %s failed: %w", deliveries[i].ID, updateErr)
+			}
+			continue
+		}
+
+		now := s.now().UTC()
+		deliveries[i].Status = models.WebhookDeliverySent
+		deliveries[i].DeliveredAt = &now
+		deliveries[i].Error = ""
+		if updateErr := s.subscriptions.UpdateDelivery(ctx, &deliveries[i]); updateErr != nil {
+			return fmt.Errorf("mark webhook delivery %s sent: %w", deliveries[i].ID, updateErr)
+		}
+		if deliveries[i].Subscription != nil {
+			deliveries[i].Subscription.LastDeliveredAt = &now
+			if updateErr := s.subscriptions.Update(ctx, deliveries[i].Subscription); updateErr != nil {
+				return fmt.Errorf("update webhook subscription %s: %w", deliveries[i].Subscription.ID, updateErr)
+			}
+		}
+	}
+
+	return nil
+}
+
+func webhookRetryDelay(attempts int) time.Duration {
+	if attempts < 1 {
+		attempts = 1
+	}
+	if attempts > 6 {
+		attempts = 6
+	}
+	return time.Duration(1<<uint(attempts-1)) * time.Minute
+}
+
+func (s *WebhookService) deliver(ctx context.Context, delivery *models.WebhookDelivery) error {
+	if delivery.Subscription == nil {
+		return fmt.Errorf("webhook subscription is missing")
+	}
+
+	subscription := delivery.Subscription
+	payload := []byte(delivery.Payload)
 	eventType, eventID := envelopeIdentity(payload)
-	delivery := models.WebhookDelivery{SubscriptionID: subscription.ID, EventID: eventID, EventType: eventType, Payload: string(payload), Attempts: 1, Status: "delivered"}
 
 	request, err := http.NewRequestWithContext(ctx, http.MethodPost, subscription.URL, bytes.NewReader(payload))
 
 	if err != nil {
-		delivery.Status = "failed"
-		delivery.Error = fmt.Sprintf("build delivery request: %v", err)
-		_ = s.subscriptions.CreateDelivery(ctx, &delivery)
-		return
+		return fmt.Errorf("build delivery request: %w", err)
 	}
 
 	request.Header.Set("Content-Type", "application/json")
@@ -182,25 +283,22 @@ func (s *WebhookService) deliver(ctx context.Context, subscription *models.Webho
 	response, err := s.client.Do(request)
 
 	if err != nil {
-		delivery.Status = "failed"
-		delivery.Error = fmt.Sprintf("deliver webhook: %v", err)
-		_ = s.subscriptions.CreateDelivery(ctx, &delivery)
-		return
+		return fmt.Errorf("deliver webhook: %w", err)
 	}
 
 	defer response.Body.Close()
+	_, _ = io.Copy(io.Discard, io.LimitReader(response.Body, 4096))
 
 	if response.StatusCode < 200 || response.StatusCode >= 300 {
-		delivery.Status = "failed"
-		delivery.Error = fmt.Sprintf("webhook receiver returned status %d", response.StatusCode)
-		_ = s.subscriptions.CreateDelivery(ctx, &delivery)
-		return
+		return fmt.Errorf("webhook receiver returned status %d", response.StatusCode)
 	}
 
-	now := s.now()
-	delivery.DeliveredAt = &now
-	_ = s.subscriptions.CreateDelivery(ctx, &delivery)
-	subscription.LastDeliveredAt = &now
+	return nil
+}
+
+func eventID(payload []byte) string {
+	_, id := envelopeIdentity(payload)
+	return id
 }
 
 func envelopeIdentity(payload []byte) (eventType, eventID string) {

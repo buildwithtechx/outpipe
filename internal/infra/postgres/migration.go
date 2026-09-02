@@ -104,6 +104,8 @@ func migrations() []migration {
 		return db.AutoMigrate(&models.Tunnel{}, &models.APIKey{}, &models.WebhookSubscription{}, &models.WebhookDelivery{})
 	}}, {version: 12, name: "default_billing_plans", up: seedDefaultBillingPlans}, {version: 13, name: "email_deliveries", up: func(db *gorm.DB) error {
 		return db.AutoMigrate(&models.EmailDelivery{})
+	}}, {version: 14, name: "webhook_delivery_queue", up: func(db *gorm.DB) error {
+		return db.AutoMigrate(&models.WebhookSubscription{}, &models.WebhookDelivery{})
 	}}}
 }
 

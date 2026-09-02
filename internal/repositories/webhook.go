@@ -3,18 +3,22 @@ package repositories
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 	"outpipe.dev/outpipe/internal/models"
 )
 
 type WebhookRepository interface {
 	Create(context.Context, *models.WebhookSubscription) error
+	Update(context.Context, *models.WebhookSubscription) error
 	FindByID(context.Context, string) (models.WebhookSubscription, error)
 	ListByOrganization(context.Context, string) ([]models.WebhookSubscription, error)
 	Delete(context.Context, string) error
 	CreateDelivery(context.Context, *models.WebhookDelivery) error
 	UpdateDelivery(context.Context, *models.WebhookDelivery) error
+	ClaimPendingDeliveries(context.Context, time.Time, int) ([]models.WebhookDelivery, error)
 	ListDeliveries(context.Context, string) ([]models.WebhookDelivery, error)
 }
 
@@ -36,6 +40,14 @@ func (r *GormWebhookRepository) Create(ctx context.Context, subscription *models
 	}
 
 	return wrap(r.db.WithContext(ctx).Create(subscription).Error, "create webhook subscription")
+}
+
+func (r *GormWebhookRepository) Update(ctx context.Context, subscription *models.WebhookSubscription) error {
+	if subscription == nil {
+		return fmt.Errorf("webhook subscription is required")
+	}
+
+	return wrap(r.db.WithContext(ctx).Save(subscription).Error, "update webhook subscription")
 }
 
 func (r *GormWebhookRepository) FindByID(ctx context.Context, id string) (models.WebhookSubscription, error) {
@@ -87,6 +99,43 @@ func (r *GormWebhookRepository) UpdateDelivery(ctx context.Context, delivery *mo
 	}
 
 	return wrap(r.db.WithContext(ctx).Save(delivery).Error, "update webhook delivery")
+}
+
+func (r *GormWebhookRepository) ClaimPendingDeliveries(ctx context.Context, now time.Time, limit int) ([]models.WebhookDelivery, error) {
+	if limit <= 0 || limit > 100 {
+		return nil, fmt.Errorf("webhook delivery limit must be between 1 and 100")
+	}
+
+	var deliveries []models.WebhookDelivery
+	err := r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		reclaimBefore := now.Add(-10 * time.Minute)
+		if err := tx.Preload("Subscription").Where("((status IN ? AND available_at <= ?) OR (status = ? AND updated_at < ?))", []models.WebhookDeliveryStatus{models.WebhookDeliveryPending, models.WebhookDeliveryFailed}, now, models.WebhookDeliverySending, reclaimBefore).
+			Order("available_at ASC").Limit(limit).Clauses(clause.Locking{Strength: "UPDATE", Options: "SKIP LOCKED"}).Find(&deliveries).Error; err != nil {
+			return err
+		}
+
+		if len(deliveries) == 0 {
+			return nil
+		}
+
+		ids := make([]string, 0, len(deliveries))
+		for i := range deliveries {
+			deliveries[i].Status = models.WebhookDeliverySending
+			deliveries[i].Attempts++
+			ids = append(ids, deliveries[i].ID)
+		}
+
+		return tx.Model(&models.WebhookDelivery{}).Where("id IN ?", ids).Updates(map[string]any{
+			"status":   models.WebhookDeliverySending,
+			"attempts": gorm.Expr("attempts + 1"),
+		}).Error
+	})
+
+	if err != nil {
+		return nil, fmt.Errorf("claim webhook deliveries: %w", err)
+	}
+
+	return deliveries, nil
 }
 
 func (r *GormWebhookRepository) ListDeliveries(ctx context.Context, subscriptionID string) ([]models.WebhookDelivery, error) {

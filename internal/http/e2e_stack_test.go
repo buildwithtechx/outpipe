@@ -3,6 +3,7 @@ package http
 import (
 	"context"
 	"fmt"
+	nethttp "net/http"
 	"testing"
 	"time"
 
@@ -14,6 +15,7 @@ import (
 	"outpipe.dev/outpipe/internal/models"
 	"outpipe.dev/outpipe/internal/repositories"
 	"outpipe.dev/outpipe/internal/services"
+	"outpipe.dev/outpipe/internal/validation"
 )
 
 type e2eStack struct {
@@ -126,7 +128,11 @@ func newE2EStack(t *testing.T) *e2eStack {
 		t.Fatal(err)
 	}
 
-	webhookService, err := services.NewWebhookService(webhookRepository)
+	webhookService, err := services.NewWebhookService(webhookRepository,
+		services.WithWebhookHTTPClient(&nethttp.Client{Timeout: 5 * time.Second}),
+		services.WithWebhookURLValidator(validation.ValidateURLSyntax),
+		services.WithWebhookSynchronousDelivery(),
+	)
 
 	if err != nil {
 		t.Fatal(err)

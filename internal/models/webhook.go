@@ -2,6 +2,15 @@ package models
 
 import "time"
 
+type WebhookDeliveryStatus string
+
+const (
+	WebhookDeliveryPending WebhookDeliveryStatus = "pending"
+	WebhookDeliverySending WebhookDeliveryStatus = "sending"
+	WebhookDeliverySent    WebhookDeliveryStatus = "sent"
+	WebhookDeliveryFailed  WebhookDeliveryStatus = "failed"
+)
+
 type WebhookEvent string
 
 const (
@@ -26,12 +35,14 @@ type WebhookSubscription struct {
 
 type WebhookDelivery struct {
 	Base
-	SubscriptionID string     `json:"subscriptionId" gorm:"type:uuid;not null;uniqueIndex:sub_event"`
-	EventID        string     `json:"eventId" gorm:"not null;uniqueIndex:sub_event"`
-	EventType      string     `json:"eventType" gorm:"not null"`
-	Payload        string     `json:"-" gorm:"type:text;not null"`
-	Status         string     `json:"status" gorm:"type:varchar(20);not null;default:'pending'"`
-	Attempts       int        `json:"attempts" gorm:"not null;default:0"`
-	Error          string     `json:"-" gorm:"type:text"`
-	DeliveredAt    *time.Time `json:"deliveredAt,omitempty"`
+	SubscriptionID string                `json:"subscriptionId" gorm:"type:uuid;not null;uniqueIndex:sub_event"`
+	EventID        string                `json:"eventId" gorm:"not null;uniqueIndex:sub_event"`
+	EventType      string                `json:"eventType" gorm:"not null"`
+	Payload        string                `json:"-" gorm:"type:text;not null"`
+	Status         WebhookDeliveryStatus `json:"status" gorm:"type:varchar(20);not null;default:'pending';index"`
+	Attempts       int                   `json:"attempts" gorm:"not null;default:0"`
+	AvailableAt    time.Time             `json:"-" gorm:"not null;index"`
+	Error          string                `json:"-" gorm:"type:text"`
+	DeliveredAt    *time.Time            `json:"deliveredAt,omitempty"`
+	Subscription   *WebhookSubscription  `json:"-" gorm:"foreignKey:SubscriptionID"`
 }

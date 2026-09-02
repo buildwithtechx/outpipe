@@ -106,6 +106,11 @@ func main() {
 		log.Fatal(err)
 	}
 
+	webhookRepository, err := repositories.NewWebhookRepository(db)
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	usageService, err := services.NewUsageService(usageRepository)
 
 	if err != nil {
@@ -177,6 +182,16 @@ func main() {
 		log.Fatal(err)
 	}
 
+	webhookService, err := services.NewWebhookService(webhookRepository)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	webhookJob, err := workers.NewWebhookJob(webhookService)
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	var emailJob *workers.EmailJob
 	if cfg.Mail.ZeptoAPIKey != "" {
 		zepto, mailErr := mail.NewZeptoClient(mail.Config{URL: cfg.Mail.ZeptoURL, APIKey: cfg.Mail.ZeptoAPIKey, FromAddress: cfg.Mail.FromAddress}, nil)
@@ -240,7 +255,12 @@ func main() {
 		log.Fatal(err)
 	}
 
-	jobs := []workers.Job{wrappedCleanup, wrappedUsage, wrappedRetention, wrappedBilling, wrappedReconciliation}
+	wrappedWebhook, err := workers.NewRetryableJob(webhookJob, retryConfig, dlh, tracker)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	jobs := []workers.Job{wrappedCleanup, wrappedUsage, wrappedRetention, wrappedBilling, wrappedReconciliation, wrappedWebhook}
 	if emailJob != nil {
 		wrappedEmail, wrapErr := workers.NewRetryableJob(emailJob, retryConfig, dlh, tracker)
 		if wrapErr != nil {

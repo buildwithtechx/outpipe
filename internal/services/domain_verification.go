@@ -25,17 +25,7 @@ func NewDomainVerificationService(domains *DomainService) (*DomainVerificationSe
 		return nil, fmt.Errorf("domain service is required")
 	}
 
-	client := &http.Client{
-		Timeout: 5 * time.Second,
-		CheckRedirect: func(req *http.Request, via []*http.Request) error {
-
-			if len(via) >= 3 {
-				return fmt.Errorf("too many redirects")
-			}
-
-			return validation.ValidateSafeTarget(req.URL.Host)
-		},
-	}
+	client := validation.NewSafeHTTPClient(5 * time.Second)
 	return &DomainVerificationService{domains: domains, httpClient: client}, nil
 }
 
