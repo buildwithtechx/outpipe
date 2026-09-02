@@ -21,23 +21,29 @@ export class TunnelAPIClient {
     organizationId: string,
     request: Record<string, unknown>,
   ): Promise<Tunnel> {
-    return this.call<Tunnel>(
+    const tunnel = await this.call<Tunnel>(
       `/organizations/${encodeURIComponent(organizationId)}/tunnels`,
       { method: 'POST', body: JSON.stringify(request) },
     );
+    return normalizeTunnel(tunnel);
   }
 
   async listTunnels(organizationId: string): Promise<Tunnel[]> {
-    return this.call<Tunnel[]>(
+    const tunnels = await this.call<Tunnel[]>(
       `/organizations/${encodeURIComponent(organizationId)}/tunnels`,
       { method: 'GET' },
     );
+    return tunnels.map(normalizeTunnel);
   }
 
   async inspectTunnel(tunnelId: string): Promise<Tunnel> {
-    return this.call<Tunnel>(`/tunnels/${encodeURIComponent(tunnelId)}`, {
-      method: 'GET',
-    });
+    const tunnel = await this.call<Tunnel>(
+      `/tunnels/${encodeURIComponent(tunnelId)}`,
+      {
+        method: 'GET',
+      },
+    );
+    return normalizeTunnel(tunnel);
   }
 
   async closeTunnel(tunnelId: string): Promise<void> {
@@ -82,4 +88,17 @@ export class TunnelAPIClient {
     }
     return (await response.json()) as T;
   }
+}
+
+function normalizeTunnel(tunnel: Tunnel): Tunnel {
+  if (tunnel.publicHostname) {
+    return tunnel;
+  }
+
+  const legacyHostname = tunnel.public_url ?? tunnel.publicUrl;
+  if (!legacyHostname) {
+    return tunnel;
+  }
+
+  return { ...tunnel, publicHostname: legacyHostname };
 }

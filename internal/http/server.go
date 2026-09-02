@@ -38,7 +38,7 @@ func NewServer(cfg config.APIConfig, deps Dependencies) (*Server, error) {
 	app.Use(helmet.New())
 	app.Use(cors.New(cors.Config{AllowOrigins: cfg.App.AllowedOrigins, AllowHeaders: "Origin, Content-Type, Accept, Authorization, X-Internal-Secret", AllowCredentials: true}))
 
-	if err := RegisterRoutes(app, handlers, RouterOptions{CookieName: cfg.Auth.CookieName, CookieSecure: cfg.Auth.CookieSecure, BillingWebhookSecret: cfg.Billing.WebhookSecret, RateLimiter: deps.RateLimiter}); err != nil {
+	if err := RegisterRoutes(app, handlers, RouterOptions{CookieName: cfg.Auth.CookieName, CookieSecure: cfg.Auth.CookieSecure, BillingWebhookSecret: cfg.Billing.WebhookSecret, RateLimiter: deps.RateLimiter, Metrics: deps.Metrics}); err != nil {
 		return nil, err
 	}
 

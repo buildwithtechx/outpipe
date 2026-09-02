@@ -6,6 +6,7 @@ import (
 
 	"outpipe.dev/outpipe/internal/handlers"
 	infraredis "outpipe.dev/outpipe/internal/infra/redis"
+	"outpipe.dev/outpipe/internal/infra/telemetry"
 	"outpipe.dev/outpipe/internal/services"
 )
 
@@ -29,6 +30,7 @@ type Dependencies struct {
 	WelcomeMailer services.WelcomeMailer
 	Ready         func(context.Context) error
 	RateLimiter   *infraredis.Client
+	Metrics       *telemetry.MetricsExporter
 	PublicAPIURL  string
 	DashboardURL  string
 }

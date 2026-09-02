@@ -145,4 +145,26 @@ describe('TunnelAPIClient integration', () => {
       );
     }
   });
+
+  it('normalizes legacy tunnel URL fields at the API boundary', async () => {
+    const client = new TunnelAPIClient({
+      apiUrl: 'https://api.outpipe.dev',
+      fetch: async () =>
+        new Response(
+          JSON.stringify({
+            id: 'tunnel-1',
+            public_url: 'https://preview.outpipe.app',
+            status: 'active',
+          }),
+          {
+            status: 200,
+            headers: { 'Content-Type': 'application/json' },
+          },
+        ),
+    });
+
+    const tunnel = await client.inspectTunnel('tunnel-1');
+
+    expect(tunnel.publicHostname).toBe('https://preview.outpipe.app');
+  });
 });

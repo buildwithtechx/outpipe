@@ -2,6 +2,7 @@ package services
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 
@@ -100,6 +101,9 @@ func (s *BillingService) RecordEvent(ctx context.Context, event *models.BillingE
 		return false, fmt.Errorf("check billing event: %w", err)
 	}
 	if err := s.billing.CreateBillingEvent(ctx, event); err != nil {
+		if errors.Is(err, repositories.ErrBillingEventDuplicate) {
+			return false, nil
+		}
 		return false, fmt.Errorf("record billing event: %w", err)
 	}
 

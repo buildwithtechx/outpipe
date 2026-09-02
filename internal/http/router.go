@@ -6,6 +6,7 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	infraredis "outpipe.dev/outpipe/internal/infra/redis"
+	"outpipe.dev/outpipe/internal/infra/telemetry"
 	"outpipe.dev/outpipe/internal/models"
 )
 
@@ -15,6 +16,7 @@ type RouterOptions struct {
 	InternalAPISecret    string
 	BillingWebhookSecret string
 	RateLimiter          *infraredis.Client
+	Metrics              *telemetry.MetricsExporter
 }
 
 func RegisterRoutes(app *fiber.App, handlers Handlers, options RouterOptions) error {
@@ -32,11 +34,25 @@ func RegisterRoutes(app *fiber.App, handlers Handlers, options RouterOptions) er
 	}
 
 	app.Use(securityHeadersMiddleware(options.CookieSecure))
+	metrics := options.Metrics
+	if metrics == nil {
+		metrics = telemetry.NewMetricsExporter()
+	}
+	app.Use(func(c *fiber.Ctx) error {
+		started := time.Now()
+		metrics.IncCounter("outpipe_http_requests_total", 1)
+		err := c.Next()
+		metrics.IncCounter("outpipe_http_responses_total", 1)
+		status := c.Response().StatusCode()
+		metrics.IncCounter(fmt.Sprintf("outpipe_http_responses_total{status=\"%d\"}", status), 1)
+		metrics.IncCounter("outpipe_http_duration_milliseconds_total", time.Since(started).Milliseconds())
+		return err
+	})
 	app.Get("/healthz", handlers.Health.Liveness)
 	app.Get("/readyz", handlers.Health.Readiness)
 	app.Get("/metrics", func(c *fiber.Ctx) error {
 		c.Set("Content-Type", "text/plain; version=0.0.4")
-		return c.SendString("# HELP outpipe_status Status metric\n# TYPE outpipe_status gauge\noutpipe_status 1\n")
+		return c.SendString(metrics.ExportPrometheus())
 	})
 	if handlers.Support != nil {
 		supportLimiter := requestRateLimitDistributed(options.RateLimiter, 5, time.Minute, func(c *fiber.Ctx) string { return "support:" + c.IP() })

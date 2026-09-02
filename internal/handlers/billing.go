@@ -163,7 +163,7 @@ func (h *BillingHandler) Webhook(c *fiber.Ctx) error {
 			_ = h.alerts.AlertFailedWebhook(c.UserContext(), provider, eventID, err.Error())
 		}
 
-		return writeError(c, fiber.StatusBadRequest, err)
+		return writeError(c, fiber.StatusInternalServerError, err)
 	}
 
 	_ = created

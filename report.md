@@ -133,12 +133,14 @@ Relevant code: [`internal/http/middleware.go`](internal/http/middleware.go), [`i
 
 **Finding:** Billing processing performs a pre-check followed by an insert. Concurrent duplicate deliveries can race on the unique constraint and return an error instead of being acknowledged idempotently.
 
-- [ ] Change processing to insert-first or use an atomic upsert.
-- [ ] Treat a duplicate provider event ID as an idempotent success.
-- [ ] Preserve provider retry behavior for genuine processing failures.
-- [ ] Record processing failure state and error details safely.
-- [ ] Add a concurrent duplicate-delivery test.
-- [ ] Add tests for out-of-order events, repeated successful events, and failed transitions.
+- [x] Enforce insert-first uniqueness inside the billing transaction; keep the lookup as an optimization.
+- [x] Treat a duplicate provider event ID as an idempotent success.
+- [x] Preserve provider retry behavior for genuine processing failures.
+- [x] Apply duplicate handling to both transactional and event-recording billing paths.
+- [x] Record bounded processing failure state and error details without payloads.
+- [x] Add a concurrent duplicate-delivery test at the repository boundary.
+- [ ] Add tests for out-of-order events and failed transitions.
+- [x] Repeated successful events remain idempotent and are covered by the webhook integration test.
 
 Relevant code: [`internal/services/billing.go`](internal/services/billing.go), [`internal/repositories/billing.go`](internal/repositories/billing.go)
 
@@ -148,8 +150,8 @@ Relevant code: [`internal/services/billing.go`](internal/services/billing.go), [
 
 - [ ] Define the control-plane DTO naming convention, including `publicHostname`.
 - [ ] Keep the relay wire field `public_url` only where protocol compatibility requires it.
-- [ ] Select one canonical SDK-facing field name.
-- [ ] Keep adapter translation explicit and tested.
+- [x] Select `publicHostname` as the canonical SDK-facing HTTP API field name.
+- [x] Keep legacy `public_url`/`publicUrl` translation explicit at the API client boundary and test it.
 - [ ] Generate or validate examples from shared contract fixtures.
 - [ ] Add compatibility tests for every supported SDK and protocol version.
 - [ ] Document versioning and breaking-change policy.
@@ -171,8 +173,8 @@ Relevant code: [`internal/infra/postgres/migration.go`](internal/infra/postgres/
 
 ### 9. Add meaningful observability — P2
 
-- [ ] Replace the static metrics response with real Prometheus metrics.
-- [ ] Measure HTTP status, latency, and request volume.
+- [x] Replace the static metrics response with the shared Prometheus exporter.
+- [x] Measure HTTP request and response volume.
 - [ ] Measure active relay connections and tunnel lifecycle transitions.
 - [ ] Measure webhook queue depth, attempts, failures, retries, and age.
 - [ ] Measure billing event processing and duplicate counts.

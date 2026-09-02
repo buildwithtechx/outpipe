@@ -2,6 +2,7 @@ package services
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log/slog"
 	"strings"
@@ -80,8 +81,13 @@ func (s *BillingService) ProcessWebhook(ctx context.Context, event *models.Billi
 		return false, fmt.Errorf("complete billing event is required")
 	}
 
-	if _, err := s.billing.FindBillingEvent(ctx, event.Provider, event.ProviderEventID); err == nil {
-		return false, nil
+	if existing, err := s.billing.FindBillingEvent(ctx, event.Provider, event.ProviderEventID); err == nil {
+		if existing.ProcessedAt == nil && existing.FailureReason != "" {
+			// Failed events are intentionally retried; the unique key still
+			// prevents concurrent successful processing from being duplicated.
+		} else {
+			return false, nil
+		}
 
 	} else if err != repositories.ErrNotFound {
 		return false, fmt.Errorf("check billing event: %w", err)
@@ -94,6 +100,7 @@ func (s *BillingService) ProcessWebhook(ctx context.Context, event *models.Billi
 		current, err := s.billing.FindSubscriptionByProvider(ctx, transition.Provider, transition.ProviderSubscription)
 
 		if err != nil {
+			s.recordWebhookFailure(ctx, event, err)
 			return false, fmt.Errorf("find subscription transition: %w", err)
 		}
 
@@ -102,6 +109,7 @@ func (s *BillingService) ProcessWebhook(ctx context.Context, event *models.Billi
 		}
 
 		if err := s.applyTransition(&current, *transition); err != nil {
+			s.recordWebhookFailure(ctx, event, err)
 			return false, err
 		}
 
@@ -109,6 +117,10 @@ func (s *BillingService) ProcessWebhook(ctx context.Context, event *models.Billi
 	}
 
 	if err := s.billing.ApplyBillingEvent(ctx, event, subscription); err != nil {
+		if errors.Is(err, repositories.ErrBillingEventDuplicate) {
+			return false, nil
+		}
+		s.recordWebhookFailure(ctx, event, err)
 		return false, fmt.Errorf("apply billing webhook transaction: %w", err)
 	}
 
@@ -118,6 +130,15 @@ func (s *BillingService) ProcessWebhook(ctx context.Context, event *models.Billi
 	}
 
 	return true, nil
+}
+
+func (s *BillingService) recordWebhookFailure(ctx context.Context, event *models.BillingEvent, err error) {
+	if event == nil || err == nil {
+		return
+	}
+	if failureErr := s.billing.MarkBillingEventFailed(ctx, event.Provider, event.ProviderEventID, err.Error()); failureErr != nil {
+		slog.Default().WarnContext(ctx, "record billing webhook failure failed", "provider", event.Provider, "event_id", event.ProviderEventID, "error", failureErr)
+	}
 }
 
 func (s *BillingService) syncInvoice(ctx context.Context, event *models.BillingEvent, subscription *models.Subscription, transition *BillingTransition) {

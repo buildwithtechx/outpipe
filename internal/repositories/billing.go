@@ -2,12 +2,16 @@ package repositories
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	"gorm.io/gorm"
 	"outpipe.dev/outpipe/internal/models"
 )
+
+var ErrBillingEventDuplicate = errors.New("billing event already recorded")
 
 type BillingRepository interface {
 	CreatePlan(context.Context, *models.Plan) error
@@ -22,6 +26,7 @@ type BillingRepository interface {
 	FindBillingEvent(context.Context, models.BillingProvider, string) (models.BillingEvent, error)
 	CreateBillingEvent(context.Context, *models.BillingEvent) error
 	MarkBillingEventProcessed(context.Context, string, time.Time) error
+	MarkBillingEventFailed(context.Context, models.BillingProvider, string, string) error
 	ApplyBillingEvent(context.Context, *models.BillingEvent, *models.Subscription) error
 	SaveCredential(context.Context, *models.BillingCredential) error
 	FindCredential(context.Context, string, models.BillingProvider, string) (models.BillingCredential, error)
@@ -143,7 +148,11 @@ func (r *GormBillingRepository) CreateBillingEvent(ctx context.Context, event *m
 		return fmt.Errorf("billing event is required")
 	}
 
-	return wrap(r.db.WithContext(ctx).Create(event).Error, "create billing event")
+	err := r.db.WithContext(ctx).Create(event).Error
+	if isBillingEventDuplicate(err) {
+		return ErrBillingEventDuplicate
+	}
+	return wrap(err, "create billing event")
 }
 
 func (r *GormBillingRepository) MarkBillingEventProcessed(ctx context.Context, id string, at time.Time) error {
@@ -160,6 +169,34 @@ func (r *GormBillingRepository) MarkBillingEventProcessed(ctx context.Context, i
 	return nil
 }
 
+func (r *GormBillingRepository) MarkBillingEventFailed(ctx context.Context, provider models.BillingProvider, eventID, reason string) error {
+	reason = strings.TrimSpace(reason)
+	if len(reason) > 500 {
+		reason = reason[:500]
+	}
+
+	result := r.db.WithContext(ctx).Model(&models.BillingEvent{}).
+		Where("provider = ? AND provider_event_id = ?", provider, eventID).
+		Updates(map[string]any{"failure_reason": reason, "processed_at": nil})
+	if result.Error != nil {
+		return fmt.Errorf("update billing event failure: %w", result.Error)
+	}
+	if result.RowsAffected == 1 {
+		return nil
+	}
+
+	event := &models.BillingEvent{Provider: provider, ProviderEventID: eventID, EventType: "unknown", PayloadHash: "unknown", FailureReason: reason}
+	if err := r.db.WithContext(ctx).Create(event).Error; err != nil && !isBillingEventDuplicate(err) {
+		return fmt.Errorf("create failed billing event: %w", err)
+	}
+	if err := r.db.WithContext(ctx).Model(&models.BillingEvent{}).
+		Where("provider = ? AND provider_event_id = ?", provider, eventID).
+		Updates(map[string]any{"failure_reason": reason, "processed_at": nil}).Error; err != nil {
+		return fmt.Errorf("persist billing event failure: %w", err)
+	}
+	return nil
+}
+
 func (r *GormBillingRepository) ApplyBillingEvent(ctx context.Context, event *models.BillingEvent, subscription *models.Subscription) error {
 
 	if event == nil {
@@ -169,6 +206,9 @@ func (r *GormBillingRepository) ApplyBillingEvent(ctx context.Context, event *mo
 	return r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 
 		if err := tx.Create(event).Error; err != nil {
+			if isBillingEventDuplicate(err) {
+				return ErrBillingEventDuplicate
+			}
 			return fmt.Errorf("create billing event: %w", err)
 		}
 
@@ -187,6 +227,16 @@ func (r *GormBillingRepository) ApplyBillingEvent(ctx context.Context, event *mo
 
 		return nil
 	})
+}
+
+func isBillingEventDuplicate(err error) bool {
+	if errors.Is(err, gorm.ErrDuplicatedKey) {
+		return true
+	}
+
+	message := strings.ToLower(err.Error())
+	return strings.Contains(message, "provider_event") ||
+		strings.Contains(message, "billing_events.provider")
 }
 
 func (r *GormBillingRepository) SaveCredential(ctx context.Context, credential *models.BillingCredential) error {
