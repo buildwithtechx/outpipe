@@ -10,7 +10,8 @@
     "generate-routes": "tsr generate && fumadocs-mdx",
     "build": "fumadocs-mdx && vite build",
     "preview": "vite preview",
-    "deploy": "npm run build",
+    "deploy": "npm run build && wrangler deploy",
+    "cf-typegen": "wrangler types",
     "typecheck": "fumadocs-mdx && tsc --noEmit",
     "postinstall": "fumadocs-mdx"
   },
@@ -58,6 +59,7 @@
     "zustand": "^5.0.15"
   },
   "devDependencies": {
+    "@cloudflare/vite-plugin": "^1.54.3",
     "@rolldown/plugin-babel": "^0.2.3",
     "@tailwindcss/typography": "^0.5.20",
     "@tanstack/devtools-vite": "latest",
@@ -70,6 +72,7 @@
     "@vitejs/plugin-react": "^6.1.1",
     "babel-plugin-react-compiler": "^1.0.0",
     "typescript": "^7.0.2",
-    "vite": "^8.2.2"
+    "vite": "^8.2.2",
+    "wrangler": "^4.128.0"
   }
 }
