@@ -88,12 +88,12 @@ the encryption key protects OAuth state values.
 
 Zepto Mail is the only transactional email provider.
 
-| Variable                | Default                                | Purpose                                        |
-| ----------------------- | -------------------------------------- | ---------------------------------------------- |
-| `OUTPIPE_MAIL_FROM`     | `noreply@localhost`                    | Sender address.                                |
+| Variable                | Default                                | Purpose                                         |
+| ----------------------- | -------------------------------------- | ----------------------------------------------- |
+| `OUTPIPE_MAIL_FROM`     | `noreply@localhost`                    | Sender address.                                 |
 | `OUTPIPE_SUPPORT_EMAIL` | `support@outpipe.dev`                  | Recipient for contact messages and bug reports. |
-| `OUTPIPE_ZEPTO_URL`     | `https://api.zeptomail.com/v1.1/email` | Zepto API base URL.                            |
-| `OUTPIPE_ZEPTO_API_KEY` | empty                                  | Zepto API token. Empty disables email sending. |
+| `OUTPIPE_ZEPTO_URL`     | `https://api.zeptomail.com/v1.1/email` | Zepto API base URL.                             |
+| `OUTPIPE_ZEPTO_API_KEY` | empty                                  | Zepto API token. Empty disables email sending.  |
 
 ### Billing
 
@@ -179,3 +179,18 @@ shared timeout. `-json` switches to JSON output for monitoring systems.
 
 Flags override the environment: `-api-url`, `-relay-url`, `-database-url`,
 `-redis-host`, `-timeout`, `-json`.
+
+## Deployment minimums
+
+The API requires `OUTPIPE_DATABASE_URL`, `OUTPIPE_INTERNAL_API_SECRET`, and
+the OAuth/session settings described above. Production also requires HTTPS
+values for `OUTPIPE_PUBLIC_API_URL`, `OUTPIPE_DASHBOARD_URL`, and
+`OUTPIPE_CORS_ORIGIN`, plus `OUTPIPE_AUTH_COOKIE_SECURE=true` and a 16-, 24-,
+or 32-byte `OUTPIPE_AUTH_ENCRYPTION_KEY`.
+
+The relay requires `OUTPIPE_TUNNEL_DOMAIN`, reachable Redis, and the same
+internal API URL/secret pair as the API. The cron worker requires database,
+Redis, and internal API settings; backup variables are mandatory only when
+backups are enabled. The web deployment must provide its API and dashboard
+origins at build time. Empty local-development defaults are rejected by the
+API in production.

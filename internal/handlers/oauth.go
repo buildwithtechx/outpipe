@@ -44,7 +44,7 @@ func (h *OAuthHandler) Start(c *fiber.Ctx) error {
 }
 
 func (h *OAuthHandler) Callback(c *fiber.Ctx) error {
-	raw, session, returnPath, err := h.oauth.Callback(c.UserContext(), c.Query("state"), c.Query("code"), c.Get("User-Agent"), c.IP())
+	raw, session, returnPath, err := h.oauth.Callback(c.UserContext(), c.Query("state"), c.Query("code"), c.Get("User-Agent"), c.Context().RemoteIP().String())
 
 	if err != nil {
 		return c.Redirect(h.dashboardURL+"/login?error=oauth_failed", fiber.StatusFound)

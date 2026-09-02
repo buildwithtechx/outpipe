@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"outpipe.dev/outpipe/internal/infra/telemetry"
 	"outpipe.dev/outpipe/internal/models"
 	"outpipe.dev/outpipe/internal/repositories"
 	"outpipe.dev/outpipe/internal/security"
@@ -29,6 +30,7 @@ type WebhookService struct {
 	now           func() time.Time
 	validateURL   func(string) error
 	synchronous   bool
+	metrics       *telemetry.MetricsExporter
 }
 
 type WebhookServiceOption func(*WebhookService)
@@ -53,6 +55,10 @@ func WithWebhookURLValidator(validateURL func(string) error) WebhookServiceOptio
 // production service queues deliveries for the cron worker.
 func WithWebhookSynchronousDelivery() WebhookServiceOption {
 	return func(service *WebhookService) { service.synchronous = true }
+}
+
+func WithWebhookMetrics(metrics *telemetry.MetricsExporter) WebhookServiceOption {
+	return func(service *WebhookService) { service.metrics = metrics }
 }
 
 func NewWebhookService(subscriptions repositories.WebhookRepository, options ...WebhookServiceOption) (*WebhookService, error) {
@@ -179,6 +185,9 @@ func (s *WebhookService) Dispatch(ctx context.Context, organizationID string, ev
 			AvailableAt:    s.now().UTC(),
 		}
 		_ = s.subscriptions.CreateDelivery(ctx, delivery)
+		if s.metrics != nil {
+			s.metrics.IncCounter("outpipe_webhook_deliveries_enqueued_total", 1)
+		}
 	}
 
 	if s.synchronous {
@@ -215,8 +224,16 @@ func (s *WebhookService) ProcessPending(ctx context.Context, limit int) error {
 	if err != nil {
 		return err
 	}
+	if s.metrics != nil {
+		if queued, countErr := s.subscriptions.CountQueuedDeliveries(ctx); countErr == nil {
+			s.metrics.SetGauge("outpipe_webhook_queue_depth", queued)
+		}
+	}
 
 	for i := range deliveries {
+		if s.metrics != nil {
+			s.metrics.IncCounter("outpipe_webhook_delivery_attempts_total", 1)
+		}
 		if err := s.deliver(ctx, &deliveries[i]); err != nil {
 			if deliveries[i].Attempts >= webhookMaxDeliveryAttempts {
 				deliveries[i].Status = models.WebhookDeliveryFailed
@@ -229,6 +246,14 @@ func (s *WebhookService) ProcessPending(ctx context.Context, limit int) error {
 			if updateErr := s.subscriptions.UpdateDelivery(ctx, &deliveries[i]); updateErr != nil {
 				return fmt.Errorf("mark webhook delivery %s failed: %w", deliveries[i].ID, updateErr)
 			}
+			if s.metrics != nil {
+				s.metrics.IncCounter("outpipe_webhook_deliveries_failed_total", 1)
+				if deliveries[i].Attempts >= webhookMaxDeliveryAttempts {
+					s.metrics.IncCounter("outpipe_webhook_deliveries_dead_lettered_total", 1)
+				} else {
+					s.metrics.IncCounter("outpipe_webhook_delivery_retries_total", 1)
+				}
+			}
 			continue
 		}
 
@@ -238,6 +263,9 @@ func (s *WebhookService) ProcessPending(ctx context.Context, limit int) error {
 		deliveries[i].Error = ""
 		if updateErr := s.subscriptions.UpdateDelivery(ctx, &deliveries[i]); updateErr != nil {
 			return fmt.Errorf("mark webhook delivery %s sent: %w", deliveries[i].ID, updateErr)
+		}
+		if s.metrics != nil {
+			s.metrics.IncCounter("outpipe_webhook_deliveries_sent_total", 1)
 		}
 		if deliveries[i].Subscription != nil {
 			deliveries[i].Subscription.LastDeliveredAt = &now

@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"outpipe.dev/outpipe/internal/infra/telemetry"
 	"outpipe.dev/outpipe/internal/models"
 	"outpipe.dev/outpipe/internal/repositories"
 	"outpipe.dev/outpipe/pkg/utils"
@@ -23,6 +24,7 @@ type BillingService struct {
 	mailer         BillingMailer
 	notifications  BillingNotificationResolver
 	dashboardURL   string
+	metrics        *telemetry.MetricsExporter
 }
 
 func (s *BillingService) ListPlans(ctx context.Context) ([]models.Plan, error) {
@@ -80,12 +82,18 @@ func (s *BillingService) ProcessWebhook(ctx context.Context, event *models.Billi
 	if event == nil || event.Provider == "" || event.ProviderEventID == "" {
 		return false, fmt.Errorf("complete billing event is required")
 	}
+	if s.metrics != nil {
+		s.metrics.IncCounter("outpipe_billing_events_received_total", 1)
+	}
 
 	if existing, err := s.billing.FindBillingEvent(ctx, event.Provider, event.ProviderEventID); err == nil {
 		if existing.ProcessedAt == nil && existing.FailureReason != "" {
 			// Failed events are intentionally retried; the unique key still
 			// prevents concurrent successful processing from being duplicated.
 		} else {
+			if s.metrics != nil {
+				s.metrics.IncCounter("outpipe_billing_events_duplicate_total", 1)
+			}
 			return false, nil
 		}
 
@@ -118,10 +126,19 @@ func (s *BillingService) ProcessWebhook(ctx context.Context, event *models.Billi
 
 	if err := s.billing.ApplyBillingEvent(ctx, event, subscription); err != nil {
 		if errors.Is(err, repositories.ErrBillingEventDuplicate) {
+			if s.metrics != nil {
+				s.metrics.IncCounter("outpipe_billing_events_duplicate_total", 1)
+			}
 			return false, nil
+		}
+		if s.metrics != nil {
+			s.metrics.IncCounter("outpipe_billing_events_failed_total", 1)
 		}
 		s.recordWebhookFailure(ctx, event, err)
 		return false, fmt.Errorf("apply billing webhook transaction: %w", err)
+	}
+	if s.metrics != nil {
+		s.metrics.IncCounter("outpipe_billing_events_processed_total", 1)
 	}
 
 	if subscription != nil {
@@ -165,6 +182,8 @@ func (s *BillingService) SetNotificationResolver(resolver BillingNotificationRes
 	s.notifications = resolver
 	s.dashboardURL = strings.TrimRight(dashboardURL, "/")
 }
+
+func (s *BillingService) SetMetrics(metrics *telemetry.MetricsExporter) { s.metrics = metrics }
 
 func (s *BillingService) ApplyTransition(ctx context.Context, transition BillingTransition) error {
 

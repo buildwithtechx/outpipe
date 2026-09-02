@@ -164,6 +164,9 @@ func validateAPI(cfg APIConfig) error {
 	if err := validateDatabase(cfg.Database); err != nil {
 		return err
 	}
+	if strings.EqualFold(cfg.App.Environment, "production") && isDevelopmentDatabase(cfg.Database.URL) {
+		return fmt.Errorf("production database url must not use development credentials or localhost")
+	}
 	if err := validateService(cfg.Service, cfg.App); err != nil {
 		return err
 	}
@@ -238,10 +241,20 @@ func validateService(cfg ServiceConfig, app AppConfig) error {
 	if !strings.EqualFold(app.Environment, "production") {
 		return nil
 	}
-	if len(cfg.InternalAPISecret) < 32 {
+	if len(cfg.InternalAPISecret) < 32 || isDevelopmentSecret(cfg.InternalAPISecret) {
 		return fmt.Errorf("internal api secret must be at least 32 characters in production")
 	}
 	return nil
+}
+
+func isDevelopmentSecret(value string) bool {
+	value = strings.ToLower(strings.TrimSpace(value))
+	return value == "development-secret" || value == "change-me" || strings.Contains(value, "changeme")
+}
+
+func isDevelopmentDatabase(raw string) bool {
+	value := strings.ToLower(strings.TrimSpace(raw))
+	return strings.Contains(value, "localhost") || strings.Contains(value, "127.0.0.1") || strings.Contains(value, "outpipe:outpipe")
 }
 
 func validateAuth(cfg AuthConfig, app AppConfig) error {

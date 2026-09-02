@@ -19,7 +19,18 @@ type WebhookRepository interface {
 	CreateDelivery(context.Context, *models.WebhookDelivery) error
 	UpdateDelivery(context.Context, *models.WebhookDelivery) error
 	ClaimPendingDeliveries(context.Context, time.Time, int) ([]models.WebhookDelivery, error)
+	CountQueuedDeliveries(context.Context) (int64, error)
 	ListDeliveries(context.Context, string) ([]models.WebhookDelivery, error)
+}
+
+func (r *GormWebhookRepository) CountQueuedDeliveries(ctx context.Context) (int64, error) {
+	var count int64
+	if err := r.db.WithContext(ctx).Model(&models.WebhookDelivery{}).
+		Where("status IN ?", []models.WebhookDeliveryStatus{models.WebhookDeliveryPending, models.WebhookDeliveryFailed, models.WebhookDeliverySending}).
+		Count(&count).Error; err != nil {
+		return 0, fmt.Errorf("count queued webhook deliveries: %w", err)
+	}
+	return count, nil
 }
 
 type GormWebhookRepository struct{ db *gorm.DB }

@@ -11,10 +11,14 @@ func TestMetricsExporterProducesPrometheusCounters(t *testing.T) {
 	metrics.IncCounter("outpipe_http_requests_total", 2)
 	metrics.IncCounter("outpipe_http_responses_total", 2)
 	metrics.IncCounter("outpipe_http_responses_total{status=\"200\"}", 2)
+	metrics.SetGauge("outpipe_webhook_queue_depth", 3)
 
 	exported := metrics.ExportPrometheus()
 	if !containsMetric(exported, "outpipe_http_requests_total 2") || !containsMetric(exported, "outpipe_http_responses_total 2") || !containsMetric(exported, "outpipe_http_responses_total{status=\"200\"} 2") {
 		t.Fatalf("expected HTTP counters in metrics output, got %q", exported)
+	}
+	if !containsMetric(exported, "# TYPE outpipe_webhook_queue_depth gauge") || !containsMetric(exported, "outpipe_webhook_queue_depth 3") {
+		t.Fatalf("expected typed queue gauge in metrics output, got %q", exported)
 	}
 }
 

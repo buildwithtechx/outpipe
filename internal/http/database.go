@@ -10,6 +10,7 @@ import (
 	"outpipe.dev/outpipe/internal/infra/billing"
 	"outpipe.dev/outpipe/internal/infra/certificates"
 	"outpipe.dev/outpipe/internal/infra/mail"
+	"outpipe.dev/outpipe/internal/infra/telemetry"
 	"outpipe.dev/outpipe/internal/repositories"
 	"outpipe.dev/outpipe/internal/services"
 )
@@ -146,6 +147,8 @@ func NewDatabaseDependencies(db *gorm.DB, cfg config.APIConfig) (Dependencies, e
 	}
 
 	billingService.SetGracePeriod(cfg.Billing.GracePeriod)
+	metrics := telemetry.NewMetricsExporter()
+	billingService.SetMetrics(metrics)
 	var polarClient *billing.PolarClient
 
 	if cfg.Billing.PolarAccessToken != "" {
@@ -314,7 +317,7 @@ func NewDatabaseDependencies(db *gorm.DB, cfg config.APIConfig) (Dependencies, e
 		return Dependencies{}, err
 	}
 
-	webhookService, err := services.NewWebhookService(webhookRepository)
+	webhookService, err := services.NewWebhookService(webhookRepository, services.WithWebhookMetrics(metrics))
 
 	if err != nil {
 		return Dependencies{}, err
@@ -322,5 +325,5 @@ func NewDatabaseDependencies(db *gorm.DB, cfg config.APIConfig) (Dependencies, e
 
 	tunnelService.SetWebhooks(webhookService)
 
-	return Dependencies{Auth: authService, DeviceLogin: deviceService, Organizations: organizationService, Invitations: invitationService, Tunnels: tunnelService, Agents: agentService, Domains: domainService, Usage: usageService, Billing: billingService, Account: accountService, Admin: adminService, Audit: auditService, APIKeys: apiKeyService, Webhooks: webhookService, Support: supportService, WelcomeMailer: welcomeMailer, Ready: databaseReady(db)}, nil
+	return Dependencies{Auth: authService, DeviceLogin: deviceService, Organizations: organizationService, Invitations: invitationService, Tunnels: tunnelService, Agents: agentService, Domains: domainService, Usage: usageService, Billing: billingService, Account: accountService, Admin: adminService, Audit: auditService, APIKeys: apiKeyService, Webhooks: webhookService, Support: supportService, WelcomeMailer: welcomeMailer, Ready: databaseReady(db), Metrics: metrics}, nil
 }

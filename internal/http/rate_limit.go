@@ -9,7 +9,7 @@ import (
 )
 
 func requestRateLimit(max int, window time.Duration) fiber.Handler {
-	return requestRateLimitBy(max, window, func(c *fiber.Ctx) string { return c.IP() })
+	return requestRateLimitBy(max, window, func(c *fiber.Ctx) string { return requestClientIP(c) })
 }
 
 func requestRateLimitBy(max int, window time.Duration, key func(*fiber.Ctx) string) fiber.Handler {
@@ -59,5 +59,15 @@ func authenticatedRateLimitKey(c *fiber.Ctx) string {
 	if userID, ok := authenticatedUserID(c); ok {
 		return "user:" + userID
 	}
-	return "ip:" + c.IP()
+	return "ip:" + requestClientIP(c)
+}
+
+// requestClientIP deliberately uses the peer address. Forwarded headers are
+// only trustworthy after the deployment has explicitly configured a trusted
+// proxy boundary; the API does not assume that boundary exists.
+func requestClientIP(c *fiber.Ctx) string {
+	if c == nil || c.Context() == nil {
+		return "unknown"
+	}
+	return c.Context().RemoteIP().String()
 }

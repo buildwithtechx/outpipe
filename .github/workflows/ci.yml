@@ -10,6 +10,31 @@ permissions:
   contents: read
 
 jobs:
+  migration:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: outpipe
+          POSTGRES_PASSWORD: outpipe-ci-password
+          POSTGRES_DB: outpipe
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U outpipe -d outpipe"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.25.13"
+      - run: go test ./internal/infra/postgres -run TestMigrationRunnerIsRestartSafe -count=1
+        env:
+          OUTPIPE_MIGRATION_TEST_DSN: postgres://outpipe:outpipe-ci-password@localhost:5432/outpipe?sslmode=disable
+
   go:
     runs-on: ubuntu-latest
     steps:

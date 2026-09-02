@@ -1,5 +1,9 @@
 name: outpipe
 
+# Development only: this file uses local URLs, development credentials, source
+# mounts, and the web dev server. Production deployments use each service's
+# Dockerfile and an external orchestrator instead.
+
 services:
   postgres:
     image: postgres:16-alpine

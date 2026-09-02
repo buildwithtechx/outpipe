@@ -24,7 +24,7 @@ func auditRequest(audit *services.AuditService) fiber.Handler {
 				organization = &organizationID
 			}
 
-			_ = audit.Record(context.Background(), &models.AuditEvent{OrganizationID: organization, UserID: &userID, Action: c.Method() + " " + c.Path(), ResourceType: "http", ResourceID: c.Params("tunnelID"), IPAddress: c.IP(), UserAgent: c.Get("User-Agent"), Metadata: `{}`})
+			_ = audit.Record(context.Background(), &models.AuditEvent{OrganizationID: organization, UserID: &userID, Action: c.Method() + " " + c.Path(), ResourceType: "http", ResourceID: c.Params("tunnelID"), IPAddress: requestClientIP(c), UserAgent: c.Get("User-Agent"), Metadata: `{}`})
 		}
 
 		return err

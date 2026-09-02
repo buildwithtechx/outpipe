@@ -20,6 +20,12 @@ jobs:
         with:
           node-version: 24
           cache: npm
+      - uses: actions-rust-lang/setup-rust-toolchain@v1
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.4"
+          extensions: curl
+          tools: composer
       - run: npm ci
       - run: npm run build:web
       - name: Build Go artifacts
@@ -53,6 +59,18 @@ jobs:
             fi
           done
           (cd dist && sha256sum * > SHA256SUMS)
+      - name: Verify release package smoke tests
+        run: |
+          go test ./packages/go/...
+          cargo package --manifest-path packages/rust/Cargo.toml --allow-dirty --no-verify
+          composer validate --strict --no-check-publish --working-dir packages/php
+          npm pack --dry-run --workspace packages/sdk
+          npm pack --dry-run --workspace packages/react
+          npm pack --dry-run --workspace packages/vite-plugin
+          npm pack --dry-run --workspace packages/next
+          npm pack --dry-run --workspace packages/nest
+          npm pack --dry-run --workspace packages/express
+          npm pack --dry-run --workspace packages/angular
       - uses: softprops/action-gh-release@v2
         with:
           files: dist/*

@@ -90,6 +90,12 @@ Each independently deployed command has a focused environment example:
 
 See [docs/configuration.md](docs/configuration.md) for descriptions of every variable.
 
+For local development, use `docker compose up` with `docker-compose.yml`. That
+file intentionally uses development credentials, localhost URLs, and a source
+mount. Production deployments should build and run each service from its own
+Dockerfile; provide `OUTPIPE_*` values through the deployment environment or a
+secret manager, never inside the image.
+
 ## Provisioning platform administrators
 
 Users authenticate with Google or GitHub before they can be granted platform-admin access. The server does not promote users automatically during signup. After the user has signed in once, provision an administrator explicitly:
