@@ -62,7 +62,7 @@ func (r *GormDomainRepository) FindByHostname(ctx context.Context, hostname stri
 func (r *GormDomainRepository) FindByOrganization(ctx context.Context, organizationID string) ([]models.Domain, error) {
 	var domains []models.Domain
 
-	if err := r.db.WithContext(ctx).Where("organization_id = ?", organizationID).Order("created_at DESC").Find(&domains).Error; err != nil {
+	if err := r.db.WithContext(ctx).Where("organization_id = ?", organizationID).Order("created_at DESC").Limit(DefaultListLimit).Find(&domains).Error; err != nil {
 		return nil, fmt.Errorf("list domains: %w", err)
 	}
 

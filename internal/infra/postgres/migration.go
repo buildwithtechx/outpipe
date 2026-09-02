@@ -21,6 +21,10 @@ func Migrate(db *gorm.DB) error {
 	}
 
 	return db.Transaction(func(tx *gorm.DB) error {
+		if err := tx.Exec("SELECT pg_advisory_xact_lock(hashtext(?))", "outpipe:schema_migrations").Error; err != nil {
+			return fmt.Errorf("acquire migration lock: %w", err)
+		}
+
 		var applied []int64
 
 		if err := tx.Raw("SELECT version FROM schema_migrations ORDER BY version").Scan(&applied).Error; err != nil {

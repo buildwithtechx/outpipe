@@ -57,6 +57,9 @@ jobs:
         working-directory: packages/rust
       - run: cargo test
         working-directory: packages/rust
+      - run: cargo install cargo-audit --locked
+      - run: cargo audit
+        working-directory: packages/rust
 
   sdk-php:
     runs-on: ubuntu-latest
@@ -72,6 +75,8 @@ jobs:
       - run: composer validate --strict --no-check-publish
         working-directory: packages/php
       - run: composer test
+        working-directory: packages/php
+      - run: composer audit --format=plain
         working-directory: packages/php
 
   dependency-audit:

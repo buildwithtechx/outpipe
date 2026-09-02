@@ -52,7 +52,7 @@ func (r *GormAgentRepository) FindByID(ctx context.Context, id string) (models.A
 func (r *GormAgentRepository) FindByOrganization(ctx context.Context, organizationID string) ([]models.Agent, error) {
 	var agents []models.Agent
 
-	if err := r.db.WithContext(ctx).Where("organization_id = ?", organizationID).Order("created_at ASC").Find(&agents).Error; err != nil {
+	if err := r.db.WithContext(ctx).Where("organization_id = ?", organizationID).Order("created_at ASC").Limit(DefaultListLimit).Find(&agents).Error; err != nil {
 		return nil, fmt.Errorf("list agents: %w", err)
 	}
 

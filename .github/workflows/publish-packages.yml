@@ -47,10 +47,10 @@ jobs:
 
       - name: Publish packages
         run: |
-          npm publish --workspace packages/sdk
-          npm publish --workspace packages/react
-          npm publish --workspace packages/vite-plugin
-          npm publish --workspace packages/next
-          npm publish --workspace packages/nest
-          npm publish --workspace packages/express
-          npm publish --workspace packages/angular
+          npm publish --provenance --workspace packages/sdk
+          npm publish --provenance --workspace packages/react
+          npm publish --provenance --workspace packages/vite-plugin
+          npm publish --provenance --workspace packages/next
+          npm publish --provenance --workspace packages/nest
+          npm publish --provenance --workspace packages/express
+          npm publish --provenance --workspace packages/angular

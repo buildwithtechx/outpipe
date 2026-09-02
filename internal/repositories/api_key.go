@@ -59,7 +59,7 @@ func (r *GormAPIKeyRepository) ListByUser(ctx context.Context, userID string, or
 		query = query.Where("organization_id IS NULL")
 	}
 
-	if err := query.Order("created_at DESC").Find(&keys).Error; err != nil {
+	if err := query.Order("created_at DESC").Limit(DefaultListLimit).Find(&keys).Error; err != nil {
 		return nil, fmt.Errorf("list user api keys: %w", err)
 	}
 

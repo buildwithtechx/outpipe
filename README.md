@@ -6,11 +6,11 @@ It is designed to work without Outpipe. Outpipe is an optional integration that 
 
 ## Hosted domains
 
-- `outpipe.dev` serves the Tunnel web dashboard.
-- `api.outpipe.dev` serves the Tunnel control-plane API.
+- `outpipe.dev` serves the Outpipe web dashboard.
+- `api.outpipe.dev` serves the Outpipe control-plane API.
 - `relay.outpipe.app` serves the public tunnel relay, and `*.outpipe.app` serves generated tunnel endpoints (`myapp.outpipe.app`, for example).
 - `cli.outpipe.dev` serves the CLI installer and release assets.
-- `desktop.outpipe.dev` serves Tunnel Desktop installers.
+- `desktop.outpipe.dev` serves Outpipe Desktop installers.
 
 ## Product surfaces
 
@@ -121,7 +121,7 @@ After a release, Unix users can install the CLI with the branded domain:
 curl -fsSL https://cli.outpipe.dev | bash
 ```
 
-`cli.outpipe.dev` should serve this installer, while `cli.outpipe.dev/releases/cli` should serve versioned release assets. The installer falls back to GitHub Releases if the downloads path is unavailable. It installs the `outpipe` CLI to `$HOME/.local/bin` by default. Windows users download the Tunnel CLI release asset directly.
+`cli.outpipe.dev` should serve this installer, while `cli.outpipe.dev/releases/cli` should serve versioned release assets. The installer falls back to GitHub Releases if the downloads path is unavailable. It installs the `outpipe` CLI to `$HOME/.local/bin` by default. Windows users download the Outpipe CLI release asset directly.
 
 The CLI and desktop app are separate products. The CLI is a terminal binary for local tunnels, automation, and CI. The desktop app is a Tauri GUI distributed through platform installers; installing one does not install the other.
 

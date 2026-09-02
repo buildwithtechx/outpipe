@@ -37,6 +37,10 @@ func main() {
 		log.Fatal(err)
 	}
 
+	if err := postgres.Migrate(db); err != nil {
+		log.Fatal(err)
+	}
+
 	redisClient, err := redis.Open(ctx, redis.Config{Host: cfg.Redis.Host, Port: cfg.Redis.Port, Password: cfg.Redis.Password, DB: cfg.Redis.DB})
 
 	if err != nil {

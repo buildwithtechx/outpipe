@@ -63,7 +63,7 @@ func (r *GormWebhookRepository) FindByID(ctx context.Context, id string) (models
 func (r *GormWebhookRepository) ListByOrganization(ctx context.Context, organizationID string) ([]models.WebhookSubscription, error) {
 	var subscriptions []models.WebhookSubscription
 
-	if err := r.db.WithContext(ctx).Where("organization_id = ?", organizationID).Order("created_at DESC").Find(&subscriptions).Error; err != nil {
+	if err := r.db.WithContext(ctx).Where("organization_id = ?", organizationID).Order("created_at DESC").Limit(DefaultListLimit).Find(&subscriptions).Error; err != nil {
 		return nil, fmt.Errorf("list webhook subscriptions: %w", err)
 	}
 

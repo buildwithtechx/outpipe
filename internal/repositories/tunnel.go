@@ -65,7 +65,7 @@ func (r *GormTunnelRepository) FindByHostname(ctx context.Context, hostname stri
 func (r *GormTunnelRepository) FindByOrganization(ctx context.Context, organizationID string) ([]models.Tunnel, error) {
 	var tunnels []models.Tunnel
 
-	if err := r.db.WithContext(ctx).Where("organization_id = ?", organizationID).Order("created_at DESC").Find(&tunnels).Error; err != nil {
+	if err := r.db.WithContext(ctx).Where("organization_id = ?", organizationID).Order("created_at DESC").Limit(DefaultListLimit).Find(&tunnels).Error; err != nil {
 		return nil, fmt.Errorf("list tunnels: %w", err)
 	}
 

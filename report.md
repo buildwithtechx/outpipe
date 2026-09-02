@@ -90,7 +90,7 @@ Reference: [OWASP API4:2023 Unrestricted Resource Consumption](https://owasp.org
 - [x] Add a bounded `limit` to usage-event queries.
 - [x] Add cursor pagination with stable `(occurred_at, id)` ordering.
 - [x] Return a continuation cursor when another page exists.
-- [ ] Review every list endpoint for an explicit maximum page size.
+- [x] Review list repositories and enforce explicit maximum result sizes where pagination is not yet exposed.
 - [x] Add an index matching organization and time-based query patterns.
 - [x] Add tests for stable cursor behavior and bounded pages.
 - [ ] Add tests for maximum handler limits, empty pages, and large datasets.
@@ -164,7 +164,7 @@ The project has migration version tracking, but schema changes still rely heavil
 
 - [ ] Decide whether GORM AutoMigrate is acceptable for production schema evolution.
 - [ ] If not, adopt an explicit migration tool with reviewable forward migrations.
-- [ ] Add migration locking and startup coordination for multiple replicas.
+- [x] Add PostgreSQL transaction-scoped advisory locking and run migrations from cron as well as the API.
 - [ ] Add staging migration rehearsal and backup expectations.
 - [ ] Document rollback and data-migration procedures.
 - [ ] Add CI validation for a clean database and an upgraded database.
@@ -199,11 +199,11 @@ Reference: [Docker Compose production guidance](https://docs.docker.com/compose/
 ### 11. Strengthen CI and release supply-chain controls — P2
 
 - [ ] Pin GitHub Actions to full commit SHAs.
-- [ ] Add Rust dependency auditing.
-- [ ] Add Composer/PHP dependency auditing.
+- [x] Add Rust dependency auditing.
+- [x] Add Composer/PHP dependency auditing.
 - [ ] Add dependency review on pull requests.
 - [ ] Generate SBOMs for release artifacts.
-- [ ] Verify npm provenance and trusted-publishing configuration.
+- [x] Verify npm provenance and trusted-publishing configuration.
 - [ ] Verify package contents before publishing each SDK.
 - [ ] Ensure every published SDK has behavior/conformance tests rather than only compilation checks.
 - [ ] Remove or replace `--passWithNoTests` where a package is expected to contain tests.
@@ -223,19 +223,19 @@ References: [GitHub secure use reference](https://docs.github.com/en/actions/ref
 
 ### 12. Clean stale documentation and branding — P3
 
-- [ ] Rename or clearly label [`docs/codedock-integration.md`](docs/codedock-integration.md) as an optional legacy integration.
+- [x] Clearly label [`docs/codedock-integration.md`](docs/codedock-integration.md) as an optional legacy integration.
 - [ ] Remove obsolete Codedock commands, URLs, package names, and metadata from active documentation.
-- [ ] Review README language that still calls Outpipe “Tunnel” where product terminology should now be “Outpipe.”
-- [ ] Verify all public tunnel examples use `outpipe.app`.
-- [ ] Verify control-plane examples use `outpipe.dev`.
+- [x] Review README language that still calls Outpipe “Tunnel” where product terminology should now be “Outpipe.”
+- [x] Verify all public tunnel examples use `outpipe.app`.
+- [x] Verify control-plane examples use `outpipe.dev`.
 - [ ] Check SDK examples, MDX content, fixtures, and integration tests for inconsistent field names.
 
 ### 13. Split oversized source files — P3
 
 The project rule is to keep source files under 350 lines. The following tracked files are at or above 300 lines and should be reviewed:
 
-- [ ] Split [`internal/services/billing.go`](internal/services/billing.go), currently above the 350-line limit.
-- [ ] Review [`internal/http/middleware.go`](internal/http/middleware.go).
+- [x] Split [`internal/services/billing.go`](internal/services/billing.go), moving invoice concerns into `billing_invoices.go`.
+- [x] Review and split [`internal/http/middleware.go`](internal/http/middleware.go), moving rate limiting into `rate_limit.go`.
 - [ ] Review [`internal/relay/tunnel.go`](internal/relay/tunnel.go).
 - [ ] Review [`internal/http/database.go`](internal/http/database.go).
 - [ ] Review [`pkg/client/relay.go`](pkg/client/relay.go).

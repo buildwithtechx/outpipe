@@ -82,7 +82,7 @@ func (r *GormOrganizationRepository) IsSlugAvailable(ctx context.Context, slug s
 func (r *GormOrganizationRepository) List(ctx context.Context) ([]models.Organization, error) {
 	var organizations []models.Organization
 
-	if err := r.db.WithContext(ctx).Order("created_at ASC").Find(&organizations).Error; err != nil {
+	if err := r.db.WithContext(ctx).Order("created_at ASC").Limit(DefaultListLimit).Find(&organizations).Error; err != nil {
 		return nil, fmt.Errorf("list organizations: %w", err)
 	}
 
@@ -149,7 +149,7 @@ func (r *GormOrganizationRepository) FindMember(ctx context.Context, organizatio
 
 func (r *GormOrganizationRepository) ListMembers(ctx context.Context, organizationID string) ([]models.OrganizationMember, error) {
 	var members []models.OrganizationMember
-	err := r.db.WithContext(ctx).Where("organization_id = ?", organizationID).Order("created_at ASC").Find(&members).Error
+	err := r.db.WithContext(ctx).Where("organization_id = ?", organizationID).Order("created_at ASC").Limit(DefaultListLimit).Find(&members).Error
 
 	if err != nil {
 		return nil, fmt.Errorf("list organization members: %w", err)
@@ -175,7 +175,7 @@ func (r *GormOrganizationRepository) RemoveMember(ctx context.Context, organizat
 func (r *GormOrganizationRepository) ListOwned(ctx context.Context, ownerID string) ([]models.Organization, error) {
 	var organizations []models.Organization
 
-	if err := r.db.WithContext(ctx).Where("owner_id = ?", ownerID).Find(&organizations).Error; err != nil {
+	if err := r.db.WithContext(ctx).Where("owner_id = ?", ownerID).Limit(DefaultListLimit).Find(&organizations).Error; err != nil {
 		return nil, fmt.Errorf("list owned organizations: %w", err)
 	}
 
@@ -190,6 +190,7 @@ func (r *GormOrganizationRepository) ListForUser(ctx context.Context, userID str
 		Joins("JOIN organization_members ON organization_members.organization_id = organizations.id").
 		Where("organization_members.user_id = ?", userID).
 		Order("organizations.name ASC").
+		Limit(DefaultListLimit).
 		Find(&organizations).Error
 
 	if err != nil {

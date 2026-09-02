@@ -1,4 +1,9 @@
-# Codedock integration (platform contract)
+# Legacy Codedock integration (optional platform contract)
+
+> This is a compatibility document for the separate Codedock product. It is
+> not part of the primary Outpipe integration surface. New integrations should
+> use the guides under `apps/web/content/docs/(integrations)` and the Outpipe
+> SDKs.
 
 This document is the contract the Outpipe platform offers to Codedock
 (`~/Dev/TechX/codedock`, a Go daemon + TypeScript dashboard). All integration

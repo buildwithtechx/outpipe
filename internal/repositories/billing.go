@@ -77,7 +77,7 @@ func (r *GormBillingRepository) FindPlanByID(ctx context.Context, id string) (mo
 func (r *GormBillingRepository) ListActivePlans(ctx context.Context) ([]models.Plan, error) {
 	var plans []models.Plan
 
-	if err := r.db.WithContext(ctx).Where("active = ?", true).Order("price_minor ASC").Find(&plans).Error; err != nil {
+	if err := r.db.WithContext(ctx).Where("active = ?", true).Order("price_minor ASC").Limit(PlanListLimit).Find(&plans).Error; err != nil {
 		return nil, fmt.Errorf("list active plans: %w", err)
 	}
 
@@ -106,7 +106,7 @@ func (r *GormBillingRepository) FindSubscription(ctx context.Context, organizati
 func (r *GormBillingRepository) ListSubscriptions(ctx context.Context) ([]models.Subscription, error) {
 	var subscriptions []models.Subscription
 
-	if err := r.db.WithContext(ctx).Find(&subscriptions).Error; err != nil {
+	if err := r.db.WithContext(ctx).Order("created_at DESC").Limit(DefaultListLimit).Find(&subscriptions).Error; err != nil {
 		return nil, fmt.Errorf("list subscriptions: %w", err)
 	}
 
@@ -270,7 +270,7 @@ func (r *GormBillingRepository) CreateInvoice(ctx context.Context, invoice *mode
 func (r *GormBillingRepository) ListInvoicesByOrganization(ctx context.Context, organizationID string) ([]models.Invoice, error) {
 	var invoices []models.Invoice
 
-	if err := r.db.WithContext(ctx).Where("organization_id = ?", organizationID).Order("created_at DESC").Find(&invoices).Error; err != nil {
+	if err := r.db.WithContext(ctx).Where("organization_id = ?", organizationID).Order("created_at DESC").Limit(DefaultListLimit).Find(&invoices).Error; err != nil {
 		return nil, fmt.Errorf("list organization invoices: %w", err)
 	}
 
