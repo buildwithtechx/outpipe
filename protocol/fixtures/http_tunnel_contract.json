@@ -1,0 +1,52 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Outpipe HTTP tunnel client contract",
+  "version": 1,
+  "authentication": "Bearer",
+  "tunnel": {
+    "id": "tunnel-1",
+    "name": "preview",
+    "protocol": "http",
+    "status": "active",
+    "targetHost": "127.0.0.1",
+    "targetPort": 3000,
+    "publicHostname": "preview.outpipe.app"
+  },
+  "routes": {
+    "create": {
+      "method": "POST",
+      "path": "/api/v1/organizations/org%2Fone/tunnels",
+      "request": {
+        "name": "preview",
+        "protocol": "http",
+        "targetHost": "127.0.0.1",
+        "targetPort": 3000
+      },
+      "status": 201
+    },
+    "list": {
+      "method": "GET",
+      "path": "/api/v1/organizations/org%2Fone/tunnels",
+      "status": 200
+    },
+    "inspect": {
+      "method": "GET",
+      "path": "/api/v1/tunnels/tunnel-1",
+      "status": 200
+    },
+    "revoke": {
+      "method": "DELETE",
+      "path": "/api/v1/tunnels/tunnel-1",
+      "status": 204
+    }
+  },
+  "errors": [
+    { "status": 401, "message": "authentication required" },
+    { "status": 403, "message": "insufficient scope" },
+    { "status": 404, "message": "tunnel not found" },
+    { "status": 409, "message": "tunnel already exists" },
+    { "status": 422, "message": "invalid tunnel" },
+    { "status": 429, "message": "rate limit exceeded" },
+    { "status": 500, "message": "internal server error" }
+  ]
+}

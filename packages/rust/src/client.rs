@@ -176,10 +176,20 @@ impl Client {
         let response = request.send().await?;
         if !response.status().is_success() {
             let status = response.status().as_u16();
-            let message = response
+            let body = response
                 .text()
                 .await
                 .unwrap_or_else(|_| "request failed".into());
+            let message = serde_json::from_str::<serde_json::Value>(&body)
+                .ok()
+                .and_then(|payload| {
+                    payload
+                        .get("message")
+                        .or_else(|| payload.get("error"))
+                        .and_then(serde_json::Value::as_str)
+                        .map(str::to_owned)
+                })
+                .unwrap_or(body);
             return Err(Error::Api { status, message });
         }
         Ok(response)

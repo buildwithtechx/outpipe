@@ -110,7 +110,7 @@ func (c *Client) do(ctx context.Context, method, path string, input any, output 
 		return fmt.Errorf("read response: %w", readErr)
 	}
 	if response.StatusCode < 200 || response.StatusCode >= 300 {
-		return &APIError{StatusCode: response.StatusCode, Message: strings.TrimSpace(string(data)), Body: data}
+		return &APIError{StatusCode: response.StatusCode, Message: apiErrorMessage(data), Body: data}
 	}
 	if output == nil || response.StatusCode == http.StatusNoContent || len(data) == 0 {
 		return nil
@@ -119,6 +119,22 @@ func (c *Client) do(ctx context.Context, method, path string, input any, output 
 		return fmt.Errorf("decode response: %w", err)
 	}
 	return nil
+}
+
+func apiErrorMessage(data []byte) string {
+	var payload struct {
+		Message string `json:"message"`
+		Error   string `json:"error"`
+	}
+	if err := json.Unmarshal(data, &payload); err == nil {
+		if strings.TrimSpace(payload.Message) != "" {
+			return payload.Message
+		}
+		if strings.TrimSpace(payload.Error) != "" {
+			return payload.Error
+		}
+	}
+	return strings.TrimSpace(string(data))
 }
 
 func requestMap(ctx context.Context, c *Client, method, path string, input any) (map[string]any, error) {

@@ -60,7 +60,22 @@ export class TunnelAPIClient {
       { ...init, headers },
     );
     if (!response.ok) {
-      throw new TunnelAPIError(response.status, await response.text());
+      const body = await response.text();
+      let message = body;
+      try {
+        const payload = JSON.parse(body) as {
+          message?: unknown;
+          error?: unknown;
+        };
+        if (typeof payload.message === 'string' && payload.message !== '') {
+          message = payload.message;
+        } else if (typeof payload.error === 'string' && payload.error !== '') {
+          message = payload.error;
+        }
+      } catch {
+        // Preserve non-JSON error bodies as the exception message.
+      }
+      throw new TunnelAPIError(response.status, message);
     }
     if (response.status === 204) {
       return undefined as T;
