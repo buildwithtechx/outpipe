@@ -1,4 +1,4 @@
-# outpipe.dev/outpipe-go
+# Outpipe Go SDK
 
 Reusable Go HTTP and relay client for Outpipe.
 

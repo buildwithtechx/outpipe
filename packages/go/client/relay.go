@@ -7,8 +7,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/buildwithtechx/outpipe/packages/go/protocol"
 	"github.com/gorilla/websocket"
-	"outpipe.dev/outpipe-go/protocol"
 )
 
 type RelayConfig struct {

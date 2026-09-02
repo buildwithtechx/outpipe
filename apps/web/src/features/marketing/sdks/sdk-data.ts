@@ -12,9 +12,9 @@ export const sdkDefinitions = [
   },
   {
     name: 'Go',
-    packageName: 'outpipe.dev/outpipe-go',
+    packageName: 'github.com/buildwithtechx/outpipe/packages/go',
     description: 'API and relay helpers for services and command-line tools.',
-    install: 'go get outpipe.dev/outpipe-go',
+    install: 'go get github.com/buildwithtechx/outpipe/packages/go',
     docsSlug: 'go',
     icon: SiGo,
     color: 'text-cyan-300',

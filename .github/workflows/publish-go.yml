@@ -1,0 +1,36 @@
+name: Publish Go SDK
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - "packages/go/v*"
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    name: Verify and index Go module
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Install Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: packages/go/go.mod
+
+      - name: Run SDK checks
+        working-directory: packages/go
+        run: |
+          go vet ./...
+          go test ./...
+
+      - name: Request Go proxy indexing
+        env:
+          MODULE_VERSION: ${{ github.ref_name }}
+        run: |
+          version="${MODULE_VERSION##*/}"
+          GOPROXY=proxy.golang.org go list -m "github.com/buildwithtechx/outpipe/packages/go@${version}"

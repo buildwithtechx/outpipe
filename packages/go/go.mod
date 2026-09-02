@@ -1,4 +1,4 @@
-module outpipe.dev/outpipe-go
+module github.com/buildwithtechx/outpipe/packages/go
 
 go 1.25
 
