@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/gofiber/fiber/v2"
+	infraredis "outpipe.dev/outpipe/internal/infra/redis"
 	"outpipe.dev/outpipe/internal/models"
 )
 
@@ -13,6 +14,7 @@ type RouterOptions struct {
 	CookieSecure         bool
 	InternalAPISecret    string
 	BillingWebhookSecret string
+	RateLimiter          *infraredis.Client
 }
 
 func RegisterRoutes(app *fiber.App, handlers Handlers, options RouterOptions) error {
@@ -37,11 +39,11 @@ func RegisterRoutes(app *fiber.App, handlers Handlers, options RouterOptions) er
 		return c.SendString("# HELP outpipe_status Status metric\n# TYPE outpipe_status gauge\noutpipe_status 1\n")
 	})
 	if handlers.Support != nil {
-		supportLimiter := requestRateLimit(5, time.Minute)
+		supportLimiter := requestRateLimitDistributed(options.RateLimiter, 5, time.Minute, func(c *fiber.Ctx) string { return "support:" + c.IP() })
 		app.Post("/api/v1/support/contact", supportLimiter, handlers.Support.Contact)
 		app.Post("/api/v1/support/bug-report", supportLimiter, handlers.Support.BugReport)
 	}
-	authLimiter := requestRateLimit(10, time.Minute)
+	authLimiter := requestRateLimitDistributed(options.RateLimiter, 10, time.Minute, func(c *fiber.Ctx) string { return "auth:" + c.IP() })
 	app.Post("/api/v1/auth/device/start", authLimiter, handlers.Auth.StartDeviceLogin)
 	app.Get("/api/v1/auth/device/poll", authLimiter, handlers.Auth.PollDeviceLogin)
 
@@ -58,12 +60,13 @@ func RegisterRoutes(app *fiber.App, handlers Handlers, options RouterOptions) er
 	app.Post("/api/v1/auth/logout", handlers.Auth.Logout)
 	app.Post("/api/v1/agents/:agentID/heartbeat", agentTokenRequired(handlers.agentService, "agentID"), handlers.Agents.Heartbeat)
 
-	protected := app.Group("/api/v1", sessionRequired(handlers.authService, handlers.apiKeyService, options.CookieName), auditRequest(handlers.auditService))
+	protected := app.Group("/api/v1", sessionRequired(handlers.authService, handlers.apiKeyService, options.CookieName), requestRateLimitDistributed(options.RateLimiter, 120, time.Minute, authenticatedRateLimitKey), auditRequest(handlers.auditService))
+	writeLimiter := requestRateLimitDistributed(options.RateLimiter, 30, time.Minute, authenticatedRateLimitKey)
 	protected.Post("/auth/device/complete", handlers.Auth.CompleteDeviceLogin)
 	protected.Get("/account", handlers.Account.Profile)
 	protected.Get("/organizations", handlers.Organizations.List)
 	protected.Get("/organizations/slug-availability", handlers.Organizations.CheckSlug)
-	protected.Post("/organizations", handlers.Organizations.Create)
+	protected.Post("/organizations", writeLimiter, handlers.Organizations.Create)
 	protected.Get("/organizations/:organizationID", organizationRoleRequired(handlers.organizationService, models.MemberRoleViewer), handlers.Organizations.Detail)
 	protected.Get("/organizations/:organizationID/members", organizationRoleRequired(handlers.organizationService, models.MemberRoleViewer), handlers.Organizations.ListMembers)
 	protected.Post("/organizations/:organizationID/members", organizationRoleRequired(handlers.organizationService, models.MemberRoleAdmin), handlers.Organizations.AddMember)
@@ -72,7 +75,7 @@ func RegisterRoutes(app *fiber.App, handlers Handlers, options RouterOptions) er
 	protected.Post("/invitations/accept", handlers.Invitations.Accept)
 	protected.Delete("/account", handlers.Account.Delete)
 	protected.Post("/organizations/:organizationID/transfer", organizationRoleRequired(handlers.organizationService, models.MemberRoleOwner), handlers.Account.TransferOwnership)
-	protected.Post("/organizations/:organizationID/tunnels", organizationRoleRequired(handlers.organizationService, models.MemberRoleMember), handlers.Tunnels.Create)
+	protected.Post("/organizations/:organizationID/tunnels", writeLimiter, organizationRoleRequired(handlers.organizationService, models.MemberRoleMember), handlers.Tunnels.Create)
 	protected.Get("/organizations/:organizationID/tunnels", organizationRoleRequired(handlers.organizationService, models.MemberRoleViewer), handlers.Tunnels.List)
 	protected.Post("/organizations/:organizationID/agents", organizationRoleRequired(handlers.organizationService, models.MemberRoleAdmin), handlers.Agents.Register)
 	protected.Get("/organizations/:organizationID/agents", organizationRoleRequired(handlers.organizationService, models.MemberRoleViewer), handlers.Agents.List)
@@ -83,16 +86,16 @@ func RegisterRoutes(app *fiber.App, handlers Handlers, options RouterOptions) er
 	protected.Get("/organizations/:organizationID/usage/snapshot", organizationRoleRequired(handlers.organizationService, models.MemberRoleViewer), handlers.Usage.Snapshot)
 	protected.Get("/organizations/:organizationID/audit-logs", organizationRoleRequired(handlers.organizationService, models.MemberRoleAdmin), handlers.AuditLogs.List)
 	protected.Get("/organizations/:organizationID/api-keys", organizationRoleRequired(handlers.organizationService, models.MemberRoleMember), handlers.APIKeys.List)
-	protected.Post("/organizations/:organizationID/api-keys", organizationRoleRequired(handlers.organizationService, models.MemberRoleAdmin), handlers.APIKeys.Create)
+	protected.Post("/organizations/:organizationID/api-keys", writeLimiter, organizationRoleRequired(handlers.organizationService, models.MemberRoleAdmin), handlers.APIKeys.Create)
 	protected.Delete("/organizations/:organizationID/api-keys/:apiKeyID", organizationRoleRequired(handlers.organizationService, models.MemberRoleAdmin), handlers.APIKeys.Revoke)
-	protected.Post("/organizations/:organizationID/webhooks", organizationRoleRequired(handlers.organizationService, models.MemberRoleAdmin), handlers.Webhooks.Create)
+	protected.Post("/organizations/:organizationID/webhooks", writeLimiter, organizationRoleRequired(handlers.organizationService, models.MemberRoleAdmin), handlers.Webhooks.Create)
 	protected.Get("/organizations/:organizationID/webhooks", organizationRoleRequired(handlers.organizationService, models.MemberRoleViewer), handlers.Webhooks.List)
 	protected.Delete("/organizations/:organizationID/webhooks/:webhookID", organizationRoleRequired(handlers.organizationService, models.MemberRoleAdmin), handlers.Webhooks.Delete)
 	protected.Get("/organizations/:organizationID/webhooks/:webhookID/deliveries", organizationRoleRequired(handlers.organizationService, models.MemberRoleViewer), handlers.Webhooks.Deliveries)
 	protected.Get("/organizations/:organizationID/billing", organizationRoleRequired(handlers.organizationService, models.MemberRoleViewer), handlers.Billing.Status)
 	protected.Get("/organizations/:organizationID/billing/plans", organizationRoleRequired(handlers.organizationService, models.MemberRoleViewer), handlers.Billing.Plans)
 	protected.Get("/organizations/:organizationID/billing/invoices", organizationRoleRequired(handlers.organizationService, models.MemberRoleViewer), handlers.Billing.Invoices)
-	protected.Post("/organizations/:organizationID/billing/checkout", organizationRoleRequired(handlers.organizationService, models.MemberRoleOwner), handlers.Billing.Checkout)
+	protected.Post("/organizations/:organizationID/billing/checkout", writeLimiter, organizationRoleRequired(handlers.organizationService, models.MemberRoleOwner), handlers.Billing.Checkout)
 	protected.Get("/organizations/:organizationID/billing/portal", organizationRoleRequired(handlers.organizationService, models.MemberRoleOwner), handlers.Billing.Portal)
 	protected.Post("/organizations/:organizationID/billing/cancel", organizationRoleRequired(handlers.organizationService, models.MemberRoleOwner), handlers.Billing.Cancel)
 	protected.Post("/organizations/:organizationID/billing/resume", organizationRoleRequired(handlers.organizationService, models.MemberRoleOwner), handlers.Billing.Resume)
@@ -133,7 +136,7 @@ func RegisterInternalRoutes(app *fiber.App, handlers Handlers, options RouterOpt
 	app.Get("/internal/health", internalSecretRequired(options.InternalAPISecret), handlers.Health.Readiness)
 	app.Get("/internal/agents/authenticate", internalSecretRequired(options.InternalAPISecret), handlers.Agents.Authenticate)
 	app.Get("/internal/tunnels/:tunnelID/policy", internalSecretRequired(options.InternalAPISecret), handlers.Tunnels.Policy)
-	app.Post("/internal/tunnels/:tunnelID/password", internalSecretRequired(options.InternalAPISecret), requestRateLimitBy(10, time.Minute, func(c *fiber.Ctx) string { return c.IP() + ":" + c.Params("tunnelID") }), handlers.Tunnels.VerifyPassword)
+	app.Post("/internal/tunnels/:tunnelID/password", internalSecretRequired(options.InternalAPISecret), requestRateLimitDistributed(options.RateLimiter, 10, time.Minute, func(c *fiber.Ctx) string { return "internal-password:" + c.IP() + ":" + c.Params("tunnelID") }), handlers.Tunnels.VerifyPassword)
 	app.Post("/internal/usage", internalSecretRequired(options.InternalAPISecret), handlers.Usage.Ingest)
 
 	return nil

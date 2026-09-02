@@ -4,8 +4,10 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"net/url"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/caarlos0/env/v11"
 	"github.com/joho/godotenv"
@@ -155,11 +157,17 @@ func parse[T any](cfg *T) error {
 
 func validateAPI(cfg APIConfig) error {
 
-	if err := validateApp(cfg.App); err != nil {
+	if err := validateAPIApp(cfg.App); err != nil {
 		return err
 	}
 
-	return validateDatabase(cfg.Database)
+	if err := validateDatabase(cfg.Database); err != nil {
+		return err
+	}
+	if err := validateService(cfg.Service, cfg.App); err != nil {
+		return err
+	}
+	return validateAuth(cfg.Auth, cfg.App)
 }
 
 func validateRelay(cfg RelayConfig) error {
@@ -178,6 +186,9 @@ func validateRelay(cfg RelayConfig) error {
 
 	if cfg.Tunnel.Heartbeat <= 0 || cfg.Tunnel.ReadTimeout <= cfg.Tunnel.Heartbeat {
 		return fmt.Errorf("tunnel heartbeat and read timeout are invalid")
+	}
+	if err := validateService(cfg.Service, cfg.App); err != nil {
+		return err
 	}
 
 	return nil
@@ -201,6 +212,54 @@ func validateApp(cfg AppConfig) error {
 		return fmt.Errorf("tls certificate and key files are required when tls is enabled")
 	}
 
+	return nil
+}
+
+func validateAPIApp(cfg AppConfig) error {
+	if err := validateApp(cfg); err != nil {
+		return err
+	}
+	if !strings.EqualFold(cfg.Environment, "production") {
+		return nil
+	}
+	for name, rawURL := range map[string]string{"public api url": cfg.PublicAPIURL, "dashboard url": cfg.DashboardURL, "cors origin": cfg.CORSOrigin} {
+		parsed, err := url.Parse(rawURL)
+		if err != nil || parsed.Scheme != "https" || parsed.Host == "" {
+			return fmt.Errorf("%s must use an https URL in production", name)
+		}
+	}
+	if strings.Contains(strings.ToLower(cfg.AllowedOrigins), "localhost") || strings.Contains(strings.ToLower(cfg.AllowedOrigins), "127.0.0.1") {
+		return fmt.Errorf("localhost origins are not allowed in production")
+	}
+	return nil
+}
+
+func validateService(cfg ServiceConfig, app AppConfig) error {
+	if !strings.EqualFold(app.Environment, "production") {
+		return nil
+	}
+	if len(cfg.InternalAPISecret) < 32 {
+		return fmt.Errorf("internal api secret must be at least 32 characters in production")
+	}
+	return nil
+}
+
+func validateAuth(cfg AuthConfig, app AppConfig) error {
+	if !strings.EqualFold(app.Environment, "production") {
+		return nil
+	}
+	if !cfg.CookieSecure {
+		return fmt.Errorf("auth cookies must be secure in production")
+	}
+	if length := len([]byte(cfg.EncryptionKey)); length != 16 && length != 24 && length != 32 {
+		return fmt.Errorf("auth encryption key must be 16, 24, or 32 bytes in production")
+	}
+	if (cfg.GoogleClientID == "") != (cfg.GoogleClientSecret == "") {
+		return fmt.Errorf("google oauth client id and secret must be configured together")
+	}
+	if (cfg.GitHubClientID == "") != (cfg.GitHubClientSecret == "") {
+		return fmt.Errorf("github oauth client id and secret must be configured together")
+	}
 	return nil
 }
 

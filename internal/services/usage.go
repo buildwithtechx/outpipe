@@ -2,6 +2,8 @@ package services
 
 import (
 	"context"
+	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"time"
 
@@ -11,6 +13,21 @@ import (
 
 type UsageService struct {
 	usage repositories.UsageRepository
+}
+
+const (
+	defaultUsageEventLimit = 100
+	maxUsageEventLimit     = 1000
+)
+
+type UsageEventPage struct {
+	Events     []models.UsageEvent
+	NextCursor string
+}
+
+type usageEventCursor struct {
+	OccurredAt time.Time `json:"occurredAt"`
+	ID         string    `json:"id"`
 }
 
 var ErrUsageServiceRequired = fmt.Errorf("usage service is required")
@@ -77,19 +94,60 @@ func (s *UsageService) Aggregate(ctx context.Context, organizationID string, fro
 	return snapshot, nil
 }
 
-func (s *UsageService) ListEvents(ctx context.Context, organizationID string, from, to time.Time) ([]models.UsageEvent, error) {
+func (s *UsageService) ListEvents(ctx context.Context, organizationID string, from, to time.Time, limit int, cursor string) (UsageEventPage, error) {
 
 	if organizationID == "" || from.IsZero() || to.IsZero() || !to.After(from) {
-		return nil, fmt.Errorf("organization and valid usage period are required")
+		return UsageEventPage{}, fmt.Errorf("organization and valid usage period are required")
+	}
+	if limit <= 0 {
+		limit = defaultUsageEventLimit
+	}
+	if limit > maxUsageEventLimit {
+		return UsageEventPage{}, fmt.Errorf("usage event limit must be between 1 and %d", maxUsageEventLimit)
 	}
 
-	events, err := s.usage.ListEvents(ctx, organizationID, from, to)
+	afterOccurredAt, afterID, err := decodeUsageCursor(cursor)
+	if err != nil {
+		return UsageEventPage{}, err
+	}
+
+	events, err := s.usage.ListEvents(ctx, organizationID, from, to, limit+1, afterOccurredAt, afterID)
 
 	if err != nil {
-		return nil, fmt.Errorf("list usage events: %w", err)
+		return UsageEventPage{}, fmt.Errorf("list usage events: %w", err)
 	}
 
-	return events, nil
+	page := UsageEventPage{Events: events}
+	if len(events) > limit {
+		last := events[limit-1]
+		page.Events = events[:limit]
+		page.NextCursor = encodeUsageCursor(usageEventCursor{OccurredAt: last.OccurredAt, ID: last.ID})
+	}
+
+	return page, nil
+}
+
+func encodeUsageCursor(cursor usageEventCursor) string {
+	payload, _ := json.Marshal(cursor)
+	return base64.RawURLEncoding.EncodeToString(payload)
+}
+
+func decodeUsageCursor(raw string) (time.Time, string, error) {
+	if raw == "" {
+		return time.Time{}, "", nil
+	}
+
+	payload, err := base64.RawURLEncoding.DecodeString(raw)
+	if err != nil {
+		return time.Time{}, "", fmt.Errorf("invalid usage cursor")
+	}
+
+	var cursor usageEventCursor
+	if err := json.Unmarshal(payload, &cursor); err != nil || cursor.ID == "" || cursor.OccurredAt.IsZero() {
+		return time.Time{}, "", fmt.Errorf("invalid usage cursor")
+	}
+
+	return cursor.OccurredAt, cursor.ID, nil
 }
 
 func (s *UsageService) ListRequests(ctx context.Context, organizationID string, from, to time.Time, limit int) ([]models.UsageEvent, error) {

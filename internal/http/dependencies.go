@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"outpipe.dev/outpipe/internal/handlers"
+	infraredis "outpipe.dev/outpipe/internal/infra/redis"
 	"outpipe.dev/outpipe/internal/services"
 )
 
@@ -27,6 +28,7 @@ type Dependencies struct {
 	Support       *services.SupportService
 	WelcomeMailer services.WelcomeMailer
 	Ready         func(context.Context) error
+	RateLimiter   *infraredis.Client
 	PublicAPIURL  string
 	DashboardURL  string
 }

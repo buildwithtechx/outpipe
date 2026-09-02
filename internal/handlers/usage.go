@@ -42,13 +42,26 @@ func (h *UsageHandler) Events(c *fiber.Ctx) error {
 		return writeError(c, fiber.StatusBadRequest, err)
 	}
 
-	events, err := h.usage.ListEvents(c.UserContext(), c.Params("organizationID"), from, to)
+	limit := 100
+	if value := c.Query("limit"); value != "" {
+		parsed, err := strconv.Atoi(value)
+		if err != nil || parsed < 1 || parsed > 1000 {
+			return writeError(c, fiber.StatusBadRequest, fmt.Errorf("limit must be between 1 and 1000"))
+		}
+		limit = parsed
+	}
+
+	page, err := h.usage.ListEvents(c.UserContext(), c.Params("organizationID"), from, to, limit, c.Query("cursor"))
 
 	if err != nil {
 		return writeError(c, fiber.StatusBadRequest, err)
 	}
 
-	return c.JSON(fiber.Map{"from": from, "to": to, "events": events})
+	response := fiber.Map{"from": from, "to": to, "events": page.Events}
+	if page.NextCursor != "" {
+		response["nextCursor"] = page.NextCursor
+	}
+	return c.JSON(response)
 }
 
 func (h *UsageHandler) Snapshot(c *fiber.Ctx) error {

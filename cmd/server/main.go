@@ -71,6 +71,7 @@ func main() {
 	}
 
 	defer redisClient.Close()
+	deps.RateLimiter = redisClient
 	providers := auth.NewOAuthProviders(auth.OAuthConfig{GoogleClientID: cfg.Auth.GoogleClientID, GoogleClientSecret: cfg.Auth.GoogleClientSecret, GitHubClientID: cfg.Auth.GitHubClientID, GitHubClientSecret: cfg.Auth.GitHubClientSecret})
 
 	if len(providers) > 0 {

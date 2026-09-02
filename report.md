@@ -87,12 +87,13 @@ Reference: [OWASP API4:2023 Unrestricted Resource Consumption](https://owasp.org
 
 **Finding:** The usage-events endpoint accepts a time window but no page size, and the repository loads all matching events into memory.
 
-- [ ] Add a bounded `limit` to usage-event queries.
-- [ ] Prefer cursor pagination with stable `(occurred_at, id)` ordering.
-- [ ] Return pagination metadata and a continuation cursor.
+- [x] Add a bounded `limit` to usage-event queries.
+- [x] Add cursor pagination with stable `(occurred_at, id)` ordering.
+- [x] Return a continuation cursor when another page exists.
 - [ ] Review every list endpoint for an explicit maximum page size.
-- [ ] Add indexes matching organization and time-based query patterns.
-- [ ] Add tests for maximum limits, cursor behavior, empty pages, and large datasets.
+- [x] Add an index matching organization and time-based query patterns.
+- [x] Add tests for stable cursor behavior and bounded pages.
+- [ ] Add tests for maximum handler limits, empty pages, and large datasets.
 - [ ] Add response-size and query-latency monitoring.
 
 Relevant code: [`internal/handlers/usage.go`](internal/handlers/usage.go), [`internal/repositories/usage.go`](internal/repositories/usage.go)
@@ -101,16 +102,16 @@ Relevant code: [`internal/handlers/usage.go`](internal/handlers/usage.go), [`int
 
 **Finding:** Defaults permit development mode, HTTP URLs, non-secure cookies, optional auth encryption, and development-style credentials. Validation does not currently reject unsafe production combinations.
 
-- [ ] Add explicit production configuration validation.
-- [ ] Require HTTPS public URLs in production.
-- [ ] Require secure cookies in production.
-- [ ] Require `AUTH_ENCRYPTION_KEY` where encrypted credentials are used.
-- [ ] Require OAuth client secrets and internal API secrets where applicable.
+- [x] Add explicit production configuration validation.
+- [x] Require HTTPS public URLs and CORS origin in production.
+- [x] Require secure cookies in production.
+- [x] Require `AUTH_ENCRYPTION_KEY` with a valid AES key length where encrypted credentials are used.
+- [x] Require a strong internal API secret and paired OAuth credentials where applicable.
 - [ ] Reject known development secrets and default database credentials.
-- [ ] Validate cookie domain and allowed-origin relationships.
-- [ ] Fail startup with actionable errors instead of allowing later request-time failures.
+- [x] Validate production allowed-origin relationships against localhost usage.
+- [x] Fail startup with actionable errors instead of allowing later request-time failures.
 - [ ] Document which variables are mandatory for API, relay, worker, and web deployments.
-- [ ] Add a production configuration test fixture that must fail when unsafe values are supplied.
+- [x] Add production configuration tests that fail when unsafe values are supplied.
 
 Relevant code: [`internal/config/config.go`](internal/config/config.go), [`internal/config/load.go`](internal/config/load.go)
 
@@ -118,13 +119,13 @@ Relevant code: [`internal/config/config.go`](internal/config/config.go), [`inter
 
 **Finding:** Rate limits are stored in a process-local map and are applied mainly to support and device-login routes. They reset on restart and do not coordinate across replicas.
 
-- [ ] Replace process-local buckets with Redis-backed limiting for deployed environments.
-- [ ] Keep a bounded local fallback only for failure containment, with clear behavior.
-- [ ] Rate-limit tunnel creation, organization creation, API-key creation, OAuth initiation, checkout, usage queries, and webhook creation/delivery operations.
-- [ ] Prefer authenticated user and organization identity keys where available.
+- [x] Replace process-local buckets with Redis-backed limiting for deployed environments.
+- [x] Keep a bounded local fallback only for failure containment, with clear behavior.
+- [x] Rate-limit authenticated API traffic and high-cost writes including tunnel creation, organization creation, API-key creation, checkout, and webhook creation.
+- [x] Prefer authenticated user identity keys where available.
 - [ ] Configure trusted proxy handling before using client IPs.
 - [ ] Add endpoint-specific limits based on cost and external side effects.
-- [ ] Add tests for concurrent requests, multiple instances, Redis failure, and proxy headers.
+- [ ] Add tests for concurrent requests, multiple instances, Redis failure, proxy headers, and Redis Lua behavior.
 
 Relevant code: [`internal/http/middleware.go`](internal/http/middleware.go), [`internal/http/router.go`](internal/http/router.go)
 
