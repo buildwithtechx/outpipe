@@ -258,7 +258,7 @@ func (s *WebhookService) ProcessPending(ctx context.Context, limit int) error {
 		}
 
 		now := s.now().UTC()
-		deliveries[i].Status = models.WebhookDeliverySent
+		deliveries[i].Status = models.WebhookDeliveryDelivered
 		deliveries[i].DeliveredAt = &now
 		deliveries[i].Error = ""
 		if updateErr := s.subscriptions.UpdateDelivery(ctx, &deliveries[i]); updateErr != nil {

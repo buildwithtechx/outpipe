@@ -1,0 +1,44 @@
+name: Container Security
+
+on:
+  pull_request:
+  push:
+    branches: [main, canary]
+
+permissions:
+  contents: read
+
+jobs:
+  images:
+    name: Build and scan ${{ matrix.name }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: api
+            dockerfile: docker/Dockerfile.api
+            image: outpipe-api
+          - name: tunnel
+            dockerfile: docker/Dockerfile.tunnel
+            image: outpipe-tunnel
+          - name: cron
+            dockerfile: docker/Dockerfile.cron
+            image: outpipe-cron
+          - name: check
+            dockerfile: docker/Dockerfile.check
+            image: outpipe-check
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build image
+        run: docker build --file ${{ matrix.dockerfile }} --tag ${{ matrix.image }}:ci .
+      - name: Verify non-root runtime
+        run: test "$(docker image inspect ${{ matrix.image }}:ci --format '{{.Config.User}}')" = "outpipe"
+      - name: Scan image
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          image-ref: ${{ matrix.image }}:ci
+          format: table
+          severity: CRITICAL,HIGH
+          ignore-unfixed: true
+          exit-code: 1

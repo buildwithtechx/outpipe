@@ -5,10 +5,10 @@ import "time"
 type WebhookDeliveryStatus string
 
 const (
-	WebhookDeliveryPending WebhookDeliveryStatus = "pending"
-	WebhookDeliverySending WebhookDeliveryStatus = "sending"
-	WebhookDeliverySent    WebhookDeliveryStatus = "sent"
-	WebhookDeliveryFailed  WebhookDeliveryStatus = "failed"
+	WebhookDeliveryPending   WebhookDeliveryStatus = "pending"
+	WebhookDeliverySending   WebhookDeliveryStatus = "sending"
+	WebhookDeliveryDelivered WebhookDeliveryStatus = "delivered"
+	WebhookDeliveryFailed    WebhookDeliveryStatus = "failed"
 )
 
 type WebhookEvent string

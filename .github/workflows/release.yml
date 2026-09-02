@@ -71,6 +71,12 @@ jobs:
           npm pack --dry-run --workspace packages/nest
           npm pack --dry-run --workspace packages/express
           npm pack --dry-run --workspace packages/angular
+      - name: Generate release SBOM
+        uses: anchore/sbom-action@v0.20.5
+        with:
+          path: .
+          format: spdx-json
+          output-file: dist/outpipe-source.spdx.json
       - uses: softprops/action-gh-release@v2
         with:
           files: dist/*
