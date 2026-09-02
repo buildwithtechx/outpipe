@@ -7,8 +7,9 @@ import {
   Terminal,
 } from 'lucide-react';
 import { motion } from 'motion/react';
-import { type FormEvent, useState } from 'react';
+import { type SubmitEvent, useState } from 'react';
 import { MarketingContainer } from '#/components/layout';
+import { useSupportMutations } from '../hooks/use-support-mutations';
 
 const categories = [
   'CLI or desktop client',
@@ -38,8 +39,9 @@ const guidance = [
 
 export function ReportBugPage() {
   const [submitted, setSubmitted] = useState(false);
+  const mutations = useSupportMutations();
 
-  function openReport(event: FormEvent<HTMLFormElement>) {
+  function submitReport(event: SubmitEvent<HTMLFormElement>) {
     event.preventDefault();
     const data = new FormData(event.currentTarget);
     const name = String(data.get('name') ?? '').trim();
@@ -49,26 +51,10 @@ export function ReportBugPage() {
     const reproduction = String(data.get('reproduction') ?? '').trim();
     const expected = String(data.get('expected') ?? '').trim();
     const actual = String(data.get('actual') ?? '').trim();
-    const subject = encodeURIComponent(`[Bug] ${summary}`);
-    const body = encodeURIComponent(
-      [
-        `From: ${name}`,
-        `Reply-to: ${email}`,
-        `Category: ${category}`,
-        '',
-        'Steps to reproduce:',
-        reproduction,
-        '',
-        'Expected:',
-        expected,
-        '',
-        'Actual:',
-        actual,
-      ].join('\n'),
+    mutations.bugReport.mutate(
+      { name, email, category, summary, reproduction, expected, actual },
+      { onSuccess: () => setSubmitted(true) },
     );
-
-    setSubmitted(true);
-    window.location.href = `mailto:bugs@outpipe.dev?subject=${subject}&body=${body}`;
   }
 
   return (
@@ -129,13 +115,12 @@ export function ReportBugPage() {
               <div>
                 <h2 className="text-lg font-semibold">Report prepared</h2>
                 <p className="mt-1 text-sm leading-6 text-white/45">
-                  Your email client should be open with the report ready to
-                  review and send.
+                  Your report has been queued for the Outpipe team.
                 </p>
               </div>
             </div>
           ) : (
-            <form onSubmit={openReport} className="grid gap-6">
+            <form onSubmit={submitReport} className="grid gap-6">
               <div className="grid gap-5 md:grid-cols-2">
                 <label className="grid gap-2 text-sm text-white/55">
                   Your name
@@ -218,9 +203,11 @@ export function ReportBugPage() {
               </div>
               <button
                 type="submit"
+                disabled={mutations.bugReport.isPending}
                 className="inline-flex w-fit items-center gap-2 rounded-full bg-white px-6 py-3 text-sm font-bold text-black transition-transform hover:-translate-y-0.5"
               >
-                Prepare bug report <ArrowRight className="size-4" />
+                {mutations.bugReport.isPending ? 'Sending…' : 'Send bug report'}{' '}
+                <ArrowRight className="size-4" />
               </button>
             </form>
           )}

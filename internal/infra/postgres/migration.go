@@ -102,7 +102,9 @@ func migrations() []migration {
 		return db.AutoMigrate(&models.Invoice{}, &models.Receipt{})
 	}}, {version: 11, name: "webhook_subscriptions_and_tunnel_metadata", up: func(db *gorm.DB) error {
 		return db.AutoMigrate(&models.Tunnel{}, &models.APIKey{}, &models.WebhookSubscription{}, &models.WebhookDelivery{})
-	}}, {version: 12, name: "default_billing_plans", up: seedDefaultBillingPlans}}
+	}}, {version: 12, name: "default_billing_plans", up: seedDefaultBillingPlans}, {version: 13, name: "email_deliveries", up: func(db *gorm.DB) error {
+		return db.AutoMigrate(&models.EmailDelivery{})
+	}}}
 }
 
 func seedDefaultBillingPlans(db *gorm.DB) error {

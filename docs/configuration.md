@@ -91,6 +91,7 @@ Zepto Mail is the only transactional email provider.
 | Variable                | Default                                | Purpose                                        |
 | ----------------------- | -------------------------------------- | ---------------------------------------------- |
 | `OUTPIPE_MAIL_FROM`     | `noreply@localhost`                    | Sender address.                                |
+| `OUTPIPE_SUPPORT_EMAIL` | `support@outpipe.dev`                  | Recipient for contact messages and bug reports. |
 | `OUTPIPE_ZEPTO_URL`     | `https://api.zeptomail.com/v1.1/email` | Zepto API base URL.                            |
 | `OUTPIPE_ZEPTO_API_KEY` | empty                                  | Zepto API token. Empty disables email sending. |
 

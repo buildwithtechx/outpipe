@@ -24,6 +24,7 @@ type Dependencies struct {
 	Audit         *services.AuditService
 	APIKeys       *services.APIKeyService
 	Webhooks      *services.WebhookService
+	Support       *services.SupportService
 	WelcomeMailer services.WelcomeMailer
 	Ready         func(context.Context) error
 	PublicAPIURL  string
@@ -32,7 +33,7 @@ type Dependencies struct {
 
 func (d Dependencies) Validate() error {
 
-	if d.Auth == nil || d.DeviceLogin == nil || d.Organizations == nil || d.Invitations == nil || d.Tunnels == nil || d.Agents == nil || d.Domains == nil || d.Usage == nil || d.Billing == nil || d.Account == nil || d.Admin == nil || d.Audit == nil || d.APIKeys == nil || d.Webhooks == nil {
+	if d.Auth == nil || d.DeviceLogin == nil || d.Organizations == nil || d.Invitations == nil || d.Tunnels == nil || d.Agents == nil || d.Domains == nil || d.Usage == nil || d.Billing == nil || d.Account == nil || d.Admin == nil || d.Audit == nil || d.APIKeys == nil || d.Webhooks == nil || d.Support == nil {
 		return fmt.Errorf("http service dependencies are incomplete")
 	}
 
@@ -54,6 +55,7 @@ type Handlers struct {
 	Admin               *handlers.AdminHandler
 	APIKeys             *handlers.APIKeyHandler
 	Webhooks            *handlers.WebhookHandler
+	Support             *handlers.SupportHandler
 	AuditLogs           *handlers.AuditLogHandler
 	auditService        *services.AuditService
 	authService         *services.AuthService
@@ -156,5 +158,10 @@ func buildHandlers(deps Dependencies, cookie handlers.SessionCookieConfig) (Hand
 		return Handlers{}, err
 	}
 
-	return Handlers{Health: handlers.NewHealthHandler(deps.Ready), Auth: authHandler, Organizations: organizationHandler, Invitations: invitationHandler, Tunnels: tunnelHandler, Agents: agentHandler, Domains: domainHandler, Usage: usageHandler, Billing: billingHandler, OAuth: oauthHandler, Account: accountHandler, Admin: adminHandler, APIKeys: apiKeyHandler, Webhooks: webhookHandler, AuditLogs: auditLogHandler, authService: deps.Auth, organizationService: deps.Organizations, apiKeyService: deps.APIKeys, auditService: deps.Audit, agentService: deps.Agents}, nil
+	supportHandler, err := handlers.NewSupportHandler(deps.Support)
+	if err != nil {
+		return Handlers{}, err
+	}
+
+	return Handlers{Health: handlers.NewHealthHandler(deps.Ready), Auth: authHandler, Organizations: organizationHandler, Invitations: invitationHandler, Tunnels: tunnelHandler, Agents: agentHandler, Domains: domainHandler, Usage: usageHandler, Billing: billingHandler, OAuth: oauthHandler, Account: accountHandler, Admin: adminHandler, APIKeys: apiKeyHandler, Webhooks: webhookHandler, Support: supportHandler, AuditLogs: auditLogHandler, authService: deps.Auth, organizationService: deps.Organizations, apiKeyService: deps.APIKeys, auditService: deps.Audit, agentService: deps.Agents}, nil
 }

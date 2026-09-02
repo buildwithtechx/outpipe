@@ -46,6 +46,14 @@ type BillingUpdateData struct {
 	DashboardURL string
 }
 
+type InvoiceReceiptData struct {
+	Name         string
+	Organization string
+	Amount       string
+	InvoiceURL   string
+	DashboardURL string
+}
+
 type templateRenderer struct {
 	html *template.Template
 }

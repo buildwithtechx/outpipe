@@ -8,6 +8,7 @@ export * from './billing-records';
 export * from './domain';
 export * from './identity';
 export * from './organization';
+export * from './support';
 export * from './tunnel';
 export * from './tunnel-token';
 export * from './usage';

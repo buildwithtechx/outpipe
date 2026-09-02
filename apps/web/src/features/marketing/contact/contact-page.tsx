@@ -7,8 +7,9 @@ import {
   ShieldCheck,
 } from 'lucide-react';
 import { motion } from 'motion/react';
-import { type FormEvent, useState } from 'react';
+import { type SubmitEvent, useState } from 'react';
 import { MarketingContainer } from '#/components/layout';
+import { useSupportMutations } from '../hooks/use-support-mutations';
 
 const channels = [
   {
@@ -34,6 +35,7 @@ const channels = [
 export function ContactPage() {
   const [copied, setCopied] = useState<string>();
   const [submitted, setSubmitted] = useState(false);
+  const mutations = useSupportMutations();
 
   async function copyEmail(email: string) {
     await navigator.clipboard.writeText(email);
@@ -41,19 +43,17 @@ export function ContactPage() {
     setTimeout(() => setCopied(undefined), 1800);
   }
 
-  function openEmailDraft(event: FormEvent<HTMLFormElement>) {
+  function submitContact(event: SubmitEvent<HTMLFormElement>) {
     event.preventDefault();
     const data = new FormData(event.currentTarget);
     const name = String(data.get('name') ?? '').trim();
     const email = String(data.get('email') ?? '').trim();
     const topic = String(data.get('topic') ?? '').trim();
     const message = String(data.get('message') ?? '').trim();
-    const subject = encodeURIComponent(topic || `Outpipe message from ${name}`);
-    const body = encodeURIComponent(
-      `${message}\n\nFrom: ${name}\nReply to: ${email}`,
+    mutations.contact.mutate(
+      { name, email, topic, message },
+      { onSuccess: () => setSubmitted(true) },
     );
-    setSubmitted(true);
-    window.location.href = `mailto:hello@outpipe.dev?subject=${subject}&body=${body}`;
   }
 
   return (
@@ -67,7 +67,7 @@ export function ContactPage() {
           <div className="mx-auto flex size-16 items-center justify-center rounded-2xl border border-indigo-300/20 bg-indigo-300/10">
             <MessageCircle className="size-8 text-indigo-200" />
           </div>
-          <h1 className="mt-6 text-4xl font-bold tracking-[-0.05em] sm:text-6xl">
+          <h1 className="mt-6 text-4xl font-bold tracking-tighter sm:text-6xl">
             Start a conversation.
           </h1>
           <p className="mx-auto mt-4 max-w-xl text-lg leading-8 text-white/50">
@@ -86,7 +86,7 @@ export function ContactPage() {
               className="rounded-2xl border border-white/10 bg-[#090909] p-5"
             >
               <div className="flex items-start gap-3">
-                <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-white/[0.05]">
+                <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-white/5">
                   <channel.icon className="size-5 text-white/55" />
                 </span>
                 <div className="min-w-0">
@@ -106,7 +106,7 @@ export function ContactPage() {
                 <button
                   type="button"
                   onClick={() => copyEmail(channel.email)}
-                  className="rounded-lg bg-white/[0.04] px-2.5 py-1.5 text-[11px] text-white/40 hover:bg-white/[0.08] hover:text-white"
+                  className="rounded-lg bg-white/4 px-2.5 py-1.5 text-[11px] text-white/40 hover:bg-white/8 hover:text-white"
                 >
                   {copied === channel.email ? 'Copied' : 'Copy'}
                 </button>
@@ -127,15 +127,14 @@ export function ContactPage() {
                 <Check className="size-5 text-emerald-300" />
               </span>
               <div>
-                <h2 className="text-lg font-semibold">Email draft opened</h2>
+                <h2 className="text-lg font-semibold">Message received</h2>
                 <p className="mt-1 text-sm leading-6 text-white/45">
-                  Review the message in your mail application, then send it when
-                  you are ready.
+                  Your message has been queued for the Outpipe team.
                 </p>
               </div>
             </div>
           ) : (
-            <form onSubmit={openEmailDraft} className="grid gap-6">
+            <form onSubmit={submitContact} className="grid gap-6">
               <div className="grid gap-5 md:grid-cols-2">
                 <label className="grid gap-2 text-sm text-white/55">
                   Your name
@@ -178,9 +177,11 @@ export function ContactPage() {
               </label>
               <button
                 type="submit"
+                disabled={mutations.contact.isPending}
                 className="inline-flex w-fit items-center gap-2 rounded-full bg-white px-6 py-3 text-sm font-bold text-black transition-transform hover:-translate-y-0.5"
               >
-                Open email draft <ArrowRight className="size-4" />
+                {mutations.contact.isPending ? 'Sending…' : 'Send message'}{' '}
+                <ArrowRight className="size-4" />
               </button>
             </form>
           )}

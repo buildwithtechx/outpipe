@@ -3,6 +3,7 @@ package services
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"strings"
 	"time"
 
@@ -35,6 +36,7 @@ type BillingMailer interface {
 	SendBillingUpdate(context.Context, string, string) error
 	SendPaymentFailed(context.Context, string, string, string, string, string, int, bool) error
 	SendSubscriptionReset(context.Context, string, string, string, string, string) error
+	SendInvoiceReceipt(context.Context, string, string, string, string, string) error
 }
 
 type BillingNotificationTarget struct {
@@ -143,7 +145,9 @@ func (s *BillingService) syncInvoice(ctx context.Context, event *models.BillingE
 	}
 
 	invoice := &models.Invoice{OrganizationID: subscription.OrganizationID, SubscriptionID: subscription.ID, Provider: transition.Provider, ProviderInvoice: transition.ProviderInvoice, AmountMinor: transition.AmountMinor, Currency: currency, Status: "paid", InvoiceURL: transition.InvoiceURL, PaidAt: &paidAt}
-	_ = s.billing.CreateInvoice(ctx, invoice)
+	if err := s.billing.CreateInvoice(ctx, invoice); err != nil {
+		slog.Default().WarnContext(ctx, "create invoice failed", "organization_id", subscription.OrganizationID, "error", err)
+	}
 }
 
 func (s *BillingService) ListInvoices(ctx context.Context, organizationID string) ([]models.Invoice, error) {
@@ -223,13 +227,16 @@ func (s *BillingService) notifyTransition(ctx context.Context, event *models.Bil
 	}
 
 	if event == nil || s.notifications == nil {
-		_ = s.mailer.SendBillingUpdate(ctx, subscription.OrganizationID, string(subscription.Status))
+		if err := s.mailer.SendBillingUpdate(ctx, subscription.OrganizationID, string(subscription.Status)); err != nil {
+			slog.Default().WarnContext(ctx, "queue billing email failed", "organization_id", subscription.OrganizationID, "error", err)
+		}
 		return
 	}
 
 	target, err := s.notifications(ctx, subscription.OrganizationID)
 
 	if err != nil {
+		slog.Default().WarnContext(ctx, "resolve billing email recipient failed", "organization_id", subscription.OrganizationID, "error", err)
 		return
 	}
 
@@ -259,7 +266,9 @@ func (s *BillingService) notifyTransition(ctx context.Context, event *models.Bil
 			}
 		}
 
-		_ = s.mailer.SendPaymentFailed(ctx, target.Email, target.Name, planName, amount, target.BillingURL, attempts, attemptsKnown)
+		if err := s.mailer.SendPaymentFailed(ctx, target.Email, target.Name, planName, amount, target.BillingURL, attempts, attemptsKnown); err != nil {
+			slog.Default().WarnContext(ctx, "queue payment failure email failed", "organization_id", subscription.OrganizationID, "error", err)
+		}
 		return
 	}
 
@@ -269,11 +278,27 @@ func (s *BillingService) notifyTransition(ctx context.Context, event *models.Bil
 			previousPlan = transition.PreviousPlan
 		}
 
-		_ = s.mailer.SendSubscriptionReset(ctx, target.Email, target.Name, target.OrganizationName, previousPlan, s.dashboardURL)
+		if err := s.mailer.SendSubscriptionReset(ctx, target.Email, target.Name, target.OrganizationName, previousPlan, s.dashboardURL); err != nil {
+			slog.Default().WarnContext(ctx, "queue subscription email failed", "organization_id", subscription.OrganizationID, "error", err)
+		}
 		return
 	}
 
-	_ = s.mailer.SendBillingUpdate(ctx, subscription.OrganizationID, string(subscription.Status))
+	if transition != nil && transition.ProviderInvoice != "" && (strings.Contains(eventType, "paid") || strings.Contains(eventType, "success") || strings.Contains(eventType, "order")) {
+		amount := utils.FormatMinorAmount(transition.AmountMinor, transition.Currency)
+		if transition.AmountMinor == 0 {
+			if plan, planErr := s.billing.FindPlanByID(ctx, subscription.PlanID); planErr == nil {
+				amount = utils.FormatMinorAmount(plan.PriceMinor, plan.Currency)
+			}
+		}
+		if err := s.mailer.SendInvoiceReceipt(ctx, target.Email, target.Name, target.OrganizationName, amount, transition.InvoiceURL); err != nil {
+			return
+		}
+	}
+
+	if err := s.mailer.SendBillingUpdate(ctx, subscription.OrganizationID, string(subscription.Status)); err != nil {
+		slog.Default().WarnContext(ctx, "queue billing email failed", "organization_id", subscription.OrganizationID, "error", err)
+	}
 }
 
 func (s *BillingService) applyTransition(subscription *models.Subscription, transition BillingTransition) error {

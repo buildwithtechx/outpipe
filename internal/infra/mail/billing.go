@@ -63,3 +63,11 @@ func (m *BillingMailer) SendSubscriptionReset(ctx context.Context, email, name, 
 	subject := "Your " + organizationName + " subscription changed"
 	return m.client.Send(ctx, Message{To: email, Subject: subject, HTML: html})
 }
+
+func (m *BillingMailer) SendInvoiceReceipt(ctx context.Context, email, name, organizationName, amount, invoiceURL string) error {
+	html, err := m.renderer.render("invoice-receipt", InvoiceReceiptData{Name: name, Organization: organizationName, Amount: amount, InvoiceURL: invoiceURL, DashboardURL: m.dashboard})
+	if err != nil {
+		return err
+	}
+	return m.client.Send(ctx, Message{To: email, Subject: "Outpipe payment receipt", HTML: html})
+}

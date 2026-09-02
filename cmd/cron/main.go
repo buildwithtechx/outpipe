@@ -11,6 +11,7 @@ import (
 
 	"outpipe.dev/outpipe/internal/config"
 	"outpipe.dev/outpipe/internal/infra/locks"
+	"outpipe.dev/outpipe/internal/infra/mail"
 	"outpipe.dev/outpipe/internal/infra/postgres"
 	"outpipe.dev/outpipe/internal/infra/redis"
 	"outpipe.dev/outpipe/internal/infra/telemetry"
@@ -100,6 +101,11 @@ func main() {
 		log.Fatal(err)
 	}
 
+	emailRepository, err := repositories.NewEmailRepository(db)
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	usageService, err := services.NewUsageService(usageRepository)
 
 	if err != nil {
@@ -171,6 +177,20 @@ func main() {
 		log.Fatal(err)
 	}
 
+	var emailJob *workers.EmailJob
+	if cfg.Mail.ZeptoAPIKey != "" {
+		zepto, mailErr := mail.NewZeptoClient(mail.Config{URL: cfg.Mail.ZeptoURL, APIKey: cfg.Mail.ZeptoAPIKey, FromAddress: cfg.Mail.FromAddress}, nil)
+		if mailErr != nil {
+			log.Fatal(mailErr)
+		}
+		emailJob, err = workers.NewEmailJob(emailRepository, mail.NewSender(zepto), nil)
+		if err != nil {
+			log.Fatal(err)
+		}
+	} else {
+		log.Print("warning: OUTPIPE_ZEPTO_API_KEY is empty; queued emails will remain pending")
+	}
+
 	tracker := workers.NewStatusTracker()
 	retryConfig := workers.DefaultRetryConfig()
 
@@ -221,6 +241,13 @@ func main() {
 	}
 
 	jobs := []workers.Job{wrappedCleanup, wrappedUsage, wrappedRetention, wrappedBilling, wrappedReconciliation}
+	if emailJob != nil {
+		wrappedEmail, wrapErr := workers.NewRetryableJob(emailJob, retryConfig, dlh, tracker)
+		if wrapErr != nil {
+			log.Fatal(wrapErr)
+		}
+		jobs = append(jobs, wrappedEmail)
+	}
 
 	if backupJob != nil {
 		wrappedBackup, wrapErr := workers.NewRetryableJob(backupJob, retryConfig, dlh, tracker)

@@ -3,6 +3,7 @@ package services
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"time"
 
 	"outpipe.dev/outpipe/internal/models"
@@ -71,7 +72,7 @@ func (s *AccountService) Delete(ctx context.Context, userID string) error {
 	if s.mailer != nil {
 
 		if err := s.mailer.SendAccountUpdate(ctx, user.Email, "deleted"); err != nil {
-			return fmt.Errorf("send account update: %w", err)
+			slog.Default().WarnContext(ctx, "queue account deletion email failed", "email", user.Email, "error", err)
 		}
 	}
 

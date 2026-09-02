@@ -27,6 +27,7 @@ type CronConfig struct {
 	Redis    RedisConfig    `envPrefix:"OUTPIPE_"`
 	Service  ServiceConfig  `envPrefix:"OUTPIPE_"`
 	Backup   BackupConfig   `envPrefix:"OUTPIPE_"`
+	Mail     MailConfig     `envPrefix:"OUTPIPE_"`
 }
 
 type CheckConfig struct {
@@ -113,6 +114,7 @@ type RedisConfig struct {
 
 type MailConfig struct {
 	FromAddress string `env:"MAIL_FROM" envDefault:"noreply@localhost"`
+	Support     string `env:"SUPPORT_EMAIL" envDefault:"support@outpipe.dev"`
 	ZeptoAPIKey string `env:"ZEPTO_API_KEY"`
 	ZeptoURL    string `env:"ZEPTO_URL" envDefault:"https://api.zeptomail.com/v1.1/email"`
 }

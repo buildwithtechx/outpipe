@@ -36,6 +36,11 @@ func RegisterRoutes(app *fiber.App, handlers Handlers, options RouterOptions) er
 		c.Set("Content-Type", "text/plain; version=0.0.4")
 		return c.SendString("# HELP outpipe_status Status metric\n# TYPE outpipe_status gauge\noutpipe_status 1\n")
 	})
+	if handlers.Support != nil {
+		supportLimiter := requestRateLimit(5, time.Minute)
+		app.Post("/api/v1/support/contact", supportLimiter, handlers.Support.Contact)
+		app.Post("/api/v1/support/bug-report", supportLimiter, handlers.Support.BugReport)
+	}
 	authLimiter := requestRateLimit(10, time.Minute)
 	app.Post("/api/v1/auth/device/start", authLimiter, handlers.Auth.StartDeviceLogin)
 	app.Get("/api/v1/auth/device/poll", authLimiter, handlers.Auth.PollDeviceLogin)

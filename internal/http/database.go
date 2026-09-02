@@ -122,6 +122,11 @@ func NewDatabaseDependencies(db *gorm.DB, cfg config.APIConfig) (Dependencies, e
 		return Dependencies{}, err
 	}
 
+	emailRepository, err := repositories.NewEmailRepository(db)
+	if err != nil {
+		return Dependencies{}, err
+	}
+
 	adminService, err := services.NewAdminService(adminRepository)
 
 	if err != nil {
@@ -213,46 +218,28 @@ func NewDatabaseDependencies(db *gorm.DB, cfg config.APIConfig) (Dependencies, e
 
 		return services.BillingNotificationTarget{Email: user.Email, Name: user.Name, OrganizationName: organization.Name, BillingURL: strings.TrimRight(cfg.App.DashboardURL, "/") + "/organizations/" + organization.Slug + "/billing"}, nil
 	}, cfg.App.DashboardURL)
-	var welcomeMailer services.WelcomeMailer
-	var invitationMailer services.OrganizationInvitationMailer
-
-	if cfg.Mail.ZeptoAPIKey != "" {
-		zepto, mailErr := mail.NewZeptoClient(mail.Config{URL: cfg.Mail.ZeptoURL, APIKey: cfg.Mail.ZeptoAPIKey, FromAddress: cfg.Mail.FromAddress}, nil)
-
-		if mailErr != nil {
-			return Dependencies{}, mailErr
+	resolveBillingRecipient := func(ctx context.Context, organizationID string) (string, error) {
+		organization, findErr := organizations.FindByID(ctx, organizationID)
+		if findErr != nil {
+			return "", findErr
 		}
-
-		billingMailer, mailErr := mail.NewBillingMailer(zepto, func(ctx context.Context, organizationID string) (string, error) {
-			organization, findErr := organizations.FindByID(ctx, organizationID)
-
-			if findErr != nil {
-				return "", findErr
-			}
-
-			user, findErr := users.FindByID(ctx, organization.OwnerID)
-
-			if findErr != nil {
-				return "", findErr
-			}
-
-			return user.Email, nil
-		}, cfg.App.DashboardURL)
-
-		if mailErr != nil {
-			return Dependencies{}, mailErr
+		user, findErr := users.FindByID(ctx, organization.OwnerID)
+		if findErr != nil {
+			return "", findErr
 		}
-
-		billingService.SetMailer(billingMailer)
-		accountMailer, mailErr := mail.NewAccountMailer(zepto, cfg.App.DashboardURL)
-
-		if mailErr != nil {
-			return Dependencies{}, mailErr
-		}
-
-		accountService.SetMailer(accountMailer)
-		welcomeMailer = accountMailer
-		invitationMailer = accountMailer
+		return user.Email, nil
+	}
+	outboxMailer, err := mail.NewOutboxMailer(emailRepository, resolveBillingRecipient, cfg.App.DashboardURL, cfg.Mail.Support)
+	if err != nil {
+		return Dependencies{}, err
+	}
+	billingService.SetMailer(outboxMailer)
+	accountService.SetMailer(outboxMailer)
+	welcomeMailer := services.WelcomeMailer(outboxMailer)
+	invitationMailer := services.OrganizationInvitationMailer(outboxMailer)
+	supportService, err := services.NewSupportService(outboxMailer)
+	if err != nil {
+		return Dependencies{}, err
 	}
 
 	invitationService, err := services.NewInvitationService(invitations, organizationService, users, cfg.App.DashboardURL, cfg.Auth.InvitationTTL)
@@ -335,5 +322,5 @@ func NewDatabaseDependencies(db *gorm.DB, cfg config.APIConfig) (Dependencies, e
 
 	tunnelService.SetWebhooks(webhookService)
 
-	return Dependencies{Auth: authService, DeviceLogin: deviceService, Organizations: organizationService, Invitations: invitationService, Tunnels: tunnelService, Agents: agentService, Domains: domainService, Usage: usageService, Billing: billingService, Account: accountService, Admin: adminService, Audit: auditService, APIKeys: apiKeyService, Webhooks: webhookService, WelcomeMailer: welcomeMailer, Ready: databaseReady(db)}, nil
+	return Dependencies{Auth: authService, DeviceLogin: deviceService, Organizations: organizationService, Invitations: invitationService, Tunnels: tunnelService, Agents: agentService, Domains: domainService, Usage: usageService, Billing: billingService, Account: accountService, Admin: adminService, Audit: auditService, APIKeys: apiKeyService, Webhooks: webhookService, Support: supportService, WelcomeMailer: welcomeMailer, Ready: databaseReady(db)}, nil
 }
