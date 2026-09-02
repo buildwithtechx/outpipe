@@ -6,6 +6,7 @@ import {
 
 export function useAccountActions(organizationId?: string) {
   const queryClient = useQueryClient();
+
   const remove = useMutation({
     mutationFn: deleteAccount,
     onSuccess: () => {
@@ -13,11 +14,13 @@ export function useAccountActions(organizationId?: string) {
       window.location.assign('/');
     },
   });
+
   const transfer = useMutation({
     mutationFn: (newOwnerId: string) =>
       transferOrganizationOwnership(organizationId ?? '', newOwnerId),
     onSuccess: () =>
       queryClient.invalidateQueries({ queryKey: ['organizations'] }),
   });
+
   return { remove, transfer };
 }
