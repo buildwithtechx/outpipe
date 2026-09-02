@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"html/template"
 
-	"outpipe.dev/outpipe/templates"
+	"outpipe.dev/outpipe/internal/templates"
 )
 
 type AccountUpdateData struct {
