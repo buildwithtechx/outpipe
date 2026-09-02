@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"strings"
 
+	"outpipe.dev/outpipe/internal/infra/httpclient"
 	"outpipe.dev/outpipe/internal/models"
 )
 
@@ -83,7 +84,7 @@ func NewPolar(cfg PolarConfig) (*PolarClient, error) {
 	client := cfg.HTTPClient
 
 	if client == nil {
-		client = http.DefaultClient
+		client = httpclient.New(0)
 	}
 
 	return &PolarClient{baseURL: baseURL, accessToken: cfg.AccessToken, httpClient: client, productIDs: cfg.ProductIDs, yearlyProductIDs: cfg.YearlyProductIDs}, nil

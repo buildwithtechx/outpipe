@@ -12,6 +12,8 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+
+	"outpipe.dev/outpipe/internal/infra/httpclient"
 )
 
 type PaystackConfig struct {
@@ -64,7 +66,7 @@ func NewPaystack(cfg PaystackConfig) (*PaystackClient, error) {
 	client := cfg.HTTPClient
 
 	if client == nil {
-		client = http.DefaultClient
+		client = httpclient.New(0)
 	}
 
 	return &PaystackClient{baseURL: baseURL, secretKey: cfg.SecretKey, httpClient: client}, nil

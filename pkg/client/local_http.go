@@ -6,7 +6,9 @@ import (
 	"io"
 	"net/http"
 	"strings"
+	"time"
 
+	"outpipe.dev/outpipe/internal/infra/httpclient"
 	"outpipe.dev/outpipe/pkg/protocol"
 )
 
@@ -30,7 +32,7 @@ func (c *RelayConnection) forwardHTTP(ctx context.Context, targetURL string, inc
 		}
 	}
 
-	response, err := http.DefaultClient.Do(request)
+	response, err := httpclient.New(90 * time.Second).Do(request)
 
 	if err != nil {
 		return protocol.HTTPResponse{Error: err.Error()}

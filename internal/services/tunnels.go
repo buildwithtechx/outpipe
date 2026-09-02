@@ -190,20 +190,22 @@ func (s *TunnelService) SetStatus(ctx context.Context, id string, status models.
 		return fmt.Errorf("invalid tunnel status")
 	}
 
-	if err := s.tunnels.UpdateStatus(ctx, id, status); err != nil {
+	deliveries, err := s.statusDeliveries(ctx, id, status)
+	if err != nil {
+		return err
+	}
+
+	if err := s.tunnels.TransitionWithDeliveries(ctx, id, status, nil, deliveries); err != nil {
 		return fmt.Errorf("set tunnel status: %w", err)
 	}
 
-	s.emitStatusEvent(ctx, id, status)
+	if s.webhooks != nil {
+		s.webhooks.afterEnqueue(ctx, len(deliveries))
+	}
 	return nil
 }
 
-func (s *TunnelService) emitStatusEvent(ctx context.Context, id string, status models.TunnelStatus) {
-
-	if s.webhooks == nil {
-		return
-	}
-
+func (s *TunnelService) statusDeliveries(ctx context.Context, id string, status models.TunnelStatus) ([]models.WebhookDelivery, error) {
 	var event models.WebhookEvent
 
 	switch status {
@@ -212,16 +214,25 @@ func (s *TunnelService) emitStatusEvent(ctx context.Context, id string, status m
 	case models.TunnelStatusDisconnected:
 		event = models.WebhookEventTunnelDisconnected
 	default:
-		return
+		return nil, nil
 	}
 
 	tunnel, err := s.tunnels.FindByID(ctx, id)
-
 	if err != nil {
-		return
+		return nil, fmt.Errorf("find tunnel for webhook event: %w", err)
+	}
+	tunnel.Status = status
+
+	if s.webhooks == nil {
+		return nil, nil
 	}
 
-	s.webhooks.Dispatch(ctx, tunnel.OrganizationID, event, map[string]any{"tunnel": tunnel})
+	deliveries, err := s.webhooks.prepareDeliveries(ctx, tunnel.OrganizationID, event, map[string]any{"tunnel": tunnel})
+	if err != nil {
+		return nil, fmt.Errorf("prepare webhook deliveries: %w", err)
+	}
+
+	return deliveries, nil
 }
 
 func (s *TunnelService) Touch(ctx context.Context, id string) error {
@@ -234,22 +245,29 @@ func (s *TunnelService) Touch(ctx context.Context, id string) error {
 }
 
 func (s *TunnelService) Revoke(ctx context.Context, id string) error {
+	tunnel, err := s.tunnels.FindByID(ctx, id)
+	if err != nil {
+		return fmt.Errorf("find tunnel for revocation: %w", err)
+	}
 
-	if err := s.tunnels.Revoke(ctx, id, s.now()); err != nil {
+	var deliveries []models.WebhookDelivery
+	if s.webhooks != nil {
+		tunnel.Status = models.TunnelStatusRevoked
+		deliveries, err = s.webhooks.prepareDeliveries(ctx, tunnel.OrganizationID, models.WebhookEventTunnelRevoked, map[string]any{"tunnel": tunnel})
+		if err != nil {
+			return fmt.Errorf("prepare revocation webhook deliveries: %w", err)
+		}
+	}
+
+	now := s.now()
+	if err := s.tunnels.TransitionWithDeliveries(ctx, id, models.TunnelStatusRevoked, &now, deliveries); err != nil {
 		return fmt.Errorf("revoke tunnel: %w", err)
 	}
 
-	if s.webhooks == nil {
-		return nil
+	if s.webhooks != nil {
+		s.webhooks.afterEnqueue(ctx, len(deliveries))
 	}
 
-	tunnel, err := s.tunnels.FindByID(ctx, id)
-
-	if err != nil {
-		return nil
-	}
-
-	s.webhooks.Dispatch(ctx, tunnel.OrganizationID, models.WebhookEventTunnelRevoked, map[string]any{"tunnel": tunnel})
 	return nil
 }
 

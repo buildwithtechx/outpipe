@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"outpipe.dev/outpipe/internal/engine"
+	"outpipe.dev/outpipe/internal/infra/httpclient"
 	"outpipe.dev/outpipe/internal/models"
 )
 
@@ -19,7 +20,7 @@ type usageRecorder struct {
 }
 
 func newUsageRecorder(baseURL, secret string) *usageRecorder {
-	return &usageRecorder{url: strings.TrimRight(baseURL, "/") + "/internal/usage", secret: secret, client: http.DefaultClient}
+	return &usageRecorder{url: strings.TrimRight(baseURL, "/") + "/internal/usage", secret: secret, client: httpclient.New(0)}
 }
 
 func (r *usageRecorder) Record(ctx context.Context, measurement engine.UsageMeasurement) error {
@@ -35,7 +36,19 @@ func (r *usageRecorder) Record(ctx context.Context, measurement engine.UsageMeas
 		tunnelID = &value
 	}
 
-	event := models.UsageEvent{OrganizationID: measurement.OrganizationID, TunnelID: tunnelID, EventType: measurement.EventType, Bytes: measurement.Bytes, Connections: measurement.Connections, Method: measurement.Method, Path: measurement.Path, StatusCode: measurement.StatusCode, DurationMillis: measurement.DurationMillis, ResponseBytes: measurement.ResponseBytes, ClientIP: measurement.ClientIP}
+	event := models.UsageEvent{
+		OrganizationID: measurement.OrganizationID,
+		TunnelID:       tunnelID,
+		EventType:      measurement.EventType,
+		Bytes:          measurement.Bytes,
+		Connections:    measurement.Connections,
+		Method:         measurement.Method,
+		Path:           measurement.Path,
+		StatusCode:     measurement.StatusCode,
+		DurationMillis: measurement.DurationMillis,
+		ResponseBytes:  measurement.ResponseBytes,
+		ClientIP:       measurement.ClientIP,
+	}
 	body, err := json.Marshal(event)
 
 	if err != nil {

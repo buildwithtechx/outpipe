@@ -8,6 +8,8 @@ import (
 	"io"
 	"net/http"
 	"strings"
+
+	"outpipe.dev/outpipe/internal/infra/httpclient"
 )
 
 type Config struct {
@@ -32,7 +34,7 @@ func New(cfg Config) (*Client, error) {
 	httpClient := cfg.HTTPClient
 
 	if httpClient == nil {
-		httpClient = http.DefaultClient
+		httpClient = httpclient.New(0)
 	}
 
 	return &Client{baseURL: baseURL, apiKey: cfg.APIKey, httpClient: httpClient}, nil

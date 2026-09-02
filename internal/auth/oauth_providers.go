@@ -10,6 +10,7 @@ import (
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/github"
 	"golang.org/x/oauth2/google"
+	"outpipe.dev/outpipe/internal/infra/httpclient"
 )
 
 type OAuthConfig struct {
@@ -23,6 +24,7 @@ type OAuthConfig struct {
 type provider struct {
 	name     string
 	config   *oauth2.Config
+	client   *http.Client
 	profile  string
 	identity func(context.Context, *oauth2.Token) (OAuthProfile, error)
 }
@@ -32,15 +34,15 @@ func NewOAuthProviders(cfg OAuthConfig) map[string]OAuthProvider {
 	client := cfg.HTTPClient
 
 	if client == nil {
-		client = http.DefaultClient
+		client = httpclient.New(0)
 	}
 
 	if cfg.GoogleClientID != "" && cfg.GoogleClientSecret != "" {
-		providers["google"] = &provider{name: "google", config: &oauth2.Config{ClientID: cfg.GoogleClientID, ClientSecret: cfg.GoogleClientSecret, Endpoint: google.Endpoint, Scopes: []string{"openid", "email", "profile"}}, profile: "https://openidconnect.googleapis.com/v1/userinfo", identity: googleProfile(client)}
+		providers["google"] = &provider{name: "google", config: &oauth2.Config{ClientID: cfg.GoogleClientID, ClientSecret: cfg.GoogleClientSecret, Endpoint: google.Endpoint, Scopes: []string{"openid", "email", "profile"}}, client: client, profile: "https://openidconnect.googleapis.com/v1/userinfo", identity: googleProfile(client)}
 	}
 
 	if cfg.GitHubClientID != "" && cfg.GitHubClientSecret != "" {
-		providers["github"] = &provider{name: "github", config: &oauth2.Config{ClientID: cfg.GitHubClientID, ClientSecret: cfg.GitHubClientSecret, Endpoint: github.Endpoint, Scopes: []string{"read:user", "user:email"}}, profile: "https://api.github.com/user", identity: githubProfile(client)}
+		providers["github"] = &provider{name: "github", config: &oauth2.Config{ClientID: cfg.GitHubClientID, ClientSecret: cfg.GitHubClientSecret, Endpoint: github.Endpoint, Scopes: []string{"read:user", "user:email"}}, client: client, profile: "https://api.github.com/user", identity: githubProfile(client)}
 	}
 
 	return providers
@@ -57,13 +59,14 @@ func (p *provider) AuthorizeURL(state, redirectURI, codeChallenge string) string
 func (p *provider) Exchange(ctx context.Context, code, redirectURI, verifier string) (OAuthProfile, error) {
 	config := *p.config
 	config.RedirectURL = redirectURI
-	token, err := config.Exchange(ctx, code, oauth2.SetAuthURLParam("code_verifier", verifier))
+	requestContext := context.WithValue(ctx, oauth2.HTTPClient, p.client)
+	token, err := config.Exchange(requestContext, code, oauth2.SetAuthURLParam("code_verifier", verifier))
 
 	if err != nil {
 		return OAuthProfile{}, fmt.Errorf("exchange %s oauth code: %w", p.name, err)
 	}
 
-	profile, err := p.identity(ctx, token)
+	profile, err := p.identity(requestContext, token)
 
 	if err != nil {
 		return OAuthProfile{}, err

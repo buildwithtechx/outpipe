@@ -7,6 +7,8 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+
+	"outpipe.dev/outpipe/internal/infra/httpclient"
 )
 
 type InternalAgentAuthenticator struct {
@@ -28,7 +30,7 @@ func NewInternalAgentAuthenticator(baseURL, secret string, client *http.Client) 
 	}
 
 	if client == nil {
-		client = http.DefaultClient
+		client = httpclient.New(0)
 	}
 
 	return &InternalAgentAuthenticator{baseURL: strings.TrimRight(baseURL, "/"), secret: secret, client: client}, nil
@@ -82,7 +84,7 @@ func NewInternalTunnelResolver(baseURL, secret string, client *http.Client) (*In
 	}
 
 	if client == nil {
-		client = http.DefaultClient
+		client = httpclient.New(0)
 	}
 
 	return &InternalTunnelResolver{baseURL: strings.TrimRight(baseURL, "/"), secret: secret, client: client}, nil

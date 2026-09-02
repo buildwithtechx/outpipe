@@ -7,6 +7,8 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
+
+	"outpipe.dev/outpipe/internal/infra/httpclient"
 )
 
 type Config struct {
@@ -33,7 +35,7 @@ func NewZeptoClient(config Config, client *http.Client) (*ZeptoClient, error) {
 	}
 
 	if client == nil {
-		client = http.DefaultClient
+		client = httpclient.New(0)
 	}
 
 	return &ZeptoClient{config: config, client: client}, nil

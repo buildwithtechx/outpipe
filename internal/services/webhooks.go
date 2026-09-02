@@ -158,37 +158,41 @@ func (s *WebhookService) Deliveries(ctx context.Context, organizationID, subscri
 	return s.subscriptions.ListDeliveries(ctx, subscriptionID)
 }
 
-func (s *WebhookService) Dispatch(ctx context.Context, organizationID string, event models.WebhookEvent, data map[string]any) {
-
+func (s *WebhookService) prepareDeliveries(ctx context.Context, organizationID string, event models.WebhookEvent, data map[string]any) ([]models.WebhookDelivery, error) {
 	subscriptions, err := s.subscriptions.ListByOrganization(ctx, organizationID)
 
 	if err != nil {
-		return
+		return nil, fmt.Errorf("list webhook subscriptions: %w", err)
 	}
 
 	payload := s.payloadFor(event, data)
+	deliveries := make([]models.WebhookDelivery, 0, len(subscriptions))
 	for _, subscription := range subscriptions {
 
 		if !subscriptionReceives(subscription.Events, string(event)) {
 			continue
 		}
 
-		delivery := &models.WebhookDelivery{
+		deliveries = append(deliveries, models.WebhookDelivery{
 			SubscriptionID: subscription.ID,
 			EventID:        eventID(payload),
 			EventType:      string(event),
 			Payload:        string(payload),
 			Status:         models.WebhookDeliveryPending,
 			AvailableAt:    s.now().UTC(),
-		}
-		_ = s.subscriptions.CreateDelivery(ctx, delivery)
-		if s.metrics != nil {
-			s.metrics.IncCounter("outpipe_webhook_deliveries_enqueued_total", 1)
-		}
+		})
 	}
 
-	if s.synchronous {
-		_ = s.ProcessPending(ctx, len(subscriptions))
+	return deliveries, nil
+}
+
+func (s *WebhookService) afterEnqueue(ctx context.Context, count int) {
+	if s.metrics != nil && count > 0 {
+		s.metrics.IncCounter("outpipe_webhook_deliveries_enqueued_total", int64(count))
+	}
+
+	if s.synchronous && count > 0 {
+		_ = s.ProcessPending(ctx, count)
 	}
 }
 

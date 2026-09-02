@@ -16,6 +16,7 @@ import (
 
 	_ "github.com/jackc/pgx/v5/stdlib"
 	"outpipe.dev/outpipe/internal/config"
+	"outpipe.dev/outpipe/internal/infra/httpclient"
 	"outpipe.dev/outpipe/internal/infra/redis"
 )
 
@@ -133,7 +134,7 @@ func checkAPI(ctx context.Context, apiURL string, secret string) CheckResult {
 		request.Header.Set("X-Internal-Secret", secret)
 	}
 
-	response, err := http.DefaultClient.Do(request)
+	response, err := httpclient.New(0).Do(request)
 
 	if err != nil {
 		return fail("api", started, fmt.Errorf("api readiness check: %w", err))
@@ -171,7 +172,7 @@ func checkRelay(ctx context.Context, relayURL string) CheckResult {
 		return fail("relay", started, fmt.Errorf("create relay health request: %w", err))
 	}
 
-	response, err := http.DefaultClient.Do(request)
+	response, err := httpclient.New(0).Do(request)
 
 	if err != nil {
 		return fail("relay", started, fmt.Errorf("relay health check: %w", err))

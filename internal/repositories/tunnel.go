@@ -17,6 +17,7 @@ type TunnelRepository interface {
 	CountByOrganization(context.Context, string) (int64, error)
 	Update(context.Context, *models.Tunnel) error
 	UpdateStatus(context.Context, string, models.TunnelStatus) error
+	TransitionWithDeliveries(context.Context, string, models.TunnelStatus, *time.Time, []models.WebhookDelivery) error
 	Touch(context.Context, string, time.Time) error
 	Revoke(context.Context, string, time.Time) error
 	DeleteExpired(context.Context, time.Time) (int64, error)
@@ -103,6 +104,31 @@ func (r *GormTunnelRepository) UpdateStatus(ctx context.Context, id string, stat
 	}
 
 	return nil
+}
+
+func (r *GormTunnelRepository) TransitionWithDeliveries(ctx context.Context, id string, status models.TunnelStatus, revokedAt *time.Time, deliveries []models.WebhookDelivery) error {
+	return r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		updates := map[string]any{"status": status}
+		if revokedAt != nil {
+			updates["revoked_at"] = *revokedAt
+		}
+
+		result := tx.Model(&models.Tunnel{}).Where("id = ?", id).Updates(updates)
+		if result.Error != nil {
+			return fmt.Errorf("update tunnel status: %w", result.Error)
+		}
+		if result.RowsAffected != 1 {
+			return ErrNotFound
+		}
+
+		for i := range deliveries {
+			if err := tx.Create(&deliveries[i]).Error; err != nil {
+				return fmt.Errorf("create webhook delivery: %w", err)
+			}
+		}
+
+		return nil
+	})
 }
 
 func (r *GormTunnelRepository) Touch(ctx context.Context, id string, at time.Time) error {

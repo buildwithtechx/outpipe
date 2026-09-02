@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+	"time"
 )
 
 type Config struct {
@@ -44,7 +45,7 @@ func New(cfg Config) (*Client, error) {
 	}
 	httpClient := cfg.HTTPClient
 	if httpClient == nil {
-		httpClient = http.DefaultClient
+		httpClient = &http.Client{Timeout: 15 * time.Second}
 	}
 	return &Client{baseURL: baseURL, apiKey: cfg.APIKey, apiPrefix: prefix, httpClient: httpClient}, nil
 }
