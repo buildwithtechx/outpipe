@@ -31,10 +31,18 @@ export function createNextTunnel(options: NextTunnelOptions): NextTunnel {
       if (options.enabled === false) {
         return current;
       }
-      if (current.status === 'active') return current;
-      if (startPromise) return startPromise;
+
+      if (current.status === 'active') {
+        return current;
+      }
+
+      if (startPromise) {
+        return startPromise;
+      }
+
       const startGeneration = ++generation;
       current = { status: 'connecting' };
+
       startPromise = connection
         .openTunnel({
           local_port: options.localPort,
@@ -43,40 +51,54 @@ export function createNextTunnel(options: NextTunnelOptions): NextTunnel {
           password: options.password,
         })
         .then((tunnel) => {
-          if (startGeneration !== generation) return current;
+          if (startGeneration !== generation) {
+            return current;
+          }
+
           current = {
             status: 'active',
             tunnelId: tunnel.tunnel_id,
             publicUrl: tunnel.public_url,
             publicPort: tunnel.public_port,
           };
+
           return current;
         })
         .catch((value) => {
           if (startGeneration === generation) {
             current = { status: 'error', error: normalizeError(value) };
           }
+
           throw value;
         })
         .finally(() => {
           startPromise = undefined;
         });
+
       return startPromise;
     },
+
     stop: async (reason) => {
       generation += 1;
       const tunnelId = current.tunnelId;
       let closeError: unknown;
+
       try {
-        if (tunnelId) await connection.closeTunnel(tunnelId, reason);
+        if (tunnelId) {
+          await connection.closeTunnel(tunnelId, reason);
+        }
       } catch (error) {
         closeError = error;
       } finally {
         connection.close();
         current = { status: 'closed' };
       }
-      if (closeError) throw closeError;
+
+      if (closeError) {
+        throw closeError;
+      }
     },
+
     state: () => current,
   };
 }

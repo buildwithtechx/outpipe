@@ -121,6 +121,7 @@ export function TunnelProvider({ options, children }: TunnelProviderOptions) {
       closeTunnel,
     ],
   );
+
   return (
     <TunnelContext.Provider value={value}>{children}</TunnelContext.Provider>
   );

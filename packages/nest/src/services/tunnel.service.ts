@@ -19,8 +19,11 @@ export class OutpipeService implements OnModuleInit, OnModuleDestroy {
       this.tunnel = tunnel;
     });
     this.connection.on('disconnected', () => {
-      if (!this.options.reconnect) this.tunnel = undefined;
+      if (!this.options.reconnect) {
+        this.tunnel = undefined;
+      }
     });
+
     this.connection.on('reconnect_exhausted', () => {
       this.tunnel = undefined;
     });
@@ -41,9 +44,16 @@ export class OutpipeService implements OnModuleInit, OnModuleDestroy {
   }
 
   async start(): Promise<OpenTunnelAck> {
-    if (this.tunnel) return this.tunnel;
-    if (this.startPromise) return this.startPromise;
+    if (this.tunnel) {
+      return this.tunnel;
+    }
+
+    if (this.startPromise) {
+      return this.startPromise;
+    }
+
     const startGeneration = ++this.generation;
+
     this.startPromise = this.connection
       .openTunnel({
         local_port: this.options.localPort,
@@ -52,12 +62,16 @@ export class OutpipeService implements OnModuleInit, OnModuleDestroy {
         password: this.options.password,
       })
       .then((tunnel) => {
-        if (startGeneration === this.generation) this.tunnel = tunnel;
+        if (startGeneration === this.generation) {
+          this.tunnel = tunnel;
+        }
+
         return tunnel;
       })
       .finally(() => {
         this.startPromise = undefined;
       });
+
     return this.startPromise;
   }
 
@@ -65,15 +79,21 @@ export class OutpipeService implements OnModuleInit, OnModuleDestroy {
     this.generation += 1;
     const tunnel = this.tunnel;
     let closeError: unknown;
+
     try {
-      if (tunnel) await this.connection.closeTunnel(tunnel.tunnel_id, reason);
+      if (tunnel) {
+        await this.connection.closeTunnel(tunnel.tunnel_id, reason);
+      }
     } catch (error) {
       closeError = error;
     } finally {
       this.tunnel = undefined;
       this.connection.close();
     }
-    if (closeError) throw closeError;
+
+    if (closeError) {
+      throw closeError;
+    }
   }
 
   status(): OpenTunnelAck | undefined {
