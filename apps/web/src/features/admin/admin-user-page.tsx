@@ -1,14 +1,21 @@
 import { AdminShell } from './admin-overview-page';
 import { useAdminUser } from './hooks/use-admin-resources';
+
 export function AdminUserPage({ userId }: { userId: string }) {
   const query = useAdminUser(userId);
-  if (query.isLoading)
+
+  if (query.isLoading) {
     return <p className="p-8 text-sm text-white/55">Loading user details…</p>;
-  if (query.isError || !query.data)
+  }
+
+  if (query.isError || !query.data) {
     return (
       <p className="p-8 text-sm text-rose-200">We could not load this user.</p>
     );
+  }
+
   const user = query.data;
+
   return (
     <AdminShell
       title={user.name || 'User details'}

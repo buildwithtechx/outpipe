@@ -3,6 +3,7 @@ import { createApiKey, revokeApiKey } from '../services/api-key-service';
 
 export function useApiKeyMutations(organizationId: string | undefined) {
   const queryClient = useQueryClient();
+
   const invalidate = () =>
     queryClient.invalidateQueries({ queryKey: ['api-keys', organizationId] });
 

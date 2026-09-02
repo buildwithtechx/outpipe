@@ -4,16 +4,21 @@ import { useAdminOverview, useAdminUsage } from './hooks/use-admin-resources';
 export function AdminChartsPage() {
   const overview = useAdminOverview();
   const usage = useAdminUsage();
-  if (overview.isLoading || usage.isLoading)
+
+  if (overview.isLoading || usage.isLoading) {
     return (
       <p className="p-8 text-sm text-white/55">Loading platform trends…</p>
     );
-  if (overview.isError || usage.isError || !overview.data || !usage.data)
+  }
+
+  if (overview.isError || usage.isError || !overview.data || !usage.data) {
     return (
       <p className="p-8 text-sm text-rose-200">
         We could not load platform trends.
       </p>
     );
+  }
+
   const values: Array<[string, number]> = [
     ['Accounts', overview.data.users],
     ['Workspaces', overview.data.organizations],
@@ -22,6 +27,7 @@ export function AdminChartsPage() {
     ['Errors', usage.data.errorCount],
   ];
   const max = Math.max(...values.map(([, value]) => value), 1);
+
   return (
     <AdminShell
       title="Platform trends"

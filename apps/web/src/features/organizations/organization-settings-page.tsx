@@ -5,17 +5,23 @@ import { useOrganization } from './hooks/use-organization';
 export function OrganizationSettingsPage({ orgSlug }: { orgSlug: string }) {
   const query = useOrganization(orgSlug);
   const members = useMembers(query.organization?.id);
-  if (query.isLoading)
+
+  if (query.isLoading) {
     return (
       <p className="p-8 text-sm text-white/55">Loading workspace settings…</p>
     );
-  if (query.isError || !query.organization)
+  }
+
+  if (query.isError || !query.organization) {
     return (
       <p className="p-8 text-sm text-rose-200">
         We could not load workspace settings.
       </p>
     );
+  }
+
   const { organization } = query;
+
   return (
     <main className="mx-auto w-full max-w-3xl px-6 py-12 text-white sm:px-8 lg:py-16">
       <header className="border-b border-white/10 pb-8">

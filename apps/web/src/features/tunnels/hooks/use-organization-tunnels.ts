@@ -7,9 +7,11 @@ export function useOrganizationTunnels(orgSlug: string) {
     queryKey: ['organizations'],
     queryFn: getOrganizations,
   });
+
   const organization = organizationsQuery.data?.find(
     (candidate) => candidate.slug === orgSlug,
   );
+
   const tunnelsQuery = useQuery({
     queryKey: ['tunnels', organization?.id],
     queryFn: () => getTunnels(organization?.id ?? ''),

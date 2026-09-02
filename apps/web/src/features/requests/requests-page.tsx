@@ -3,21 +3,29 @@ import { useRequestEvents } from './hooks/use-request-events';
 
 export function RequestsPage({ orgSlug }: { orgSlug: string }) {
   const organizationQuery = useOrganization(orgSlug);
-  const query = useRequestEvents(organizationQuery.organization?.id);
-  if (organizationQuery.isLoading || query.isLoading)
+  const organizationId = organizationQuery.organization?.id;
+
+  const query = useRequestEvents(organizationId);
+
+  if (organizationQuery.isLoading || query.isLoading) {
     return <p className="p-8 text-sm text-white/55">Loading requests…</p>;
+  }
+
   if (
     organizationQuery.isError ||
     query.isError ||
     !organizationQuery.organization
-  )
+  ) {
     return (
       <p className="p-8 text-sm text-rose-200">
         We could not load request activity.
       </p>
     );
+  }
+
   const organization = organizationQuery.organization;
   const events = query.data?.events ?? [];
+
   return (
     <main className="mx-auto w-full max-w-6xl px-6 py-12 text-white sm:px-8 lg:py-16">
       <header className="border-b border-white/10 pb-8">

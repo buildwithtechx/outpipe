@@ -5,27 +5,37 @@ import { useApiKeys } from './hooks/use-api-keys';
 
 export function ApiKeysPage({ orgSlug }: { orgSlug: string }) {
   const organizationQuery = useOrganization(orgSlug);
-  const query = useApiKeys(organizationQuery.organization?.id);
-  const mutations = useApiKeyMutations(organizationQuery.organization?.id);
-  if (organizationQuery.isLoading || query.isLoading)
+  const organizationId = organizationQuery.organization?.id;
+
+  const query = useApiKeys(organizationId);
+  const mutations = useApiKeyMutations(organizationId);
+
+  if (organizationQuery.isLoading || query.isLoading) {
     return <p className="p-8 text-sm text-white/55">Loading API keys…</p>;
+  }
+
   if (
     organizationQuery.isError ||
     query.isError ||
     !organizationQuery.organization
-  )
+  ) {
     return (
       <p className="p-8 text-sm text-rose-200">We could not load API keys.</p>
     );
+  }
+
   const organization = organizationQuery.organization;
+
   const createKey = () => {
     const name = window.prompt('Name this API key');
     if (!name?.trim()) return;
+
     mutations.create.mutate({
       name: name.trim(),
       scopes: ['tunnels:read'],
     });
   };
+
   return (
     <main className="mx-auto w-full max-w-6xl px-6 py-12 text-white sm:px-8 lg:py-16">
       <header className="border-b border-white/10 pb-8">

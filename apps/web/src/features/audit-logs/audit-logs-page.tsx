@@ -3,20 +3,28 @@ import { useAuditLogs } from './hooks/use-audit-logs';
 
 export function AuditLogsPage({ orgSlug }: { orgSlug: string }) {
   const organizationQuery = useOrganization(orgSlug);
-  const query = useAuditLogs(organizationQuery.organization?.id);
-  if (organizationQuery.isLoading || query.isLoading)
+  const organizationId = organizationQuery.organization?.id;
+
+  const query = useAuditLogs(organizationId);
+
+  if (organizationQuery.isLoading || query.isLoading) {
     return <p className="p-8 text-sm text-white/55">Loading audit history…</p>;
+  }
+
   if (
     organizationQuery.isError ||
     query.isError ||
     !organizationQuery.organization
-  )
+  ) {
     return (
       <p className="p-8 text-sm text-rose-200">
         We could not load audit history.
       </p>
     );
+  }
+
   const events = query.data?.events ?? [];
+
   return (
     <main className="mx-auto w-full max-w-6xl px-6 py-12 text-white sm:px-8 lg:py-16">
       <header className="border-b border-white/10 pb-8">

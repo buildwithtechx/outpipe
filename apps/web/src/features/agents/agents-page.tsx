@@ -17,9 +17,11 @@ export function AgentsPage({ orgSlug }: { orgSlug: string }) {
     queryKey: ['organizations'],
     queryFn: getOrganizations,
   });
+
   const organization = organizations.data?.find(
     (item) => item.slug === orgSlug,
   );
+
   const agents = useQuery({
     queryKey: ['agents', organization?.id],
     queryFn: () =>

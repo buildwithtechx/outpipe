@@ -8,30 +8,40 @@ import { useBillingPlans } from './hooks/use-billing-plans';
 
 export function BillingPage({ orgSlug }: { orgSlug: string }) {
   const organizationQuery = useOrganization(orgSlug);
-  const query = useBilling(organizationQuery.organization?.id);
-  const actions = useBillingActions(organizationQuery.organization?.id);
-  const invoices = useBillingInvoices(organizationQuery.organization?.id);
-  const plans = useBillingPlans(organizationQuery.organization?.id);
-  if (organizationQuery.isLoading || query.isLoading)
+  const organizationId = organizationQuery.organization?.id;
+
+  const query = useBilling(organizationId);
+  const actions = useBillingActions(organizationId);
+  const invoices = useBillingInvoices(organizationId);
+  const plans = useBillingPlans(organizationId);
+
+  if (organizationQuery.isLoading || query.isLoading) {
     return <p className="p-8 text-sm text-white/55">Loading billing…</p>;
+  }
+
   if (
     organizationQuery.isError ||
     query.isError ||
     !organizationQuery.organization
-  )
+  ) {
     return (
       <p className="p-8 text-sm text-rose-200">
         We could not load billing details.
       </p>
     );
+  }
+
   const organization = organizationQuery.organization;
   const { plan, subscription } = query.data ?? {};
-  if (!plan || !subscription)
+
+  if (!plan || !subscription) {
     return (
       <p className="p-8 text-sm text-rose-200">
         Billing details are not available for this workspace.
       </p>
     );
+  }
+
   return (
     <main className="mx-auto w-full max-w-6xl px-6 py-12 text-white sm:px-8 lg:py-16">
       <header className="border-b border-white/10 pb-8">

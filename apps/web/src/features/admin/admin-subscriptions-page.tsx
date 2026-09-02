@@ -1,15 +1,21 @@
 import { AdminShell } from './admin-overview-page';
 import { useAdminSubscriptions } from './hooks/use-admin-resources';
+
 export function AdminSubscriptionsPage() {
   const query = useAdminSubscriptions();
-  if (query.isLoading)
+
+  if (query.isLoading) {
     return <p className="p-8 text-sm text-white/55">Loading subscriptions…</p>;
-  if (query.isError)
+  }
+
+  if (query.isError) {
     return (
       <p className="p-8 text-sm text-rose-200">
         We could not load subscriptions.
       </p>
     );
+  }
+
   return (
     <AdminShell
       title="Subscriptions"

@@ -1,22 +1,29 @@
 import { AdminShell } from './admin-overview-page';
 import { useAdminOrganization } from './hooks/use-admin-resources';
+
 export function AdminOrganizationPage({
   organizationId,
 }: {
   organizationId: string;
 }) {
   const query = useAdminOrganization(organizationId);
-  if (query.isLoading)
+
+  if (query.isLoading) {
     return (
       <p className="p-8 text-sm text-white/55">Loading organization details…</p>
     );
-  if (query.isError || !query.data)
+  }
+
+  if (query.isError || !query.data) {
     return (
       <p className="p-8 text-sm text-rose-200">
         We could not load this organization.
       </p>
     );
+  }
+
   const organization = query.data;
+
   return (
     <AdminShell
       title={organization.name}

@@ -4,14 +4,19 @@ import { useAdminUserStatus, useAdminUsers } from './hooks/use-admin-resources';
 export function AdminUsersPage() {
   const query = useAdminUsers();
   const status = useAdminUserStatus();
-  if (query.isLoading)
+
+  if (query.isLoading) {
     return <p className="p-8 text-sm text-white/55">Loading platform users…</p>;
-  if (query.isError)
+  }
+
+  if (query.isError) {
     return (
       <p className="p-8 text-sm text-rose-200">
         We could not load platform users.
       </p>
     );
+  }
+
   return (
     <AdminShell
       title="Users"

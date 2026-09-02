@@ -39,6 +39,7 @@ const guidance = [
 
 export function ReportBugPage() {
   const [submitted, setSubmitted] = useState(false);
+
   const mutations = useSupportMutations();
 
   function submitReport(event: SubmitEvent<HTMLFormElement>) {

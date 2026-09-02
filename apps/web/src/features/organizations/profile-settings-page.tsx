@@ -5,15 +5,21 @@ import { useLogout } from '#/features/auth/hooks/use-logout';
 export function ProfileSettingsPage() {
   const sessionQuery = useAuthSession();
   const logout = useLogout();
-  if (sessionQuery.isLoading)
+
+  if (sessionQuery.isLoading) {
     return <p className="p-8 text-sm text-white/55">Loading profile…</p>;
-  if (sessionQuery.isError || !sessionQuery.user)
+  }
+
+  if (sessionQuery.isError || !sessionQuery.user) {
     return (
       <p className="p-8 text-sm text-rose-200">
         We could not load your profile.
       </p>
     );
+  }
+
   const { user } = sessionQuery;
+
   return (
     <main className="mx-auto w-full max-w-3xl px-6 py-12 text-white sm:px-8 lg:py-16">
       <header className="border-b border-white/10 pb-8">

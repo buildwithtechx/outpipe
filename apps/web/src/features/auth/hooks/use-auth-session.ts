@@ -6,6 +6,7 @@ import { useAuthStore } from '#/stores/auth-store';
 export function useAuthSession() {
   const setUser = useAuthStore((state) => state.setUser);
   const clear = useAuthStore((state) => state.clear);
+
   const query = useQuery({
     queryKey: ['auth', 'session'],
     queryFn: getAuthSession,
@@ -15,8 +16,11 @@ export function useAuthSession() {
   });
 
   useEffect(() => {
-    if (query.data) setUser(query.data.user);
-    else if (query.isError) clear();
+    if (query.data) {
+      setUser(query.data.user);
+    } else if (query.isError) {
+      clear();
+    }
   }, [clear, query.data, query.isError, setUser]);
 
   return {

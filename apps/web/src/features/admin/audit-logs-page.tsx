@@ -2,17 +2,23 @@ import { useAdminAuditLogs } from './hooks/use-admin-audit-logs';
 
 export function AdminAuditLogsPage() {
   const query = useAdminAuditLogs();
-  if (query.isLoading)
+
+  if (query.isLoading) {
     return (
       <p className="p-8 text-sm text-white/55">Loading platform audit logs…</p>
     );
-  if (query.isError)
+  }
+
+  if (query.isError) {
     return (
       <p className="p-8 text-sm text-rose-200">
         We could not load platform audit logs.
       </p>
     );
+  }
+
   const events = query.data?.items ?? [];
+
   return (
     <main className="mx-auto w-full max-w-6xl px-6 py-12 text-white sm:px-8 lg:py-16">
       <header className="border-b border-white/10 pb-8">

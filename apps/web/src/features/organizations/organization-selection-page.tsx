@@ -30,20 +30,24 @@ function organizationInitial(name: string) {
 export function OrganizationSelectionPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+
   const [showCreate, setShowCreate] = useState(false);
   const [name, setName] = useState('');
   const [slug, setSlug] = useState('');
   const [generatedSlug, setGeneratedSlug] = useState('');
+
   const organizationsQuery = useQuery({
     queryKey: ['organizations'],
     queryFn: getOrganizations,
   });
+
   const slugQuery = useQuery({
     queryKey: ['organization-slug', slug],
     queryFn: () => checkOrganizationSlug(slug),
     enabled: false,
     retry: false,
   });
+
   const createMutation = useMutation({
     mutationFn: () => createOrganization(name.trim(), slug),
     onSuccess: async (organization) => {

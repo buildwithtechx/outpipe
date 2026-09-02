@@ -1,19 +1,25 @@
 import { Button } from '#/components/ui/button';
 import { AdminShell } from './admin-overview-page';
 import { useAdminUserStatus, useAdminUsers } from './hooks/use-admin-resources';
+
 export function AdminActionsPage() {
   const users = useAdminUsers();
   const status = useAdminUserStatus();
-  if (users.isLoading)
+
+  if (users.isLoading) {
     return (
       <p className="p-8 text-sm text-white/55">Loading available actions…</p>
     );
-  if (users.isError)
+  }
+
+  if (users.isError) {
     return (
       <p className="p-8 text-sm text-rose-200">
         We could not load available actions.
       </p>
     );
+  }
+
   return (
     <AdminShell
       title="Admin actions"

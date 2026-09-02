@@ -8,21 +8,30 @@ import { useDomains } from './hooks/use-domains';
 
 export function DomainsPage({ orgSlug }: { orgSlug: string }) {
   const organizationQuery = useOrganization(orgSlug);
-  const query = useDomains(organizationQuery.organization?.id);
-  const mutations = useDomainMutations(organizationQuery.organization?.id);
+  const organizationId = organizationQuery.organization?.id;
+
+  const query = useDomains(organizationId);
+  const mutations = useDomainMutations(organizationId);
+
   const [hostname, setHostname] = useState('');
   const [token, setToken] = useState('');
-  if (organizationQuery.isLoading || query.isLoading)
+
+  if (organizationQuery.isLoading || query.isLoading) {
     return <p className="p-8 text-sm text-white/55">Loading domains…</p>;
+  }
+
   if (
     organizationQuery.isError ||
     query.isError ||
     !organizationQuery.organization
-  )
+  ) {
     return (
       <p className="p-8 text-sm text-rose-200">We could not load domains.</p>
     );
+  }
+
   const domains = query.data ?? [];
+
   return (
     <main className="mx-auto w-full max-w-6xl px-6 py-12 text-white sm:px-8 lg:py-16">
       <header className="border-b border-white/10 pb-8">

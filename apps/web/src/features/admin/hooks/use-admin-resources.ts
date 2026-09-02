@@ -16,9 +16,14 @@ export function useAdminOverview() {
     queryFn: getAdminOverview,
   });
 }
+
 export function useAdminUsage() {
-  return useQuery({ queryKey: ['admin', 'usage'], queryFn: getAdminUsage });
+  return useQuery({
+    queryKey: ['admin', 'usage'],
+    queryFn: getAdminUsage,
+  });
 }
+
 export function useAdminUser(userId: string) {
   return useQuery({
     queryKey: ['admin', 'user', userId],
@@ -26,6 +31,7 @@ export function useAdminUser(userId: string) {
     enabled: Boolean(userId),
   });
 }
+
 export function useAdminOrganization(organizationId: string) {
   return useQuery({
     queryKey: ['admin', 'organization', organizationId],
@@ -33,26 +39,38 @@ export function useAdminOrganization(organizationId: string) {
     enabled: Boolean(organizationId),
   });
 }
+
 export function useAdminUsers() {
-  return useQuery({ queryKey: ['admin', 'users'], queryFn: getAdminUsers });
+  return useQuery({
+    queryKey: ['admin', 'users'],
+    queryFn: getAdminUsers,
+  });
 }
+
 export function useAdminOrganizations() {
   return useQuery({
     queryKey: ['admin', 'organizations'],
     queryFn: getAdminOrganizations,
   });
 }
+
 export function useAdminTunnels() {
-  return useQuery({ queryKey: ['admin', 'tunnels'], queryFn: getAdminTunnels });
+  return useQuery({
+    queryKey: ['admin', 'tunnels'],
+    queryFn: getAdminTunnels,
+  });
 }
+
 export function useAdminSubscriptions() {
   return useQuery({
     queryKey: ['admin', 'subscriptions'],
     queryFn: getAdminSubscriptions,
   });
 }
+
 export function useAdminUserStatus() {
   const queryClient = useQueryClient();
+
   return useMutation({
     mutationFn: ({
       userId,

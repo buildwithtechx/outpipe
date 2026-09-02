@@ -4,6 +4,7 @@ import { updateTunnelConfiguration } from '../services/tunnel-service';
 
 export function useTunnelConfigurationMutation(tunnelID: string) {
   const queryClient = useQueryClient();
+
   return useMutation({
     mutationFn: (request: UpdateTunnelConfigurationRequest) =>
       updateTunnelConfiguration(tunnelID, request),

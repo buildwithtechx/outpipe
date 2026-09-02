@@ -4,15 +4,22 @@ import { useAdminOverview } from './hooks/use-admin-resources';
 
 export function AdminOverviewPage() {
   const query = useAdminOverview();
-  if (query.isLoading) return <AdminState text="Loading platform overview…" />;
-  if (query.isError || !query.data)
+
+  if (query.isLoading) {
+    return <AdminState text="Loading platform overview…" />;
+  }
+
+  if (query.isError || !query.data) {
     return <AdminState text="We could not load the platform overview." error />;
+  }
+
   const cards = [
     ['Users', query.data.users, '/admin/users'],
     ['Organizations', query.data.organizations, '/admin/organizations'],
     ['Tunnels', query.data.tunnels, '/admin/tunnels'],
     ['Subscriptions', query.data.subscriptions, '/admin/subscriptions'],
   ] as const;
+
   return (
     <AdminShell
       title="Platform overview"
@@ -36,6 +43,7 @@ export function AdminOverviewPage() {
     </AdminShell>
   );
 }
+
 export function AdminShell({
   title,
   subtitle,

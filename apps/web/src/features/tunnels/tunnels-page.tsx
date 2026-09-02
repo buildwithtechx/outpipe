@@ -18,10 +18,13 @@ const initialRequest: CreateTunnelRequest = {
 
 export function TunnelsPage({ orgSlug }: { orgSlug: string }) {
   const queryClient = useQueryClient();
+
   const [isCreating, setIsCreating] = useState(false);
   const [request, setRequest] = useState<CreateTunnelRequest>(initialRequest);
+
   const { organization, organizationsQuery, tunnelsQuery } =
     useOrganizationTunnels(orgSlug);
+
   const createMutation = useMutation({
     mutationFn: () => createTunnel(organization?.id ?? '', request),
     onSuccess: async () => {

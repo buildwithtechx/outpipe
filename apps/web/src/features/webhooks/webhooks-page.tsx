@@ -8,21 +8,30 @@ import { useWebhooks } from './hooks/use-webhooks';
 
 export function WebhooksPage({ orgSlug }: { orgSlug: string }) {
   const organizationQuery = useOrganization(orgSlug);
-  const query = useWebhooks(organizationQuery.organization?.id);
-  const mutations = useWebhookMutations(organizationQuery.organization?.id);
+  const organizationId = organizationQuery.organization?.id;
+
+  const query = useWebhooks(organizationId);
+  const mutations = useWebhookMutations(organizationId);
+
   const [name, setName] = useState('');
   const [url, setUrl] = useState('');
-  if (organizationQuery.isLoading || query.isLoading)
+
+  if (organizationQuery.isLoading || query.isLoading) {
     return <p className="p-8 text-sm text-white/55">Loading webhooks…</p>;
+  }
+
   if (
     organizationQuery.isError ||
     query.isError ||
     !organizationQuery.organization
-  )
+  ) {
     return (
       <p className="p-8 text-sm text-rose-200">We could not load webhooks.</p>
     );
+  }
+
   const webhooks = query.data ?? [];
+
   return (
     <main className="mx-auto w-full max-w-6xl px-6 py-12 text-white sm:px-8 lg:py-16">
       <header className="border-b border-white/10 pb-8">

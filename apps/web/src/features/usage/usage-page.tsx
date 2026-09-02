@@ -3,27 +3,36 @@ import { useUsageSnapshot } from './hooks/use-usage-snapshot';
 
 export function UsagePage({ orgSlug }: { orgSlug: string }) {
   const organizationQuery = useOrganization(orgSlug);
-  const query = useUsageSnapshot(organizationQuery.organization?.id);
-  if (organizationQuery.isLoading || query.isLoading)
+  const organizationId = organizationQuery.organization?.id;
+
+  const query = useUsageSnapshot(organizationId);
+
+  if (organizationQuery.isLoading || query.isLoading) {
     return <p className="p-8 text-sm text-white/55">Loading usage…</p>;
+  }
+
   if (
     organizationQuery.isError ||
     query.isError ||
     !organizationQuery.organization
-  )
+  ) {
     return (
       <p className="p-8 text-sm text-rose-200">
         We could not load usage for this workspace.
       </p>
     );
+  }
+
   const organization = organizationQuery.organization;
   const snapshot = query.data;
+
   const cards = [
     ['Requests', snapshot?.requestCount ?? 0],
     ['Errors', snapshot?.errorCount ?? 0],
     ['Connections', snapshot?.activeConnections ?? 0],
     ['Bandwidth', formatBytes(snapshot?.bandwidthBytes ?? 0)],
   ] as const;
+
   return (
     <main className="mx-auto w-full max-w-6xl px-6 py-12 text-white sm:px-8 lg:py-16">
       <header className="border-b border-white/10 pb-8">

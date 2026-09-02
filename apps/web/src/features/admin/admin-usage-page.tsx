@@ -3,19 +3,25 @@ import { useAdminUsage } from './hooks/use-admin-resources';
 
 export function AdminUsagePage() {
   const query = useAdminUsage();
-  if (query.isLoading)
+
+  if (query.isLoading) {
     return <p className="p-8 text-sm text-white/55">Loading platform usage…</p>;
-  if (query.isError || !query.data)
+  }
+
+  if (query.isError || !query.data) {
     return (
       <p className="p-8 text-sm text-rose-200">
         We could not load platform usage.
       </p>
     );
+  }
+
   const metrics = [
     ['Requests', query.data.requestCount.toLocaleString()],
     ['Errors', query.data.errorCount.toLocaleString()],
     ['Bandwidth', formatBytes(query.data.bandwidthBytes)],
   ];
+
   return (
     <AdminShell
       title="Platform usage"

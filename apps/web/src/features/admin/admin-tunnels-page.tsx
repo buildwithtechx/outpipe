@@ -1,17 +1,23 @@
 import { AdminShell } from './admin-overview-page';
 import { useAdminTunnels } from './hooks/use-admin-resources';
+
 export function AdminTunnelsPage() {
   const query = useAdminTunnels();
-  if (query.isLoading)
+
+  if (query.isLoading) {
     return (
       <p className="p-8 text-sm text-white/55">Loading platform tunnels…</p>
     );
-  if (query.isError)
+  }
+
+  if (query.isError) {
     return (
       <p className="p-8 text-sm text-rose-200">
         We could not load platform tunnels.
       </p>
     );
+  }
+
   return (
     <AdminShell
       title="All tunnels"
