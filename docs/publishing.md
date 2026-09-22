@@ -26,7 +26,7 @@ git tag "v${VERSION}"
 git push origin "v${VERSION}"
 ```
 
-### What this workflow builds:
+### Artifacts built by this workflow
 
 1. **Server & Daemon Binaries**: `outpipe-api`, `outpipe`, `outpipe-cron`, `outpipe-check` for Linux (`amd64`).
 2. **CLI Binaries**: `outpipe-cli` for Linux (`amd64`), macOS (`amd64`, `arm64`), and Windows (`amd64`).
@@ -51,7 +51,7 @@ git tag "packages-v${VERSION}"
 git push origin "packages-v${VERSION}"
 ```
 
-### Publishing Mechanism:
+### npm trusted publishing mechanism
 
 - Uses **npm Trusted Publishing** via GitHub Actions OIDC (`--provenance`).
 - No long-lived `NPM_TOKEN` secret is needed.
@@ -69,7 +69,7 @@ git tag "packages/go/v${VERSION}"
 git push origin "packages/go/v${VERSION}"
 ```
 
-### Workflow Actions:
+### Go publishing process
 
 - Runs `go vet ./...` and `go test ./...` in `packages/go`.
 - Requests immediate module indexing on `proxy.golang.org`:
@@ -92,7 +92,7 @@ git tag "rust-v${VERSION}"
 git push origin "rust-v${VERSION}"
 ```
 
-### Workflow Actions:
+### Rust publishing process
 
 - Requires repository secret `CRATES_IO_TOKEN`.
 - Runs formatting (`cargo fmt --check`), tests (`cargo test`), dry-run validation (`cargo publish --dry-run`), and finally publishes to crates.io.
