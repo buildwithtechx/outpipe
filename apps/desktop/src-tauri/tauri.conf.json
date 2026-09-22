@@ -7,7 +7,7 @@
     "beforeDevCommand": "npm run dev --workspace apps/web",
     "devUrl": "http://localhost:3000",
     "beforeBuildCommand": "npm --prefix ../.. run build:web",
-    "frontendDist": "../../web/.output/public"
+    "frontendDist": "../../web/dist/client"
   },
   "app": {
     "windows": [
