@@ -63,6 +63,7 @@ jobs:
         with:
           node-version: 24
           cache: npm
+          registry-url: "https://registry.npmjs.org"
 
       - name: Download build artifacts
         uses: actions/download-artifact@v4
@@ -76,11 +77,13 @@ jobs:
           npm --version
 
       - name: Publish packages
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
-          npm publish --provenance --workspace packages/sdk
-          npm publish --provenance --workspace packages/react
-          npm publish --provenance --workspace packages/vite-plugin
-          npm publish --provenance --workspace packages/next
-          npm publish --provenance --workspace packages/nest
-          npm publish --provenance --workspace packages/express
-          npm publish --provenance --workspace packages/angular
+          npm publish --provenance --access public --workspace packages/sdk
+          npm publish --provenance --access public --workspace packages/react
+          npm publish --provenance --access public --workspace packages/vite-plugin
+          npm publish --provenance --access public --workspace packages/next
+          npm publish --provenance --access public --workspace packages/nest
+          npm publish --provenance --access public --workspace packages/express
+          npm publish --provenance --access public --workspace packages/angular
