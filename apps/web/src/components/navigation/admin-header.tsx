@@ -1,8 +1,8 @@
-import { Link } from "@tanstack/react-router";
-import { ArrowLeft, LogOut, Menu, ShieldCheck, X } from "lucide-react";
-import { useState } from "react";
-import { BrandLockup } from "#/components/layout";
-import { Button } from "#/components/ui/button";
+import { Link } from '@tanstack/react-router';
+import { ArrowLeft, LogOut, Menu, ShieldCheck, X } from 'lucide-react';
+import { useState } from 'react';
+import { BrandLockup } from '#/components/layout';
+import { Button } from '#/components/ui/button';
 import {
   Dialog,
   DialogContent,
@@ -10,9 +10,9 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "#/components/ui/dialog";
-import { useAuthSession } from "#/features/auth/hooks/use-auth-session";
-import { useLogout } from "#/features/auth/hooks/use-logout";
+} from '#/components/ui/dialog';
+import { useAuthSession } from '#/features/auth/hooks/use-auth-session';
+import { useLogout } from '#/features/auth/hooks/use-logout';
 
 interface AdminHeaderProps {
   mobileOpen: boolean;
@@ -68,7 +68,7 @@ export function AdminHeader({ mobileOpen, setMobileOpen }: AdminHeaderProps) {
           <div className="flex items-center gap-2 pl-2 border-l border-white/10">
             <div className="hidden md:flex flex-col text-right">
               <span className="text-xs font-semibold text-white/90 truncate max-w-30">
-                {user?.name || user?.email?.split("@")[0] || "Admin"}
+                {user?.name || user?.email?.split('@')[0] || 'Admin'}
               </span>
               <span className="text-[10px] text-purple-400 font-mono">
                 Superadmin
@@ -119,7 +119,7 @@ export function AdminHeader({ mobileOpen, setMobileOpen }: AdminHeaderProps) {
               disabled={logoutMutation.isPending}
               className="bg-rose-600 hover:bg-rose-700 text-white text-xs font-medium"
             >
-              {logoutMutation.isPending ? "Signing Out..." : "Sign Out"}
+              {logoutMutation.isPending ? 'Signing Out...' : 'Sign Out'}
             </Button>
           </DialogFooter>
         </DialogContent>

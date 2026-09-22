@@ -1,4 +1,4 @@
-import { Link, useLocation } from "@tanstack/react-router";
+import { Link, useLocation } from '@tanstack/react-router';
 import {
   Activity,
   Cable,
@@ -15,11 +15,11 @@ import {
   Terminal,
   Users,
   Webhook,
-} from "lucide-react";
-import { useState } from "react";
-import { Badge } from "#/components/ui/badge";
-import { useAuthSession } from "#/features/auth/hooks/use-auth-session";
-import { useOrganization } from "#/features/organizations/hooks/use-organization";
+} from 'lucide-react';
+import { useState } from 'react';
+import { Badge } from '#/components/ui/badge';
+import { useAuthSession } from '#/features/auth/hooks/use-auth-session';
+import { useOrganization } from '#/features/organizations/hooks/use-organization';
 
 interface DashboardSidebarProps {
   orgSlug: string;
@@ -40,22 +40,22 @@ export function DashboardSidebar({
   const isPlatformAdmin = Boolean(session?.isPlatformAdmin);
 
   const navItems = [
-    { label: "Overview", to: `/${orgSlug}`, icon: Layers, exact: true },
-    { label: "Tunnels", to: `/${orgSlug}/tunnels`, icon: Cable },
-    { label: "Agents", to: `/${orgSlug}/agents`, icon: Radio },
-    { label: "Domains", to: `/${orgSlug}/domains`, icon: Globe },
-    { label: "Live Requests", to: `/${orgSlug}/requests`, icon: Activity },
-    { label: "Usage", to: `/${orgSlug}/usage`, icon: ScrollText },
-    { label: "Billing", to: `/${orgSlug}/billing`, icon: CreditCard },
-    { label: "Members", to: `/${orgSlug}/members`, icon: Users },
-    { label: "API Keys", to: `/${orgSlug}/api-keys`, icon: Key },
-    { label: "Webhooks", to: `/${orgSlug}/webhooks`, icon: Webhook },
-    { label: "Audit Logs", to: `/${orgSlug}/audit-logs`, icon: ScrollText },
-    { label: "Settings", to: `/${orgSlug}/settings`, icon: Settings },
+    { label: 'Overview', to: `/${orgSlug}`, icon: Layers, exact: true },
+    { label: 'Tunnels', to: `/${orgSlug}/tunnels`, icon: Cable },
+    { label: 'Agents', to: `/${orgSlug}/agents`, icon: Radio },
+    { label: 'Domains', to: `/${orgSlug}/domains`, icon: Globe },
+    { label: 'Live Requests', to: `/${orgSlug}/requests`, icon: Activity },
+    { label: 'Usage', to: `/${orgSlug}/usage`, icon: ScrollText },
+    { label: 'Billing', to: `/${orgSlug}/billing`, icon: CreditCard },
+    { label: 'Members', to: `/${orgSlug}/members`, icon: Users },
+    { label: 'API Keys', to: `/${orgSlug}/api-keys`, icon: Key },
+    { label: 'Webhooks', to: `/${orgSlug}/webhooks`, icon: Webhook },
+    { label: 'Audit Logs', to: `/${orgSlug}/audit-logs`, icon: ScrollText },
+    { label: 'Settings', to: `/${orgSlug}/settings`, icon: Settings },
   ];
 
   const copyCliCommand = async () => {
-    await navigator.clipboard.writeText("outpipe http 3000");
+    await navigator.clipboard.writeText('outpipe http 3000');
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
@@ -104,13 +104,13 @@ export function DashboardSidebar({
                 onClick={() => setMobileOpen(false)}
                 className={`flex items-center gap-3 rounded-xl px-3 py-2 text-xs font-medium transition-all ${
                   isActive
-                    ? "bg-indigo-600 text-white font-semibold shadow-xs"
-                    : "text-white/60 hover:bg-white/6 hover:text-white"
+                    ? 'bg-indigo-600 text-white font-semibold shadow-xs'
+                    : 'text-white/60 hover:bg-white/6 hover:text-white'
                 }`}
               >
                 <Icon
                   className={`size-4 shrink-0 transition-colors ${
-                    isActive ? "text-white" : "text-white/40"
+                    isActive ? 'text-white' : 'text-white/40'
                   }`}
                 />
                 <span className="truncate">{item.label}</span>

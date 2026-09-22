@@ -38,7 +38,9 @@ export function MembersPage({ orgSlug }: { orgSlug: string }) {
   return (
     <div className="w-full max-w-6xl space-y-6 pb-12 text-white">
       <header className="border-b border-white/10 pb-6">
-        <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-indigo-400">{organization.name}</p>
+        <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-indigo-400">
+          {organization.name}
+        </p>
         <h1 className="text-3xl font-semibold tracking-[-0.04em]">Members</h1>
         <div className="mt-2 flex flex-wrap items-center justify-between gap-4">
           <p className="text-sm text-white/55">

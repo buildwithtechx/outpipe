@@ -45,7 +45,9 @@ export function BillingPage({ orgSlug }: { orgSlug: string }) {
   return (
     <div className="w-full max-w-6xl space-y-6 pb-12 text-white">
       <header className="border-b border-white/10 pb-6">
-        <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-indigo-400">{organization.name}</p>
+        <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-indigo-400">
+          {organization.name}
+        </p>
         <h1 className="text-3xl font-semibold tracking-[-0.04em]">Billing</h1>
         <p className="mt-1 text-sm text-white/55">
           Your current plan and subscription status.

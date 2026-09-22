@@ -1,4 +1,4 @@
-import { Link, useLocation } from "@tanstack/react-router";
+import { Link, useLocation } from '@tanstack/react-router';
 import {
   Activity,
   ArrowLeft,
@@ -11,8 +11,8 @@ import {
   Shield,
   Users,
   Zap,
-} from "lucide-react";
-import { Badge } from "#/components/ui/badge";
+} from 'lucide-react';
+import { Badge } from '#/components/ui/badge';
 
 interface AdminSidebarProps {
   mobileOpen: boolean;
@@ -23,15 +23,15 @@ export function AdminSidebar({ mobileOpen, setMobileOpen }: AdminSidebarProps) {
   const location = useLocation();
 
   const navItems = [
-    { label: "Platform Overview", to: "/admin", icon: Shield, exact: true },
-    { label: "User Accounts", to: "/admin/users", icon: Users },
-    { label: "Organizations", to: "/admin/organizations", icon: Layers },
-    { label: "Global Tunnels", to: "/admin/tunnels", icon: Cable },
-    { label: "Subscriptions", to: "/admin/subscriptions", icon: CreditCard },
-    { label: "System Usage", to: "/admin/usage", icon: Activity },
-    { label: "Telemetry & Charts", to: "/admin/charts", icon: LineChart },
-    { label: "Audit Logs", to: "/admin/audit-logs", icon: ScrollText },
-    { label: "Control Actions", to: "/admin/actions", icon: Zap },
+    { label: 'Platform Overview', to: '/admin', icon: Shield, exact: true },
+    { label: 'User Accounts', to: '/admin/users', icon: Users },
+    { label: 'Organizations', to: '/admin/organizations', icon: Layers },
+    { label: 'Global Tunnels', to: '/admin/tunnels', icon: Cable },
+    { label: 'Subscriptions', to: '/admin/subscriptions', icon: CreditCard },
+    { label: 'System Usage', to: '/admin/usage', icon: Activity },
+    { label: 'Telemetry & Charts', to: '/admin/charts', icon: LineChart },
+    { label: 'Audit Logs', to: '/admin/audit-logs', icon: ScrollText },
+    { label: 'Control Actions', to: '/admin/actions', icon: Zap },
   ];
 
   const content = (
@@ -76,13 +76,13 @@ export function AdminSidebar({ mobileOpen, setMobileOpen }: AdminSidebarProps) {
                 onClick={() => setMobileOpen(false)}
                 className={`flex items-center gap-3 rounded-xl px-3 py-2 text-xs font-medium transition-all ${
                   isActive
-                    ? "bg-purple-600 text-white font-semibold shadow-xs"
-                    : "text-white/60 hover:bg-white/6 hover:text-white"
+                    ? 'bg-purple-600 text-white font-semibold shadow-xs'
+                    : 'text-white/60 hover:bg-white/6 hover:text-white'
                 }`}
               >
                 <Icon
                   className={`size-4 shrink-0 transition-colors ${
-                    isActive ? "text-white" : "text-white/40"
+                    isActive ? 'text-white' : 'text-white/40'
                   }`}
                 />
                 <span className="truncate">{item.label}</span>

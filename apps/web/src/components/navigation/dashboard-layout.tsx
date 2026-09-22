@@ -31,9 +31,7 @@ export function DashboardLayout({ children }: { children?: React.ReactNode }) {
         />
 
         <main className="flex-1 min-w-0 overflow-y-auto bg-black p-4 sm:p-6 lg:p-8">
-          <div className="mx-auto max-w-6xl">
-            {children || <Outlet />}
-          </div>
+          <div className="mx-auto max-w-6xl">{children || <Outlet />}</div>
         </main>
       </div>
 

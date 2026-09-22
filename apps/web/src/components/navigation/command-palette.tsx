@@ -52,32 +52,122 @@ export function CommandPalette({
   if (!open) return null;
 
   const workspaceNav = [
-    { label: 'Overview', to: `/${orgSlug}`, icon: Layers, desc: 'Workspace summary & health' },
-    { label: 'Tunnels', to: `/${orgSlug}/tunnels`, icon: Cable, desc: 'Manage active tunnels & ports' },
-    { label: 'Agents', to: `/${orgSlug}/agents`, icon: Radio, desc: 'Connected Outpipe CLI agents' },
-    { label: 'Custom Domains', to: `/${orgSlug}/domains`, icon: Globe, desc: 'Custom hostnames & certificates' },
-    { label: 'Live Requests', to: `/${orgSlug}/requests`, icon: Activity, desc: 'Realtime tunnel traffic stream' },
-    { label: 'Usage & Limits', to: `/${orgSlug}/usage`, icon: ScrollText, desc: 'Bandwidth & active connections' },
-    { label: 'Billing & Plans', to: `/${orgSlug}/billing`, icon: CreditCard, desc: 'Subscription & invoices' },
-    { label: 'Team Members', to: `/${orgSlug}/members`, icon: Users, desc: 'Manage access & roles' },
-    { label: 'API Keys', to: `/${orgSlug}/api-keys`, icon: Key, desc: 'Service tokens for CLI & CI/CD' },
-    { label: 'Webhooks', to: `/${orgSlug}/webhooks`, icon: Webhook, desc: 'Events & notifications' },
-    { label: 'Audit Logs', to: `/${orgSlug}/audit-logs`, icon: ScrollText, desc: 'Security & activity trail' },
-    { label: 'Workspace Settings', to: `/${orgSlug}/settings`, icon: Settings, desc: 'Preferences & danger zone' },
+    {
+      label: 'Overview',
+      to: `/${orgSlug}`,
+      icon: Layers,
+      desc: 'Workspace summary & health',
+    },
+    {
+      label: 'Tunnels',
+      to: `/${orgSlug}/tunnels`,
+      icon: Cable,
+      desc: 'Manage active tunnels & ports',
+    },
+    {
+      label: 'Agents',
+      to: `/${orgSlug}/agents`,
+      icon: Radio,
+      desc: 'Connected Outpipe CLI agents',
+    },
+    {
+      label: 'Custom Domains',
+      to: `/${orgSlug}/domains`,
+      icon: Globe,
+      desc: 'Custom hostnames & certificates',
+    },
+    {
+      label: 'Live Requests',
+      to: `/${orgSlug}/requests`,
+      icon: Activity,
+      desc: 'Realtime tunnel traffic stream',
+    },
+    {
+      label: 'Usage & Limits',
+      to: `/${orgSlug}/usage`,
+      icon: ScrollText,
+      desc: 'Bandwidth & active connections',
+    },
+    {
+      label: 'Billing & Plans',
+      to: `/${orgSlug}/billing`,
+      icon: CreditCard,
+      desc: 'Subscription & invoices',
+    },
+    {
+      label: 'Team Members',
+      to: `/${orgSlug}/members`,
+      icon: Users,
+      desc: 'Manage access & roles',
+    },
+    {
+      label: 'API Keys',
+      to: `/${orgSlug}/api-keys`,
+      icon: Key,
+      desc: 'Service tokens for CLI & CI/CD',
+    },
+    {
+      label: 'Webhooks',
+      to: `/${orgSlug}/webhooks`,
+      icon: Webhook,
+      desc: 'Events & notifications',
+    },
+    {
+      label: 'Audit Logs',
+      to: `/${orgSlug}/audit-logs`,
+      icon: ScrollText,
+      desc: 'Security & activity trail',
+    },
+    {
+      label: 'Workspace Settings',
+      to: `/${orgSlug}/settings`,
+      icon: Settings,
+      desc: 'Preferences & danger zone',
+    },
   ];
 
   const adminNav = isPlatformAdmin
     ? [
-        { label: 'Admin Overview', to: '/admin', icon: Shield, desc: 'Platform control plane metrics' },
-        { label: 'Admin Users', to: '/admin/users', icon: Users, desc: 'Global user accounts' },
-        { label: 'Admin Organizations', to: '/admin/organizations', icon: Layers, desc: 'All platform workspaces' },
-        { label: 'Admin Global Tunnels', to: '/admin/tunnels', icon: Cable, desc: 'All active tunnels' },
-        { label: 'Admin Subscriptions', to: '/admin/subscriptions', icon: CreditCard, desc: 'All customer billings' },
+        {
+          label: 'Admin Overview',
+          to: '/admin',
+          icon: Shield,
+          desc: 'Platform control plane metrics',
+        },
+        {
+          label: 'Admin Users',
+          to: '/admin/users',
+          icon: Users,
+          desc: 'Global user accounts',
+        },
+        {
+          label: 'Admin Organizations',
+          to: '/admin/organizations',
+          icon: Layers,
+          desc: 'All platform workspaces',
+        },
+        {
+          label: 'Admin Global Tunnels',
+          to: '/admin/tunnels',
+          icon: Cable,
+          desc: 'All active tunnels',
+        },
+        {
+          label: 'Admin Subscriptions',
+          to: '/admin/subscriptions',
+          icon: CreditCard,
+          desc: 'All customer billings',
+        },
       ]
     : [];
 
   const externalNav = [
-    { label: 'Documentation', to: '/docs', icon: BookOpen, desc: 'Guides, CLI manual & architecture' },
+    {
+      label: 'Documentation',
+      to: '/docs',
+      icon: BookOpen,
+      desc: 'Guides, CLI manual & architecture',
+    },
   ];
 
   const allItems = [...workspaceNav, ...adminNav, ...externalNav];
@@ -100,11 +190,19 @@ export function CommandPalette({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-start justify-center bg-black/70 p-4 pt-[12vh] backdrop-blur-md animate-in fade-in duration-150">
-      <div
-        className="relative w-full max-w-xl rounded-2xl border border-white/15 bg-neutral-900/95 p-3 shadow-2xl backdrop-blur-2xl animate-in zoom-in-95 duration-150 text-white"
-        onClick={(e) => e.stopPropagation()}
-      >
+    <div
+      className="fixed inset-0 z-50 flex items-start justify-center p-4 pt-[12vh] animate-in fade-in duration-150"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Command palette navigation"
+    >
+      <button
+        type="button"
+        aria-label="Close dialog backdrop"
+        onClick={() => onOpenChange(false)}
+        className="fixed inset-0 bg-black/70 backdrop-blur-md cursor-default"
+      />
+      <div className="relative z-10 w-full max-w-xl rounded-2xl border border-white/15 bg-neutral-900/95 p-3 shadow-2xl backdrop-blur-2xl animate-in zoom-in-95 duration-150 text-white">
         <div className="flex items-center gap-3 border-b border-white/10 px-3 pb-3">
           <Search className="size-4 shrink-0 text-white/40" />
           <input
@@ -113,7 +211,6 @@ export function CommandPalette({
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Type a command or search sections..."
             className="w-full bg-transparent text-sm text-white placeholder-white/35 focus:outline-none"
-            autoFocus
           />
           <button
             type="button"
@@ -144,8 +241,12 @@ export function CommandPalette({
                       <Icon className="size-3.5" />
                     </div>
                     <div className="min-w-0">
-                      <p className="font-semibold text-white/90 group-hover:text-white">{item.label}</p>
-                      <p className="text-[11px] text-white/45 truncate">{item.desc}</p>
+                      <p className="font-semibold text-white/90 group-hover:text-white">
+                        {item.label}
+                      </p>
+                      <p className="text-[11px] text-white/45 truncate">
+                        {item.desc}
+                      </p>
                     </div>
                   </div>
                   <ArrowRight className="size-3 text-white/20 group-hover:text-indigo-300 group-hover:translate-x-0.5 transition" />

@@ -31,7 +31,9 @@ export function AuditLogsPage({ orgSlug }: { orgSlug: string }) {
         <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-indigo-400">
           {organizationQuery.organization.name}
         </p>
-        <h1 className="text-3xl font-semibold tracking-[-0.04em]">Audit history</h1>
+        <h1 className="text-3xl font-semibold tracking-[-0.04em]">
+          Audit history
+        </h1>
         <p className="mt-1 text-sm text-white/55">
           A record of sensitive workspace and tunnel activity.
         </p>

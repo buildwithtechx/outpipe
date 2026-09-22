@@ -1,5 +1,5 @@
-import { useOrganization } from "#/features/organizations/hooks/use-organization";
-import { useUsageSnapshot } from "./hooks/use-usage-snapshot";
+import { useOrganization } from '#/features/organizations/hooks/use-organization';
+import { useUsageSnapshot } from './hooks/use-usage-snapshot';
 
 export function UsagePage({ orgSlug }: { orgSlug: string }) {
   const organizationQuery = useOrganization(orgSlug);
@@ -27,10 +27,10 @@ export function UsagePage({ orgSlug }: { orgSlug: string }) {
   const snapshot = query.data;
 
   const cards = [
-    ["Requests", snapshot?.requestCount ?? 0],
-    ["Errors", snapshot?.errorCount ?? 0],
-    ["Connections", snapshot?.activeConnections ?? 0],
-    ["Bandwidth", formatBytes(snapshot?.bandwidthBytes ?? 0)],
+    ['Requests', snapshot?.requestCount ?? 0],
+    ['Errors', snapshot?.errorCount ?? 0],
+    ['Connections', snapshot?.activeConnections ?? 0],
+    ['Bandwidth', formatBytes(snapshot?.bandwidthBytes ?? 0)],
   ] as const;
 
   return (

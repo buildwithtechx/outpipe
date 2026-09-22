@@ -1,4 +1,4 @@
-import { Link } from "@tanstack/react-router";
+import { Link } from '@tanstack/react-router';
 import {
   BookOpen,
   Command,
@@ -7,10 +7,10 @@ import {
   Search,
   ShieldCheck,
   X,
-} from "lucide-react";
-import { useState } from "react";
-import { BrandLockup } from "#/components/layout";
-import { Button } from "#/components/ui/button";
+} from 'lucide-react';
+import { useState } from 'react';
+import { BrandLockup } from '#/components/layout';
+import { Button } from '#/components/ui/button';
 import {
   Dialog,
   DialogContent,
@@ -18,10 +18,10 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "#/components/ui/dialog";
-import { useAuthSession } from "#/features/auth/hooks/use-auth-session";
-import { useLogout } from "#/features/auth/hooks/use-logout";
-import { WorkspaceSwitcher } from "./workspace-switcher";
+} from '#/components/ui/dialog';
+import { useAuthSession } from '#/features/auth/hooks/use-auth-session';
+import { useLogout } from '#/features/auth/hooks/use-logout';
+import { WorkspaceSwitcher } from './workspace-switcher';
 
 interface DashboardHeaderProps {
   mobileOpen: boolean;
@@ -91,7 +91,7 @@ export function DashboardHeader({
           {/* Docs Shortcut */}
           <Link
             to="/docs/$"
-            params={{ _splat: "" }}
+            params={{ _splat: '' }}
             className="hidden lg:flex items-center gap-1.5 rounded-xl border border-white/10 bg-white/2 px-2.5 py-1.5 text-xs text-white/60 transition hover:border-white/20 hover:bg-white/5 hover:text-white"
             title="Read Documentation"
           >
@@ -115,10 +115,10 @@ export function DashboardHeader({
           <div className="flex items-center gap-2 pl-2 border-l border-white/10">
             <div className="hidden xl:flex flex-col text-right">
               <span className="text-xs font-semibold text-white/90 truncate max-w-30">
-                {user?.name || user?.email?.split("@")[0] || "User"}
+                {user?.name || user?.email?.split('@')[0] || 'User'}
               </span>
               <span className="text-[10px] text-white/40 truncate max-w-30">
-                {user?.email || ""}
+                {user?.email || ''}
               </span>
             </div>
 
@@ -168,7 +168,7 @@ export function DashboardHeader({
               disabled={logoutMutation.isPending}
               className="bg-rose-600 hover:bg-rose-700 text-white text-xs font-medium"
             >
-              {logoutMutation.isPending ? "Signing Out..." : "Sign Out"}
+              {logoutMutation.isPending ? 'Signing Out...' : 'Sign Out'}
             </Button>
           </DialogFooter>
         </DialogContent>

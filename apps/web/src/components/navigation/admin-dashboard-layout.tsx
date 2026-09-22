@@ -3,7 +3,11 @@ import { useState } from 'react';
 import { AdminHeader } from './admin-header';
 import { AdminSidebar } from './admin-sidebar';
 
-export function AdminDashboardLayout({ children }: { children?: React.ReactNode }) {
+export function AdminDashboardLayout({
+  children,
+}: {
+  children?: React.ReactNode;
+}) {
   const [mobileOpen, setMobileOpen] = useState(false);
 
   return (
@@ -16,9 +20,7 @@ export function AdminDashboardLayout({ children }: { children?: React.ReactNode 
         <AdminSidebar mobileOpen={mobileOpen} setMobileOpen={setMobileOpen} />
 
         <main className="flex-1 min-w-0 overflow-y-auto bg-black p-4 sm:p-6 lg:p-8">
-          <div className="mx-auto max-w-6xl">
-            {children || <Outlet />}
-          </div>
+          <div className="mx-auto max-w-6xl">{children || <Outlet />}</div>
         </main>
       </div>
     </div>

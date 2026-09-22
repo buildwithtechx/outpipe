@@ -1,9 +1,9 @@
-import { Link, useNavigate } from "@tanstack/react-router";
-import { Check, ChevronsUpDown, Plus } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { getOrganizations } from "#/features/organizations/services/organization-service";
-import type { Organization } from "#/interfaces/organization";
+import { useQuery } from '@tanstack/react-query';
+import { Link, useNavigate } from '@tanstack/react-router';
+import { Check, ChevronsUpDown, Plus } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import { getOrganizations } from '#/features/organizations/services/organization-service';
+import type { Organization } from '#/interfaces/organization';
 
 interface WorkspaceSwitcherProps {
   currentOrgSlug: string;
@@ -15,12 +15,12 @@ export function WorkspaceSwitcher({ currentOrgSlug }: WorkspaceSwitcherProps) {
   const navigate = useNavigate();
 
   const { data: organizations = [], isLoading } = useQuery({
-    queryKey: ["organizations"],
+    queryKey: ['organizations'],
     queryFn: getOrganizations,
   });
 
   const currentOrg = organizations.find((org) => org.slug === currentOrgSlug) ||
-    organizations[0] || { name: "Workspace", slug: currentOrgSlug };
+    organizations[0] || { name: 'Workspace', slug: currentOrgSlug };
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -31,14 +31,14 @@ export function WorkspaceSwitcher({ currentOrgSlug }: WorkspaceSwitcherProps) {
         setOpen(false);
       }
     }
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
   const handleSelect = (org: Organization) => {
     setOpen(false);
     navigate({
-      to: "/$orgSlug",
+      to: '/$orgSlug',
       params: { orgSlug: org.slug },
     });
   };
@@ -86,16 +86,16 @@ export function WorkspaceSwitcher({ currentOrgSlug }: WorkspaceSwitcherProps) {
                     onClick={() => handleSelect(org)}
                     className={`flex w-full items-center justify-between gap-2 rounded-xl px-2.5 py-2 text-left text-xs transition ${
                       isSelected
-                        ? "bg-indigo-600 text-white font-medium"
-                        : "text-white/80 hover:bg-white/10 hover:text-white"
+                        ? 'bg-indigo-600 text-white font-medium'
+                        : 'text-white/80 hover:bg-white/10 hover:text-white'
                     }`}
                   >
                     <div className="flex items-center gap-2.5 min-w-0">
                       <div
                         className={`flex size-6 shrink-0 items-center justify-center rounded-lg text-[10px] font-bold ${
                           isSelected
-                            ? "bg-white/20 text-white"
-                            : "bg-white/5 border border-white/10 text-white/60"
+                            ? 'bg-white/20 text-white'
+                            : 'bg-white/5 border border-white/10 text-white/60'
                         }`}
                       >
                         {org.name.slice(0, 2).toUpperCase()}
@@ -104,7 +104,7 @@ export function WorkspaceSwitcher({ currentOrgSlug }: WorkspaceSwitcherProps) {
                         <p className="truncate font-medium">{org.name}</p>
                         <p
                           className={`truncate text-[10px] font-mono ${
-                            isSelected ? "text-white/70" : "text-white/40"
+                            isSelected ? 'text-white/70' : 'text-white/40'
                           }`}
                         >
                           {org.slug}
