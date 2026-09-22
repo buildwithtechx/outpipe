@@ -55,15 +55,23 @@ export function AdminUsersPage() {
               <div className="flex items-center gap-3">
                 <span className="text-xs text-white/45">{user.status}</span>
                 {isCurrentAdmin ? (
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    disabled
-                    title="You cannot disable your own administrator account."
-                  >
-                    Active
-                  </Button>
+                  <div className="flex flex-col items-end gap-1">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      disabled
+                      aria-describedby={`user-self-disable-hint-${user.id}`}
+                    >
+                      Active
+                    </Button>
+                    <span
+                      id={`user-self-disable-hint-${user.id}`}
+                      className="text-[10px] text-white/40"
+                    >
+                      You cannot disable your own administrator account.
+                    </span>
+                  </div>
                 ) : (
                   <Button
                     type="button"

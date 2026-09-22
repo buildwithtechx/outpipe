@@ -1,5 +1,5 @@
 import { Copy, KeyRound } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Button } from '#/components/ui/button';
 import { useAuthSession } from '#/features/auth/hooks/use-auth-session';
 import { useMembers } from '#/features/organizations/hooks/use-members';
@@ -21,6 +21,23 @@ export function ApiKeysPage({ orgSlug }: { orgSlug: string }) {
     token: string;
   } | null>(null);
   const [copied, setCopied] = useState(false);
+  const copyTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (copyTimeoutRef.current) {
+        clearTimeout(copyTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  const dismissNewlyCreatedKey = () => {
+    if (copyTimeoutRef.current) {
+      clearTimeout(copyTimeoutRef.current);
+    }
+    setCopied(false);
+    setNewlyCreatedKey(null);
+  };
 
   if (
     organizationQuery.isLoading ||
@@ -58,6 +75,10 @@ export function ApiKeysPage({ orgSlug }: { orgSlug: string }) {
       },
       {
         onSuccess: (data) => {
+          if (copyTimeoutRef.current) {
+            clearTimeout(copyTimeoutRef.current);
+          }
+          setCopied(false);
           setNewlyCreatedKey({
             name: data.key.name,
             token: data.token,
@@ -72,7 +93,10 @@ export function ApiKeysPage({ orgSlug }: { orgSlug: string }) {
     try {
       await navigator.clipboard.writeText(newlyCreatedKey.token);
       setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
+      if (copyTimeoutRef.current) {
+        clearTimeout(copyTimeoutRef.current);
+      }
+      copyTimeoutRef.current = setTimeout(() => setCopied(false), 2000);
     } catch {
       // Clipboard write denied or unavailable
     }
@@ -157,7 +181,7 @@ export function ApiKeysPage({ orgSlug }: { orgSlug: string }) {
                 type="button"
                 variant="ghost"
                 size="sm"
-                onClick={() => setNewlyCreatedKey(null)}
+                onClick={dismissNewlyCreatedKey}
                 className="text-white/60 hover:text-white"
               >
                 Dismiss

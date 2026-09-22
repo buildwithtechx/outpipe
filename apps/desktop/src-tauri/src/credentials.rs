@@ -41,9 +41,7 @@ pub fn credentials_save(kind: CredentialKind, secret: String) -> Result<(), Stri
 
 #[tauri::command]
 pub fn credentials_clear(kind: CredentialKind) -> Result<(), String> {
-    let Ok(entry) = entry(kind) else {
-        return Ok(());
-    };
+    let entry = entry(kind)?;
     match entry.delete_credential() {
         Ok(()) => Ok(()),
         Err(keyring::Error::NoEntry) => Ok(()),

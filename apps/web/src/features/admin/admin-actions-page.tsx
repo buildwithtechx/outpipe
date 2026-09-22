@@ -49,14 +49,22 @@ export function AdminActionsPage() {
                 </p>
               </div>
               {isCurrentAdmin && user.status === 'active' ? (
-                <Button
-                  type="button"
-                  variant="outline"
-                  disabled
-                  title="You cannot disable your own administrator account."
-                >
-                  Active
-                </Button>
+                <div className="flex flex-col items-start sm:items-end gap-1">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    disabled
+                    aria-describedby={`self-disable-hint-${user.id}`}
+                  >
+                    Active
+                  </Button>
+                  <span
+                    id={`self-disable-hint-${user.id}`}
+                    className="text-[11px] text-white/40"
+                  >
+                    You cannot disable your own administrator account.
+                  </span>
+                </div>
               ) : (
                 <Button
                   type="button"
