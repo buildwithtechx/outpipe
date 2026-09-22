@@ -116,6 +116,7 @@ jobs:
       - name: Install Rust
         run: rustup default stable
       - run: npm ci
+      - run: npm run build:web
       - name: Set desktop version from tag
         working-directory: apps/desktop
         env:
