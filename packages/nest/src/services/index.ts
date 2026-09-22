@@ -1,2 +1,2 @@
-export { CodedockTunnelModule } from './tunnel.module';
-export { CodedockTunnelService } from './tunnel.service';
+export { OutpipeModule } from './tunnel.module';
+export { OutpipeService } from './tunnel.service';

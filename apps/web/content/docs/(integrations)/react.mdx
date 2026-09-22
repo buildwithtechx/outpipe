@@ -7,13 +7,13 @@ icon: SiReact
 Install the React adapter and SDK:
 
 ```sh
-npm install @codedock/react
+npm install @outpipe/react
 ```
 
 Wrap the part of the application that owns the tunnel:
 
 ```tsx
-import { TunnelProvider, useTunnel } from '@codedock/react';
+import { TunnelProvider, useTunnel } from '@outpipe/react';
 
 function PreviewControls() {
   const { status, tunnel, connect, openTunnel, closeTunnel } = useTunnel();

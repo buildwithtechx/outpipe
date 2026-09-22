@@ -1,6 +1,6 @@
 ---
 title: CLI reference
-description: Commands available in the codedock-tunnel client.
+description: Commands available in the outpipe client.
 icon: Terminal
 ---
 
@@ -20,19 +20,19 @@ icon: Terminal
 | `completion` | Generate shell completion output |
 | `version` | Print the client version |
 
-Run `codedock-tunnel help` for the command list. Run a command with `--help`
+Run `outpipe help` for the command list. Run a command with `--help`
 for its available flags.
 
 ## Common workflows
 
 ```sh
-codedock-tunnel login
-codedock-tunnel http --port 3000
-codedock-tunnel tcp --port 5432
-codedock-tunnel http --port 3000 --password "$TUNNEL_PASSWORD"
-codedock-tunnel open --tunnel-id "$TUNNEL_ID" --port 3000
+outpipe login
+outpipe http --port 3000
+outpipe tcp --port 5432
+outpipe http --port 3000 --password "$TUNNEL_PASSWORD"
+outpipe open --tunnel-id "$TUNNEL_ID" --port 3000
 ```
 
-For CI, provide `CODEDOCK_TUNNEL_AGENT_TOKEN` or pass `--agent-token`. Use
-`CODEDOCK_TUNNEL_API_KEY` for management requests such as listing and
+For CI, provide `OUTPIPE_AGENT_TOKEN` or pass `--agent-token`. Use
+`OUTPIPE_API_KEY` for management requests such as listing and
 revoking tunnels. Keep both values in the CI secret store.

@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"html/template"
 
-	"codedock.run/codedock-tunnel/templates"
+	"outpipe.dev/outpipe/internal/templates"
 )
 
 type AccountUpdateData struct {
@@ -46,22 +46,34 @@ type BillingUpdateData struct {
 	DashboardURL string
 }
 
+type InvoiceReceiptData struct {
+	Name         string
+	Organization string
+	Amount       string
+	InvoiceURL   string
+	DashboardURL string
+}
+
 type templateRenderer struct {
 	html *template.Template
 }
 
 func newTemplateRenderer() (*templateRenderer, error) {
 	html, err := template.ParseFS(templates.Email, "*.tmpl")
+
 	if err != nil {
 		return nil, fmt.Errorf("parse mail templates: %w", err)
 	}
+
 	return &templateRenderer{html: html}, nil
 }
 
 func (r *templateRenderer) render(name string, data any) (string, error) {
 	var html bytes.Buffer
+
 	if err := r.html.ExecuteTemplate(&html, name+".tmpl", data); err != nil {
 		return "", fmt.Errorf("render mail template: %w", err)
 	}
+
 	return html.String(), nil
 }

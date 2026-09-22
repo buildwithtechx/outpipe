@@ -1,16 +1,16 @@
 import { describe, expect, it } from 'vitest';
-import { CodedockTunnelModule } from '../services/tunnel.module';
-import { CodedockTunnelService } from '../services/tunnel.service';
+import { OutpipeModule } from '../services/tunnel.module';
+import { OutpipeService } from '../services/tunnel.service';
 
-describe('CodedockTunnelModule', () => {
+describe('OutpipeModule', () => {
   it('registers its options and lifecycle service', () => {
-    const dynamicModule = CodedockTunnelModule.forRoot({
+    const dynamicModule = OutpipeModule.forRoot({
       relayUrl: 'wss://relay.test',
       agentToken: 'token',
       localPort: 3000,
     });
-    expect(dynamicModule.module).toBe(CodedockTunnelModule);
-    expect(dynamicModule.exports).toContain(CodedockTunnelService);
+    expect(dynamicModule.module).toBe(OutpipeModule);
+    expect(dynamicModule.exports).toContain(OutpipeService);
     expect(dynamicModule.providers).toHaveLength(2);
   });
 });

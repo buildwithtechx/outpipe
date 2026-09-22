@@ -7,7 +7,7 @@ icon: SiTypescript
 Install the framework-neutral client:
 
 ```sh
-npm install @codedock/sdk
+npm install @outpipe/sdk
 ```
 
 The SDK provides API operations, relay connection lifecycle, reconnect
@@ -21,11 +21,11 @@ with that token.
 ## Relay connection
 
 ```ts
-import { RelayConnection } from '@codedock/sdk';
+import { RelayConnection } from '@outpipe/sdk';
 
 const connection = new RelayConnection({
-  relayUrl: process.env.CODEDOCK_TUNNEL_RELAY_URL!,
-  agentToken: process.env.CODEDOCK_TUNNEL_AGENT_TOKEN!,
+  relayUrl: process.env.OUTPIPE_RELAY_URL!,
+  agentToken: process.env.OUTPIPE_AGENT_TOKEN!,
   reconnect: true,
 });
 

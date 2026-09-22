@@ -1,15 +1,10 @@
 import { createFileRoute } from '@tanstack/react-router';
-import { PagePlaceholder } from '#/components/layout/page-placeholder';
+import { AdminActionsPage } from '#/features/admin/admin-actions-page';
 
 export const Route = createFileRoute('/admin/actions')({
-  component: AdminActionsPage,
+  component: AdminActionsRoute,
 });
 
-function AdminActionsPage() {
-  return (
-    <PagePlaceholder
-      title="Admin actions"
-      description="Run controlled platform operations with an audit trail."
-    />
-  );
+function AdminActionsRoute() {
+  return <AdminActionsPage />;
 }

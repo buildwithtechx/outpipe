@@ -1,5 +1,5 @@
 {
-  "name": "@codedock/vite-plugin",
+  "name": "@outpipe/vite-plugin",
   "version": "0.1.0",
   "publishConfig": {
     "access": "public"
@@ -12,13 +12,13 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run --passWithNoTests"
   },
-  "description": "Vite development tunnel integration for Codedock Tunnel",
+  "description": "Vite development tunnel integration for Outpipe",
   "files": ["dist"],
   "engines": {
     "node": ">=18"
   },
   "dependencies": {
-    "@codedock/sdk": "0.1.0"
+    "@outpipe/sdk": "0.1.0"
   },
   "peerDependencies": {
     "vite": ">=5"

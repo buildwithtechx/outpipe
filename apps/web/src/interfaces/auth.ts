@@ -19,6 +19,7 @@ export type AuthSession = {
   expiresAt: string;
   lastSeenAt?: string;
   isPlatformAdmin: boolean;
+  user: AuthUser;
 };
 
 export type OAuthStart = {

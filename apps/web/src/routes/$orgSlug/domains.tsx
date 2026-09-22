@@ -1,15 +1,11 @@
 import { createFileRoute } from '@tanstack/react-router';
-import { PagePlaceholder } from '#/components/layout/page-placeholder';
+import { DomainsPage } from '#/features/domains';
 
 export const Route = createFileRoute('/$orgSlug/domains')({
-  component: DomainsPage,
+  component: DomainsRoute,
 });
 
-function DomainsPage() {
-  return (
-    <PagePlaceholder
-      title="Domains"
-      description="Configure and verify custom tunnel domains."
-    />
-  );
+function DomainsRoute() {
+  const { orgSlug } = Route.useParams();
+  return <DomainsPage orgSlug={orgSlug} />;
 }

@@ -4,8 +4,10 @@ import (
 	"fmt"
 	"time"
 
-	"codedock.run/codedock-tunnel/internal/models"
 	"github.com/gofiber/fiber/v2"
+	infraredis "outpipe.dev/outpipe/internal/infra/redis"
+	"outpipe.dev/outpipe/internal/infra/telemetry"
+	"outpipe.dev/outpipe/internal/models"
 )
 
 type RouterOptions struct {
@@ -13,81 +15,152 @@ type RouterOptions struct {
 	CookieSecure         bool
 	InternalAPISecret    string
 	BillingWebhookSecret string
+	RateLimiter          *infraredis.Client
+	Metrics              *telemetry.MetricsExporter
 }
 
 func RegisterRoutes(app *fiber.App, handlers Handlers, options RouterOptions) error {
+
 	if app == nil {
 		return fmt.Errorf("fiber app is required")
 	}
+
 	if handlers.Health == nil || handlers.Auth == nil {
 		return fmt.Errorf("health and auth handlers are required")
 	}
+
 	if handlers.Billing != nil {
 		handlers.Billing.SetWebhookSecret(options.BillingWebhookSecret)
 	}
+
 	app.Use(securityHeadersMiddleware(options.CookieSecure))
+	metrics := options.Metrics
+	if metrics == nil {
+		metrics = telemetry.NewMetricsExporter()
+	}
+	app.Use(func(c *fiber.Ctx) error {
+		started := time.Now()
+		metrics.IncCounter("outpipe_http_requests_total", 1)
+		err := c.Next()
+		metrics.IncCounter("outpipe_http_responses_total", 1)
+		status := c.Response().StatusCode()
+		metrics.IncCounter(fmt.Sprintf("outpipe_http_responses_total{status=\"%d\"}", status), 1)
+		metrics.IncCounter("outpipe_http_response_bytes_total", int64(len(c.Response().Body())))
+		metrics.IncCounter("outpipe_http_duration_milliseconds_total", time.Since(started).Milliseconds())
+		return err
+	})
 	app.Get("/healthz", handlers.Health.Liveness)
 	app.Get("/readyz", handlers.Health.Readiness)
 	app.Get("/metrics", func(c *fiber.Ctx) error {
 		c.Set("Content-Type", "text/plain; version=0.0.4")
-		return c.SendString("# HELP codedock_status Status metric\n# TYPE codedock_status gauge\ncodedock_status 1\n")
+		return c.SendString(metrics.ExportPrometheus())
 	})
-	authLimiter := requestRateLimit(10, time.Minute)
+	if handlers.Support != nil {
+		supportLimiter := requestRateLimitDistributed(options.RateLimiter, 5, time.Minute, func(c *fiber.Ctx) string { return "support:" + requestClientIP(c) })
+		app.Post("/api/v1/support/contact", supportLimiter, handlers.Support.Contact)
+		app.Post("/api/v1/support/bug-report", supportLimiter, handlers.Support.BugReport)
+	}
+	authLimiter := requestRateLimitDistributed(options.RateLimiter, 10, time.Minute, func(c *fiber.Ctx) string { return "auth:" + requestClientIP(c) })
 	app.Post("/api/v1/auth/device/start", authLimiter, handlers.Auth.StartDeviceLogin)
 	app.Get("/api/v1/auth/device/poll", authLimiter, handlers.Auth.PollDeviceLogin)
+
 	if handlers.Billing != nil {
 		app.Post("/api/v1/billing/webhooks/:provider", handlers.Billing.Webhook)
 	}
+
 	if handlers.OAuth != nil {
 		app.Get("/api/v1/auth/oauth/:provider", handlers.OAuth.Start)
 		app.Get("/api/v1/auth/oauth/:provider/callback", handlers.OAuth.Callback)
 	}
+
 	app.Get("/api/v1/auth/session", handlers.Auth.Session)
 	app.Post("/api/v1/auth/logout", handlers.Auth.Logout)
+	app.Post("/api/v1/agents/:agentID/heartbeat", agentTokenRequired(handlers.agentService, "agentID"), handlers.Agents.Heartbeat)
 
-	protected := app.Group("/api/v1", sessionRequired(handlers.authService, handlers.apiKeyService, options.CookieName), auditRequest(handlers.auditService))
+	protected := app.Group("/api/v1", sessionRequired(handlers.authService, handlers.apiKeyService, options.CookieName), requestRateLimitDistributed(options.RateLimiter, 120, time.Minute, authenticatedRateLimitKey), auditRequest(handlers.auditService))
+	writeLimiter := requestRateLimitDistributed(options.RateLimiter, 30, time.Minute, authenticatedRateLimitKey)
+	organizationWriteLimiter := requestRateLimitDistributed(options.RateLimiter, 10, time.Minute, authenticatedRateLimitKey)
+	tunnelWriteLimiter := requestRateLimitDistributed(options.RateLimiter, 20, time.Minute, authenticatedRateLimitKey)
+	webhookWriteLimiter := requestRateLimitDistributed(options.RateLimiter, 10, time.Minute, authenticatedRateLimitKey)
+	billingWriteLimiter := requestRateLimitDistributed(options.RateLimiter, 5, time.Minute, authenticatedRateLimitKey)
 	protected.Post("/auth/device/complete", handlers.Auth.CompleteDeviceLogin)
-	protected.Post("/organizations", handlers.Organizations.Create)
+	protected.Get("/account", handlers.Account.Profile)
+	protected.Get("/organizations", handlers.Organizations.List)
+	protected.Get("/organizations/slug-availability", handlers.Organizations.CheckSlug)
+	protected.Post("/organizations", organizationWriteLimiter, handlers.Organizations.Create)
+	protected.Get("/organizations/:organizationID", organizationRoleRequired(handlers.organizationService, models.MemberRoleViewer), handlers.Organizations.Detail)
+	protected.Get("/organizations/:organizationID/members", organizationRoleRequired(handlers.organizationService, models.MemberRoleViewer), handlers.Organizations.ListMembers)
 	protected.Post("/organizations/:organizationID/members", organizationRoleRequired(handlers.organizationService, models.MemberRoleAdmin), handlers.Organizations.AddMember)
+	protected.Delete("/organizations/:organizationID/members/:memberID", organizationRoleRequired(handlers.organizationService, models.MemberRoleAdmin), handlers.Organizations.RemoveMember)
 	protected.Post("/organizations/:organizationID/invitations", organizationRoleRequired(handlers.organizationService, models.MemberRoleAdmin), handlers.Invitations.Create)
 	protected.Post("/invitations/accept", handlers.Invitations.Accept)
-	protected.Delete("/account", apiKeyScopeRequired("account:write"), handlers.Account.Delete)
+	protected.Delete("/account", handlers.Account.Delete)
 	protected.Post("/organizations/:organizationID/transfer", organizationRoleRequired(handlers.organizationService, models.MemberRoleOwner), handlers.Account.TransferOwnership)
-	protected.Post("/organizations/:organizationID/tunnels", organizationRoleRequired(handlers.organizationService, models.MemberRoleMember), handlers.Tunnels.Create)
+	protected.Post("/organizations/:organizationID/tunnels", tunnelWriteLimiter, organizationRoleRequired(handlers.organizationService, models.MemberRoleMember), handlers.Tunnels.Create)
 	protected.Get("/organizations/:organizationID/tunnels", organizationRoleRequired(handlers.organizationService, models.MemberRoleViewer), handlers.Tunnels.List)
 	protected.Post("/organizations/:organizationID/agents", organizationRoleRequired(handlers.organizationService, models.MemberRoleAdmin), handlers.Agents.Register)
+	protected.Get("/organizations/:organizationID/agents", organizationRoleRequired(handlers.organizationService, models.MemberRoleViewer), handlers.Agents.List)
 	protected.Post("/organizations/:organizationID/domains", organizationRoleRequired(handlers.organizationService, models.MemberRoleAdmin), handlers.Domains.Create)
+	protected.Get("/organizations/:organizationID/domains", organizationRoleRequired(handlers.organizationService, models.MemberRoleViewer), handlers.Domains.List)
 	protected.Get("/organizations/:organizationID/usage/events", organizationRoleRequired(handlers.organizationService, models.MemberRoleViewer), handlers.Usage.Events)
+	protected.Get("/organizations/:organizationID/usage/requests", organizationRoleRequired(handlers.organizationService, models.MemberRoleViewer), handlers.Usage.Requests)
 	protected.Get("/organizations/:organizationID/usage/snapshot", organizationRoleRequired(handlers.organizationService, models.MemberRoleViewer), handlers.Usage.Snapshot)
+	protected.Get("/organizations/:organizationID/audit-logs", organizationRoleRequired(handlers.organizationService, models.MemberRoleAdmin), handlers.AuditLogs.List)
+	protected.Get("/organizations/:organizationID/api-keys", organizationRoleRequired(handlers.organizationService, models.MemberRoleMember), handlers.APIKeys.List)
+	protected.Post("/organizations/:organizationID/api-keys", writeLimiter, organizationRoleRequired(handlers.organizationService, models.MemberRoleAdmin), handlers.APIKeys.Create)
+	protected.Delete("/organizations/:organizationID/api-keys/:apiKeyID", organizationRoleRequired(handlers.organizationService, models.MemberRoleAdmin), handlers.APIKeys.Revoke)
+	protected.Post("/organizations/:organizationID/webhooks", webhookWriteLimiter, organizationRoleRequired(handlers.organizationService, models.MemberRoleAdmin), handlers.Webhooks.Create)
+	protected.Get("/organizations/:organizationID/webhooks", organizationRoleRequired(handlers.organizationService, models.MemberRoleViewer), handlers.Webhooks.List)
+	protected.Delete("/organizations/:organizationID/webhooks/:webhookID", organizationRoleRequired(handlers.organizationService, models.MemberRoleAdmin), handlers.Webhooks.Delete)
+	protected.Get("/organizations/:organizationID/webhooks/:webhookID/deliveries", organizationRoleRequired(handlers.organizationService, models.MemberRoleViewer), handlers.Webhooks.Deliveries)
 	protected.Get("/organizations/:organizationID/billing", organizationRoleRequired(handlers.organizationService, models.MemberRoleViewer), handlers.Billing.Status)
-	protected.Post("/organizations/:organizationID/billing/checkout", organizationRoleRequired(handlers.organizationService, models.MemberRoleOwner), handlers.Billing.Checkout)
+	protected.Get("/organizations/:organizationID/billing/plans", organizationRoleRequired(handlers.organizationService, models.MemberRoleViewer), handlers.Billing.Plans)
+	protected.Get("/organizations/:organizationID/billing/invoices", organizationRoleRequired(handlers.organizationService, models.MemberRoleViewer), handlers.Billing.Invoices)
+	protected.Post("/organizations/:organizationID/billing/checkout", billingWriteLimiter, organizationRoleRequired(handlers.organizationService, models.MemberRoleOwner), handlers.Billing.Checkout)
 	protected.Get("/organizations/:organizationID/billing/portal", organizationRoleRequired(handlers.organizationService, models.MemberRoleOwner), handlers.Billing.Portal)
 	protected.Post("/organizations/:organizationID/billing/cancel", organizationRoleRequired(handlers.organizationService, models.MemberRoleOwner), handlers.Billing.Cancel)
 	protected.Post("/organizations/:organizationID/billing/resume", organizationRoleRequired(handlers.organizationService, models.MemberRoleOwner), handlers.Billing.Resume)
 	protected.Patch("/tunnels/:tunnelID/status", apiKeyResourceScopeRequired(handlers.organizationService, "tunnels:write", "tunnelID", handlers.Tunnels.OrganizationID), handlers.Tunnels.SetStatus)
+	protected.Patch("/tunnels/:tunnelID/config", apiKeyResourceScopeRequired(handlers.organizationService, "tunnels:write", "tunnelID", handlers.Tunnels.OrganizationID), handlers.Tunnels.UpdateConfiguration)
 	protected.Get("/tunnels/:tunnelID", apiKeyResourceScopeRequired(handlers.organizationService, "tunnels:read", "tunnelID", handlers.Tunnels.OrganizationID), handlers.Tunnels.Inspect)
 	protected.Delete("/tunnels/:tunnelID", apiKeyResourceScopeRequired(handlers.organizationService, "tunnels:write", "tunnelID", handlers.Tunnels.OrganizationID), handlers.Tunnels.Revoke)
 	protected.Post("/domains/:domainID/verify", apiKeyResourceScopeRequired(handlers.organizationService, "domains:write", "domainID", handlers.Domains.OrganizationID), handlers.Domains.Verify)
-	protected.Post("/agents/:agentID/heartbeat", apiKeyResourceScopeRequired(handlers.organizationService, "agents:write", "agentID", handlers.Agents.OrganizationID), handlers.Agents.Heartbeat)
 	protected.Delete("/agents/:agentID", apiKeyResourceScopeRequired(handlers.organizationService, "agents:write", "agentID", handlers.Agents.OrganizationID), handlers.Agents.Revoke)
 
 	admin := protected.Group("/admin", platformAdminRequired(handlers.authService))
 	admin.Get("/overview", handlers.Admin.Overview)
 	admin.Get("/users", handlers.Admin.Users)
+	admin.Get("/users/:userID", handlers.Admin.User)
 	admin.Patch("/users/:userID/status", handlers.Admin.SetUserStatus)
 	admin.Get("/organizations", handlers.Admin.Organizations)
+	admin.Get("/organizations/:organizationID", handlers.Admin.Organization)
 	admin.Get("/tunnels", handlers.Admin.Tunnels)
 	admin.Get("/subscriptions", handlers.Admin.Subscriptions)
 	admin.Get("/usage", handlers.Admin.Usage)
 	admin.Get("/audit-logs", handlers.Admin.AuditLogs)
 	admin.Post("/tunnels/:tunnelID/revoke", handlers.Tunnels.Revoke)
 
-	if options.InternalAPISecret != "" {
-		app.Get("/internal/health", internalSecretRequired(options.InternalAPISecret), handlers.Health.Readiness)
-		app.Get("/internal/agents/authenticate", internalSecretRequired(options.InternalAPISecret), handlers.Agents.Authenticate)
-		app.Get("/internal/tunnels/:tunnelID/policy", internalSecretRequired(options.InternalAPISecret), handlers.Tunnels.Policy)
-		app.Post("/internal/tunnels/:tunnelID/password", internalSecretRequired(options.InternalAPISecret), requestRateLimitBy(10, time.Minute, func(c *fiber.Ctx) string { return c.IP() + ":" + c.Params("tunnelID") }), handlers.Tunnels.VerifyPassword)
-		app.Post("/internal/usage", internalSecretRequired(options.InternalAPISecret), handlers.Usage.Ingest)
+	return nil
+}
+
+func RegisterInternalRoutes(app *fiber.App, handlers Handlers, options RouterOptions) error {
+
+	if app == nil {
+		return fmt.Errorf("fiber app is required")
 	}
+
+	if options.InternalAPISecret == "" {
+		return fmt.Errorf("internal api secret is required")
+	}
+
+	app.Use(securityHeadersMiddleware(options.CookieSecure))
+	app.Get("/internal/health", internalSecretRequired(options.InternalAPISecret), handlers.Health.Readiness)
+	app.Get("/internal/agents/authenticate", internalSecretRequired(options.InternalAPISecret), handlers.Agents.Authenticate)
+	app.Get("/internal/tunnels/:tunnelID/policy", internalSecretRequired(options.InternalAPISecret), handlers.Tunnels.Policy)
+	app.Post("/internal/tunnels/:tunnelID/password", internalSecretRequired(options.InternalAPISecret), requestRateLimitDistributed(options.RateLimiter, 10, time.Minute, func(c *fiber.Ctx) string {
+		return "internal-password:" + requestClientIP(c) + ":" + c.Params("tunnelID")
+	}), handlers.Tunnels.VerifyPassword)
+	app.Post("/internal/usage", internalSecretRequired(options.InternalAPISecret), handlers.Usage.Ingest)
+
 	return nil
 }

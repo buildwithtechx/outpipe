@@ -1,0 +1,50 @@
+import type { Plan, Subscription } from '#/interfaces/billing';
+import type { Invoice } from '#/interfaces/billing-records';
+import { apiClient } from '#/lib/api-client';
+
+export function getBilling(organizationId: string) {
+  return apiClient.get<{ plan: Plan; subscription: Subscription }>(
+    `/api/v1/organizations/${organizationId}/billing`,
+  );
+}
+
+export function getBillingPlans(organizationId: string) {
+  return apiClient.get<{ plans: Plan[] }>(
+    `/api/v1/organizations/${organizationId}/billing/plans`,
+  );
+}
+
+export function checkoutBilling(
+  organizationId: string,
+  planKey: string,
+  billingInterval: 'month' | 'year',
+) {
+  return apiClient.post<{ url: string }>(
+    `/api/v1/organizations/${organizationId}/billing/checkout`,
+    { planKey, billingInterval },
+  );
+}
+
+export function getInvoices(organizationId: string) {
+  return apiClient.get<{ invoices: Invoice[] }>(
+    `/api/v1/organizations/${organizationId}/billing/invoices`,
+  );
+}
+
+export function getBillingPortal(organizationId: string) {
+  return apiClient.get<{ url: string }>(
+    `/api/v1/organizations/${organizationId}/billing/portal`,
+  );
+}
+
+export function cancelBilling(organizationId: string) {
+  return apiClient.post<void>(
+    `/api/v1/organizations/${organizationId}/billing/cancel`,
+  );
+}
+
+export function resumeBilling(organizationId: string) {
+  return apiClient.post<void>(
+    `/api/v1/organizations/${organizationId}/billing/resume`,
+  );
+}

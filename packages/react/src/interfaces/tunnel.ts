@@ -3,7 +3,7 @@ import type {
   OpenTunnelAck,
   RelayConnection,
   RelayConnectionOptions,
-} from '@codedock/sdk';
+} from '@outpipe/sdk';
 
 export type TunnelProviderProps = {
   options: RelayConnectionOptions;

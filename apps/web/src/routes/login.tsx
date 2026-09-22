@@ -1,13 +1,8 @@
 import { createFileRoute } from '@tanstack/react-router';
-import { PagePlaceholder } from '#/components/layout/page-placeholder';
+import { LoginPage } from '#/features/auth';
+import { createSeo } from '#/lib/seo';
 
-export const Route = createFileRoute('/login')({ component: LoginPage });
-
-function LoginPage() {
-  return (
-    <PagePlaceholder
-      title="Sign in"
-      description="Continue with Google or GitHub to manage your tunnels."
-    />
-  );
-}
+export const Route = createFileRoute('/login')({
+  head: () => createSeo({ title: 'Sign in', path: '/login' }),
+  component: LoginPage,
+});

@@ -21,23 +21,29 @@ export class TunnelAPIClient {
     organizationId: string,
     request: Record<string, unknown>,
   ): Promise<Tunnel> {
-    return this.call<Tunnel>(
+    const tunnel = await this.call<Tunnel>(
       `/organizations/${encodeURIComponent(organizationId)}/tunnels`,
       { method: 'POST', body: JSON.stringify(request) },
     );
+    return normalizeTunnel(tunnel);
   }
 
   async listTunnels(organizationId: string): Promise<Tunnel[]> {
-    return this.call<Tunnel[]>(
+    const tunnels = await this.call<Tunnel[]>(
       `/organizations/${encodeURIComponent(organizationId)}/tunnels`,
       { method: 'GET' },
     );
+    return tunnels.map(normalizeTunnel);
   }
 
   async inspectTunnel(tunnelId: string): Promise<Tunnel> {
-    return this.call<Tunnel>(`/tunnels/${encodeURIComponent(tunnelId)}`, {
-      method: 'GET',
-    });
+    const tunnel = await this.call<Tunnel>(
+      `/tunnels/${encodeURIComponent(tunnelId)}`,
+      {
+        method: 'GET',
+      },
+    );
+    return normalizeTunnel(tunnel);
   }
 
   async closeTunnel(tunnelId: string): Promise<void> {
@@ -60,11 +66,39 @@ export class TunnelAPIClient {
       { ...init, headers },
     );
     if (!response.ok) {
-      throw new TunnelAPIError(response.status, await response.text());
+      const body = await response.text();
+      let message = body;
+      try {
+        const payload = JSON.parse(body) as {
+          message?: unknown;
+          error?: unknown;
+        };
+        if (typeof payload.message === 'string' && payload.message !== '') {
+          message = payload.message;
+        } else if (typeof payload.error === 'string' && payload.error !== '') {
+          message = payload.error;
+        }
+      } catch {
+        // Preserve non-JSON error bodies as the exception message.
+      }
+      throw new TunnelAPIError(response.status, message);
     }
     if (response.status === 204) {
       return undefined as T;
     }
     return (await response.json()) as T;
   }
+}
+
+function normalizeTunnel(tunnel: Tunnel): Tunnel {
+  if (tunnel.publicHostname) {
+    return tunnel;
+  }
+
+  const legacyHostname = tunnel.public_url ?? tunnel.publicUrl;
+  if (!legacyHostname) {
+    return tunnel;
+  }
+
+  return { ...tunnel, publicHostname: legacyHostname };
 }

@@ -1,16 +1,14 @@
 package main
 
 import (
-	"context"
 	"encoding/json"
-	"flag"
 	"fmt"
-	"log"
 	"net/http"
 	"os"
 
-	"codedock.run/codedock-tunnel/internal/config"
-	"codedock.run/codedock-tunnel/pkg/client"
+	"github.com/spf13/cobra"
+	"outpipe.dev/outpipe/internal/config"
+	"outpipe.dev/outpipe/pkg/client"
 )
 
 type TunnelDTO struct {
@@ -24,12 +22,14 @@ type TunnelDTO struct {
 }
 
 func printOutput(jsonOutput bool, value any) {
+
 	if jsonOutput {
 		enc := json.NewEncoder(os.Stdout)
 		enc.SetIndent("", "  ")
 		_ = enc.Encode(value)
 		return
 	}
+
 	switch v := value.(type) {
 	case []TunnelDTO:
 		for _, t := range v {
@@ -42,86 +42,132 @@ func printOutput(jsonOutput bool, value any) {
 	}
 }
 
-func runTunnelsCommand(cfg config.CLIConfig, args []string) {
-	if len(args) == 0 {
-		log.Fatal("tunnel action required: create, list, inspect, start, stop, revoke")
+func newTunnelCommand(cfg config.CLIConfig, name, short string, args cobra.PositionalArgs) *cobra.Command {
+	command := &cobra.Command{
+		Use:   name,
+		Short: short,
+		Args:  args,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return runTunnelAction(cmd, cfg, name, args)
+		},
 	}
-	action := args[0]
-	flags := flag.NewFlagSet(action, flag.ExitOnError)
-	jsonOutput := flags.Bool("json", false, "output in JSON format")
-	organizationID := flags.String("organization", "", "organization ID")
-	targetHost := flags.String("target-host", "127.0.0.1", "target host")
-	targetPort := flags.Int("target-port", 3000, "target port")
-	publicHostname := flags.String("hostname", "", "public hostname")
-	password := flags.String("password", cfg.Password, "require this password for HTTP access")
-	_ = flags.Parse(args[1:])
+
+	command.Flags().Bool("json", false, "output in JSON format")
+	command.Flags().String("organization", "", "organization ID")
+	command.Flags().String("target-host", "127.0.0.1", "target host")
+	command.Flags().Int("target-port", 3000, "target port")
+	command.Flags().String("hostname", "", "public hostname")
+	command.Flags().String("password", cfg.Password, "require this password for HTTP access")
+
+	if name == "create" || name == "list" {
+		_ = command.MarkFlagRequired("organization")
+	}
+
+	return command
+}
+
+func runTunnelAction(cmd *cobra.Command, cfg config.CLIConfig, action string, args []string) error {
+	jsonOutput, err := cmd.Flags().GetBool("json")
+
+	if err != nil {
+		return err
+	}
+
+	organizationID, err := cmd.Flags().GetString("organization")
+
+	if err != nil {
+		return err
+	}
 
 	apiClient, err := client.New(client.Config{BaseURL: cfg.APIURL, APIKey: cfg.APIKey})
+
 	if err != nil {
-		log.Fatalf("initialize client: %v", err)
+		return fmt.Errorf("initialize client: %w", err)
 	}
 
 	switch action {
 	case "list":
-		if *organizationID == "" {
-			log.Fatal("list requires --organization")
-		}
 		var tunnels []TunnelDTO
-		if err := apiClient.Do(context.Background(), http.MethodGet, "/api/v1/organizations/"+*organizationID+"/tunnels", nil, &tunnels); err != nil {
-			log.Fatalf("list tunnels: %v", err)
+
+		if err := apiClient.Do(cmd.Context(), http.MethodGet, "/api/v1/organizations/"+organizationID+"/tunnels", nil, &tunnels); err != nil {
+			return fmt.Errorf("list tunnels: %w", err)
 		}
-		printOutput(*jsonOutput, tunnels)
+
+		printOutput(jsonOutput, tunnels)
 	case "inspect":
-		if flags.NArg() < 1 {
-			log.Fatal("tunnel ID required")
-		}
 		var tunnel TunnelDTO
-		if err := apiClient.Do(context.Background(), http.MethodGet, "/api/v1/tunnels/"+flags.Arg(0), nil, &tunnel); err != nil {
-			log.Fatalf("inspect tunnel: %v", err)
+
+		if err := apiClient.Do(cmd.Context(), http.MethodGet, "/api/v1/tunnels/"+args[0], nil, &tunnel); err != nil {
+			return fmt.Errorf("inspect tunnel: %w", err)
 		}
-		printOutput(*jsonOutput, tunnel)
+
+		printOutput(jsonOutput, tunnel)
 	case "create":
-		if *organizationID == "" || flags.NArg() < 1 {
-			log.Fatal("create requires --organization and tunnel name")
+		targetHost, err := cmd.Flags().GetString("target-host")
+
+		if err != nil {
+			return err
 		}
-		if flags.NArg() < 1 {
-			log.Fatal("tunnel name/protocol required")
+
+		targetPort, err := cmd.Flags().GetInt("target-port")
+
+		if err != nil {
+			return err
 		}
-		var tunnel TunnelDTO
+
+		publicHostname, err := cmd.Flags().GetString("hostname")
+
+		if err != nil {
+			return err
+		}
+
+		password, err := cmd.Flags().GetString("password")
+
+		if err != nil {
+			return err
+		}
+
 		protocolName := "http"
-		if flags.NArg() > 1 {
-			protocolName = flags.Arg(1)
+
+		if len(args) > 1 {
+			protocolName = args[1]
 		}
-		payload := map[string]any{"name": flags.Arg(0), "protocol": protocolName, "targetHost": *targetHost, "targetPort": *targetPort, "publicHostname": *publicHostname, "password": *password}
-		if err := apiClient.Do(context.Background(), http.MethodPost, "/api/v1/organizations/"+*organizationID+"/tunnels", payload, &tunnel); err != nil {
-			log.Fatalf("create tunnel: %v", err)
+
+		var tunnel TunnelDTO
+		payload := map[string]any{"name": args[0], "protocol": protocolName, "targetHost": targetHost, "targetPort": targetPort, "publicHostname": publicHostname, "password": password}
+
+		if err := apiClient.Do(cmd.Context(), http.MethodPost, "/api/v1/organizations/"+organizationID+"/tunnels", payload, &tunnel); err != nil {
+			return fmt.Errorf("create tunnel: %w", err)
 		}
-		printOutput(*jsonOutput, tunnel)
+
+		printOutput(jsonOutput, tunnel)
 	case "start", "stop":
-		if flags.NArg() < 1 {
-			log.Fatal("tunnel ID required")
-		}
 		status := "active"
+
 		if action == "stop" {
 			status = "disconnected"
 		}
-		if err := apiClient.Do(context.Background(), http.MethodPatch, "/api/v1/tunnels/"+flags.Arg(0)+"/status", map[string]string{"status": status}, nil); err != nil {
-			log.Fatalf("%s tunnel: %v", action, err)
+
+		if err := apiClient.Do(cmd.Context(), http.MethodPatch, "/api/v1/tunnels/"+args[0]+"/status", map[string]string{"status": status}, nil); err != nil {
+			return fmt.Errorf("%s tunnel: %w", action, err)
 		}
+
 		verb := "started"
+
 		if action == "stop" {
 			verb = "stopped"
 		}
+
 		fmt.Printf("tunnel %s\n", verb)
 	case "revoke":
-		if flags.NArg() < 1 {
-			log.Fatal("tunnel ID required")
+		if err := apiClient.Do(cmd.Context(), http.MethodDelete, "/api/v1/tunnels/"+args[0], nil, nil); err != nil {
+			return fmt.Errorf("revoke tunnel: %w", err)
 		}
-		if err := apiClient.Do(context.Background(), http.MethodDelete, "/api/v1/tunnels/"+flags.Arg(0), nil, nil); err != nil {
-			log.Fatalf("revoke tunnel: %v", err)
-		}
+
 		fmt.Println("tunnel revoked")
 	default:
-		log.Fatalf("unknown action %q", action)
+		return fmt.Errorf("unknown action %q", action)
 	}
+
+	return nil
 }

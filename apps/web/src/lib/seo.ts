@@ -1,8 +1,7 @@
 import { env } from '#/env';
 
-export const siteUrl =
-  env.VITE_CODEDOCK_SITE_URL ?? 'https://codedock-tunnel.dev';
-export const siteName = 'Codedock Tunnel';
+export const siteUrl = env.VITE_OUTPIPE_SITE_URL ?? 'https://outpipe.dev';
+export const siteName = 'Outpipe';
 export const siteDescription =
   'Secure public access for local and private services with one CLI, desktop app, and developer protocol.';
 export const socialImage = `${siteUrl}/og-image.png`;

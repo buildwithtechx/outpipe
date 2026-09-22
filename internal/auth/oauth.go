@@ -24,17 +24,22 @@ type OAuthProvider interface {
 }
 
 func ValidateOAuthProfile(profile OAuthProfile) error {
+
 	if profile.Provider == "" {
 		return fmt.Errorf("oauth provider is required")
 	}
+
 	if profile.Subject == "" {
 		return fmt.Errorf("oauth subject is required")
 	}
+
 	if profile.Email == "" {
 		return fmt.Errorf("oauth email is required")
 	}
+
 	if !profile.EmailVerified {
 		return fmt.Errorf("oauth email is not verified")
 	}
+
 	return nil
 }

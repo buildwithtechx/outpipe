@@ -30,7 +30,7 @@ body:
         - Desktop app
         - Protocol
         - Self-hosted deployment
-        - Codedock integration
+        - Outpipe integration
     validations:
       required: true
   - type: textarea

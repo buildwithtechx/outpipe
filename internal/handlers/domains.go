@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"strings"
 
-	"codedock.run/codedock-tunnel/internal/services"
 	"github.com/gofiber/fiber/v2"
+	"outpipe.dev/outpipe/internal/services"
 )
 
 type DomainHandler struct{ domains *services.DomainService }
@@ -27,31 +27,48 @@ type VerifyDomainRequest struct {
 }
 
 func NewDomainHandler(domains *services.DomainService) (*DomainHandler, error) {
+
 	if domains == nil {
 		return nil, fmt.Errorf("domain service is required")
 	}
+
 	return &DomainHandler{domains: domains}, nil
 }
 
 func (h *DomainHandler) Create(c *fiber.Ctx) error {
 	var input CreateDomainRequest
+
 	if err := c.BodyParser(&input); err != nil {
 		return writeError(c, fiber.StatusBadRequest, fmt.Errorf("decode domain request: %w", err))
 	}
+
 	token, domain, err := h.domains.Create(c.UserContext(), strings.TrimSpace(c.Params("organizationID")), input.Hostname, input.VerificationMethod, input.TunnelID)
+
 	if err != nil {
 		return writeError(c, fiber.StatusBadRequest, err)
 	}
+
 	return c.Status(fiber.StatusCreated).JSON(fiber.Map{"domain": domain, "verificationToken": token})
+}
+
+func (h *DomainHandler) List(c *fiber.Ctx) error {
+	domains, err := h.domains.ListByOrganization(c.UserContext(), strings.TrimSpace(c.Params("organizationID")))
+	if err != nil {
+		return writeError(c, fiber.StatusBadRequest, err)
+	}
+	return c.JSON(domains)
 }
 
 func (h *DomainHandler) Verify(c *fiber.Ctx) error {
 	var input VerifyDomainRequest
+
 	if err := c.BodyParser(&input); err != nil {
 		return writeError(c, fiber.StatusBadRequest, fmt.Errorf("decode domain verification request: %w", err))
 	}
+
 	if err := h.domains.Verify(c.UserContext(), c.Params("domainID"), input.Token); err != nil {
 		return writeError(c, fiber.StatusUnauthorized, err)
 	}
+
 	return c.SendStatus(fiber.StatusNoContent)
 }

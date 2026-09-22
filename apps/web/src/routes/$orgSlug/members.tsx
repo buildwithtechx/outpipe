@@ -1,15 +1,11 @@
 import { createFileRoute } from '@tanstack/react-router';
-import { PagePlaceholder } from '#/components/layout/page-placeholder';
+import { MembersPage } from '#/features/organizations';
 
 export const Route = createFileRoute('/$orgSlug/members')({
-  component: MembersPage,
+  component: MembersRoute,
 });
 
-function MembersPage() {
-  return (
-    <PagePlaceholder
-      title="Members"
-      description="Invite teammates and manage organization roles."
-    />
-  );
+function MembersRoute() {
+  const { orgSlug } = Route.useParams();
+  return <MembersPage orgSlug={orgSlug} />;
 }

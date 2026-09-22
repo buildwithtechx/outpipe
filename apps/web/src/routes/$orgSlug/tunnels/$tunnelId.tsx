@@ -1,15 +1,11 @@
 import { createFileRoute } from '@tanstack/react-router';
-import { PagePlaceholder } from '#/components/layout/page-placeholder';
+import { TunnelDetailsPage } from '#/features/tunnels';
 
 export const Route = createFileRoute('/$orgSlug/tunnels/$tunnelId')({
-  component: TunnelDetailsPage,
+  component: TunnelDetailsRoute,
 });
 
-function TunnelDetailsPage() {
-  return (
-    <PagePlaceholder
-      title="Tunnel details"
-      description="Inspect connection state, endpoint configuration, and request activity."
-    />
-  );
+function TunnelDetailsRoute() {
+  const { orgSlug, tunnelId } = Route.useParams();
+  return <TunnelDetailsPage orgSlug={orgSlug} tunnelID={tunnelId} />;
 }

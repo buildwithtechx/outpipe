@@ -1,0 +1,59 @@
+---
+title: Webhooks
+description: Receive real-time HTTP event notifications for tunnel and usage lifecycle events.
+icon: Bell
+---
+
+Outpipe provides a robust webhook delivery engine that notifies your external servers or serverless functions when important events occur in your organization.
+
+## Supported Events
+
+| Event Type | Description |
+| :--- | :--- |
+| `tunnel.connected` | Triggered when a local agent establishes an active session with an edge relay. |
+| `tunnel.disconnected` | Triggered when an agent session disconnects or reaches inactivity timeout. |
+| `tunnel.revoked` | Triggered when a tunnel configuration is deleted or revoked from the dashboard. |
+
+## Signature Verification (`X-Outpipe-Signature`)
+
+Every webhook POST request includes cryptographic headers to verify authenticity and prevent replay attacks:
+
+- `X-Outpipe-Event-ID`: Unique UUID for idempotency tracking.
+- `X-Outpipe-Event-Type`: Name of the event (e.g., `tunnel.online`).
+- `X-Outpipe-Signature`: **HMAC-SHA256 hex digest** calculated over the exact raw request body using your configured webhook signing secret.
+
+### Verification Example (Node.js / Express)
+
+```typescript
+import crypto from 'crypto';
+import express from 'express';
+
+const app = express();
+const WEBHOOK_SECRET = process.env.OUTPIPE_WEBHOOK_SECRET!;
+
+app.post('/webhook', express.raw({ type: 'application/json' }), (req, res) => {
+  const signature = req.headers['x-outpipe-signature'] as string;
+  const eventId = req.headers['x-outpipe-event-id'] as string;
+
+  const expectedSignature = crypto
+    .createHmac('sha256', WEBHOOK_SECRET)
+    .update(req.body)
+    .digest('hex');
+
+  if (!crypto.timingSafeEqual(Buffer.from(signature), Buffer.from(expectedSignature))) {
+    return res.status(401).send('Invalid webhook signature');
+  }
+
+  const payload = JSON.parse(req.body.toString('utf-8'));
+  console.log(`Received event ${payload.type} (ID: ${eventId})`);
+
+  // Return 200 OK promptly
+  res.status(200).json({ received: true });
+});
+```
+
+## Reliability & Retries
+
+- **Fast Acknowledgment**: Receiver endpoints must respond with an HTTP `2xx` status code within 5 seconds.
+- **Exponential Backoff**: If delivery fails (non-2xx response or network timeout), Outpipe automatically retries with exponential backoff across 5 attempts over ~15 minutes (retries at 1, 2, 4, and 8 minutes) before dead-lettering.
+- **Idempotency**: Use `X-Outpipe-Event-ID` to detect and safely ignore replayed deliveries.

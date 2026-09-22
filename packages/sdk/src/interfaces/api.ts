@@ -7,8 +7,11 @@ export type TunnelAPIClientOptions = {
 
 export type Tunnel = {
   id: string;
-  publicUrl?: string;
+  publicHostname?: string;
+  /** @deprecated Relay protocol messages use public_url; HTTP API responses use publicHostname. */
   public_url?: string;
+  /** @deprecated Use publicHostname for HTTP API responses. */
+  publicUrl?: string;
   status: string;
   [key: string]: unknown;
 };

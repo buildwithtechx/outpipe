@@ -1,15 +1,11 @@
 import { createFileRoute } from '@tanstack/react-router';
-import { PagePlaceholder } from '#/components/layout/page-placeholder';
+import { RequestsPage } from '#/features/requests';
 
 export const Route = createFileRoute('/$orgSlug/requests')({
-  component: RequestsPage,
+  component: RequestsRoute,
 });
 
-function RequestsPage() {
-  return (
-    <PagePlaceholder
-      title="Requests"
-      description="Inspect request activity flowing through organization tunnels."
-    />
-  );
+function RequestsRoute() {
+  const { orgSlug } = Route.useParams();
+  return <RequestsPage orgSlug={orgSlug} />;
 }

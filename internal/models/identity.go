@@ -54,6 +54,7 @@ type APIKey struct {
 	Prefix         string     `json:"prefix" gorm:"uniqueIndex;not null"`
 	SecretHash     string     `json:"-" gorm:"uniqueIndex;not null"`
 	Scopes         string     `json:"scopes" gorm:"type:jsonb;not null;default:'[]'"`
+	Source         string     `json:"source,omitempty" gorm:"type:varchar(40);not null;default:''"`
 	ExpiresAt      *time.Time `json:"expiresAt,omitempty"`
 	LastUsedAt     *time.Time `json:"lastUsedAt,omitempty"`
 	RevokedAt      *time.Time `json:"revokedAt,omitempty"`

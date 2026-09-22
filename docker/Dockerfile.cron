@@ -15,11 +15,11 @@ RUN CGO_ENABLED=0 go build -ldflags="-s -w -X main.version=${VERSION}" -o /out/c
 # Run this image from a scheduler, not as a public service.
 FROM alpine:3.22
 
-RUN addgroup -S codedock && adduser -S -G codedock codedock
+RUN addgroup -S outpipe && adduser -S -G outpipe outpipe
 
 WORKDIR /app
 COPY --from=build /out/cron /app/cron
 
-USER codedock
+USER outpipe
 
 ENTRYPOINT ["/app/cron"]

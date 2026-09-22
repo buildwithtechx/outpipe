@@ -3,7 +3,7 @@ import {
   type OpenTunnelAck,
   RelayConnection,
   type RelayConnectionOptions,
-} from '@codedock/sdk';
+} from '@outpipe/sdk';
 import {
   createContext,
   type PropsWithChildren,
@@ -121,6 +121,7 @@ export function TunnelProvider({ options, children }: TunnelProviderOptions) {
       closeTunnel,
     ],
   );
+
   return (
     <TunnelContext.Provider value={value}>{children}</TunnelContext.Provider>
   );

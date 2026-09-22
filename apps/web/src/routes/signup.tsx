@@ -1,13 +1,8 @@
 import { createFileRoute } from '@tanstack/react-router';
-import { PagePlaceholder } from '#/components/layout/page-placeholder';
+import { SignupPage } from '#/features/auth';
+import { createSeo } from '#/lib/seo';
 
-export const Route = createFileRoute('/signup')({ component: SignupPage });
-
-function SignupPage() {
-  return (
-    <PagePlaceholder
-      title="Create your account"
-      description="Create a Codedock Tunnel account with your preferred OAuth provider."
-    />
-  );
-}
+export const Route = createFileRoute('/signup')({
+  head: () => createSeo({ title: 'Create an account', path: '/signup' }),
+  component: SignupPage,
+});

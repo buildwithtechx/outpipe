@@ -1,14 +1,41 @@
 use std::process::Child;
 use std::sync::Mutex;
 
+#[derive(Clone, Default)]
+pub struct TunnelOptions {
+    pub subdomain: Option<String>,
+    pub password: Option<String>,
+}
+
+impl std::fmt::Debug for TunnelOptions {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("TunnelOptions")
+            .field("subdomain", &self.subdomain)
+            .field(
+                "password",
+                &self.password.as_ref().map(|_| "[REDACTED]"),
+            )
+            .finish()
+    }
+}
+
+#[derive(Clone, Debug)]
+pub struct LastTunnel {
+    pub port: u16,
+    pub protocol: String,
+    pub options: TunnelOptions,
+}
+
 pub struct TunnelState {
     pub(crate) child: Mutex<Option<Child>>,
+    pub last: Mutex<Option<LastTunnel>>,
 }
 
 impl Default for TunnelState {
     fn default() -> Self {
         Self {
             child: Mutex::new(None),
+            last: Mutex::new(None),
         }
     }
 }

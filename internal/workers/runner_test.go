@@ -22,12 +22,15 @@ func (j *testJob) Run(context.Context) error {
 func TestRunnerRunsJobs(t *testing.T) {
 	job := &testJob{}
 	runner, err := NewRunner([]Job{job}, time.Second, nil)
+
 	if err != nil {
 		t.Fatal(err)
 	}
+
 	if err := runner.RunOnce(context.Background()); err != nil {
 		t.Fatal(err)
 	}
+
 	if !job.called {
 		t.Fatal("expected job to run")
 	}
@@ -36,9 +39,11 @@ func TestRunnerRunsJobs(t *testing.T) {
 func TestRunnerReturnsJobError(t *testing.T) {
 	job := &testJob{err: errors.New("failed")}
 	runner, err := NewRunner([]Job{job}, time.Second, nil)
+
 	if err != nil {
 		t.Fatal(err)
 	}
+
 	if err := runner.RunOnce(context.Background()); err == nil {
 		t.Fatal("expected job error")
 	}

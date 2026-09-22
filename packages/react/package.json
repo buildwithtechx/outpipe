@@ -1,5 +1,5 @@
 {
-  "name": "@codedock/react",
+  "name": "@outpipe/react",
   "version": "0.1.0",
   "publishConfig": {
     "access": "public"
@@ -12,10 +12,10 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run --passWithNoTests"
   },
-  "description": "React hooks and providers for Codedock Tunnel",
+  "description": "React hooks and providers for Outpipe",
   "files": ["dist"],
   "dependencies": {
-    "@codedock/sdk": "0.1.0"
+    "@outpipe/sdk": "0.1.0"
   },
   "peerDependencies": {
     "react": ">=18",

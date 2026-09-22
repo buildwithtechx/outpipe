@@ -1,4 +1,5 @@
 node_modules/
+vendor/
 dist/
 build/
 coverage/
@@ -6,14 +7,25 @@ coverage/
 .vite/
 .tanstack/
 .source/
+.wrangler/
+.wrangler*
 
 bin/
 *.test
 *.out
 
+# go build ./cmd/* without -o drops binaries at the repo root
+/cli
+/server
+/tunnel
+/cron
+/check
+
 target/
+packages/php/.phpunit.result.cache
 apps/desktop/src-tauri/gen/
 apps/desktop/src-tauri/target/
+apps/desktop/src-tauri/resources/
 
 .env
 .env.*

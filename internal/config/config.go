@@ -3,67 +3,84 @@ package config
 import "time"
 
 type APIConfig struct {
-	App      AppConfig      `envPrefix:"CODEDOCK_"`
-	Auth     AuthConfig     `envPrefix:"CODEDOCK_"`
-	Database DatabaseConfig `envPrefix:"CODEDOCK_"`
-	Redis    RedisConfig    `envPrefix:"CODEDOCK_"`
-	Mail     MailConfig     `envPrefix:"CODEDOCK_"`
-	Service  ServiceConfig  `envPrefix:"CODEDOCK_"`
-	Billing  BillingConfig  `envPrefix:"CODEDOCK_"`
-	Tunnel   TunnelConfig   `envPrefix:"CODEDOCK_"`
+	App      AppConfig      `envPrefix:"OUTPIPE_"`
+	Auth     AuthConfig     `envPrefix:"OUTPIPE_"`
+	Database DatabaseConfig `envPrefix:"OUTPIPE_"`
+	Redis    RedisConfig    `envPrefix:"OUTPIPE_"`
+	Mail     MailConfig     `envPrefix:"OUTPIPE_"`
+	Service  ServiceConfig  `envPrefix:"OUTPIPE_"`
+	Billing  BillingConfig  `envPrefix:"OUTPIPE_"`
+	Tunnel   TunnelConfig   `envPrefix:"OUTPIPE_"`
 }
 
 type RelayConfig struct {
-	App     AppConfig     `envPrefix:"CODEDOCK_"`
-	Redis   RedisConfig   `envPrefix:"CODEDOCK_"`
-	Tunnel  TunnelConfig  `envPrefix:"CODEDOCK_"`
-	Service ServiceConfig `envPrefix:"CODEDOCK_"`
-	RelayID string        `env:"RELAY_ID"`
+	App     AppConfig     `envPrefix:"OUTPIPE_"`
+	Redis   RedisConfig   `envPrefix:"OUTPIPE_"`
+	Tunnel  TunnelConfig  `envPrefix:"OUTPIPE_"`
+	Service ServiceConfig `envPrefix:"OUTPIPE_"`
+	RelayID string        `env:"OUTPIPE_RELAY_ID"`
 }
 
 type CronConfig struct {
-	App      AppConfig      `envPrefix:"CODEDOCK_"`
-	Database DatabaseConfig `envPrefix:"CODEDOCK_"`
-	Redis    RedisConfig    `envPrefix:"CODEDOCK_"`
-	Service  ServiceConfig  `envPrefix:"CODEDOCK_"`
+	App      AppConfig      `envPrefix:"OUTPIPE_"`
+	Database DatabaseConfig `envPrefix:"OUTPIPE_"`
+	Redis    RedisConfig    `envPrefix:"OUTPIPE_"`
+	Service  ServiceConfig  `envPrefix:"OUTPIPE_"`
+	Backup   BackupConfig   `envPrefix:"OUTPIPE_"`
+	Mail     MailConfig     `envPrefix:"OUTPIPE_"`
 }
 
 type CheckConfig struct {
-	App     AppConfig     `envPrefix:"CODEDOCK_"`
-	Service ServiceConfig `envPrefix:"CODEDOCK_"`
+	App      AppConfig      `envPrefix:"OUTPIPE_"`
+	Service  ServiceConfig  `envPrefix:"OUTPIPE_"`
+	Database DatabaseConfig `envPrefix:"OUTPIPE_"`
+	Redis    RedisConfig    `envPrefix:"OUTPIPE_"`
+	RelayURL string         `env:"OUTPIPE_CHECK_RELAY_URL"`
 }
 
 type CLIConfig struct {
-	APIURL       string `env:"CODEDOCK_TUNNEL_API_URL" envDefault:"http://localhost:8080"`
-	RelayURL     string `env:"CODEDOCK_TUNNEL_RELAY_URL" envDefault:"ws://localhost:8081"`
-	PublicDomain string `env:"CODEDOCK_TUNNEL_DOMAIN" envDefault:"tunnel.codedock-tunnel.dev"`
-	APIKey       string `env:"CODEDOCK_TUNNEL_API_KEY"`
-	AgentToken   string `env:"CODEDOCK_TUNNEL_AGENT_TOKEN"`
-	Password     string `env:"CODEDOCK_TUNNEL_PASSWORD"`
-	ConfigPath   string `env:"CODEDOCK_TUNNEL_CONFIG_PATH" envDefault:".config/codedock-tunnel/config.json"`
+	Version      int    `json:"version" env:"-"`
+	APIURL       string `env:"OUTPIPE_API_URL" envDefault:"http://localhost:8080"`
+	RelayURL     string `env:"OUTPIPE_RELAY_URL" envDefault:"ws://localhost:8081"`
+	PublicDomain string `env:"OUTPIPE_DOMAIN" envDefault:"outpipe.app"`
+	APIKey       string `env:"OUTPIPE_API_KEY"`
+	AgentToken   string `env:"OUTPIPE_AGENT_TOKEN"`
+	Password     string `env:"OUTPIPE_PASSWORD"`
+	ConfigPath   string `env:"OUTPIPE_CONFIG_PATH" envDefault:".config/outpipe/config.json"`
 }
 
+const CurrentCLIConfigVersion = 1
+
 type ServiceConfig struct {
-	InternalAPIURL    string `env:"INTERNAL_API_URL" envDefault:"http://localhost:8080"`
+	InternalAPIURL    string `env:"INTERNAL_API_URL" envDefault:"http://127.0.0.1:9090"`
 	InternalAPISecret string `env:"INTERNAL_API_SECRET"`
 }
 
+type BackupConfig struct {
+	Directory     string `env:"BACKUP_DIRECTORY"`
+	DatabaseURL   string `env:"DATABASE_URL"`
+	Keep          int    `env:"BACKUP_KEEP" envDefault:"7"`
+	PgDumpPath    string `env:"BACKUP_PG_DUMP_PATH" envDefault:"pg_dump"`
+	PgRestorePath string `env:"BACKUP_PG_RESTORE_PATH" envDefault:"pg_restore"`
+}
+
 type AppConfig struct {
-	Port             string        `env:"PORT" envDefault:"8080"`
-	Name             string        `env:"APP_NAME" envDefault:"codedock-tunnel"`
-	Environment      string        `env:"ENV" envDefault:"development"`
-	LogLevel         string        `env:"LOG_LEVEL" envDefault:"info"`
-	ShutdownTimeout  time.Duration `env:"SHUTDOWN_TIMEOUT" envDefault:"10s"`
-	AllowedOrigins   string        `env:"ALLOWED_ORIGINS" envDefault:"http://localhost:3000,http://localhost:3001"`
-	CORSOrigin       string        `env:"CORS_ORIGIN" envDefault:"http://localhost:3000"`
-	PublicAPIURL     string        `env:"PUBLIC_API_URL" envDefault:"http://localhost:8080"`
-	DashboardURL     string        `env:"DASHBOARD_URL" envDefault:"http://localhost:3000"`
-	ACMEEmail        string        `env:"ACME_EMAIL"`
-	ACMEDirectory    string        `env:"ACME_DIRECTORY"`
-	CertificateCache string        `env:"CERTIFICATE_CACHE_DIR" envDefault:".data/acme"`
-	RequireTLS       bool          `env:"REQUIRE_TLS" envDefault:"false"`
-	TLSCertFile      string        `env:"TLS_CERT_FILE"`
-	TLSKeyFile       string        `env:"TLS_KEY_FILE"`
+	Port                  string        `env:"PORT" envDefault:"8080"`
+	InternalListenAddress string        `env:"INTERNAL_LISTEN_ADDRESS" envDefault:"127.0.0.1:9090"`
+	Name                  string        `env:"APP_NAME" envDefault:"outpipe"`
+	Environment           string        `env:"ENV" envDefault:"development"`
+	LogLevel              string        `env:"LOG_LEVEL" envDefault:"info"`
+	ShutdownTimeout       time.Duration `env:"SHUTDOWN_TIMEOUT" envDefault:"10s"`
+	AllowedOrigins        string        `env:"ALLOWED_ORIGINS" envDefault:"http://localhost:3000,http://localhost:3001"`
+	CORSOrigin            string        `env:"CORS_ORIGIN" envDefault:"http://localhost:3000"`
+	PublicAPIURL          string        `env:"PUBLIC_API_URL" envDefault:"http://localhost:8080"`
+	DashboardURL          string        `env:"DASHBOARD_URL" envDefault:"http://localhost:3000"`
+	ACMEEmail             string        `env:"ACME_EMAIL"`
+	ACMEDirectory         string        `env:"ACME_DIRECTORY"`
+	CertificateCache      string        `env:"CERTIFICATE_CACHE_DIR" envDefault:".data/acme"`
+	RequireTLS            bool          `env:"REQUIRE_TLS" envDefault:"false"`
+	TLSCertFile           string        `env:"TLS_CERT_FILE"`
+	TLSKeyFile            string        `env:"TLS_KEY_FILE"`
 }
 
 type AuthConfig struct {
@@ -71,8 +88,9 @@ type AuthConfig struct {
 	DeviceLoginTTL     time.Duration `env:"DEVICE_LOGIN_TTL" envDefault:"10m"`
 	InvitationTTL      time.Duration `env:"INVITATION_TTL" envDefault:"168h"`
 	OAuthStateTTL      time.Duration `env:"OAUTH_STATE_TTL" envDefault:"10m"`
-	CookieName         string        `env:"AUTH_COOKIE_NAME" envDefault:"codedock_session"`
+	CookieName         string        `env:"AUTH_COOKIE_NAME" envDefault:"outpipe_session"`
 	CookieSecure       bool          `env:"AUTH_COOKIE_SECURE" envDefault:"false"`
+	CookieDomain       string        `env:"AUTH_COOKIE_DOMAIN"`
 	GoogleClientID     string        `env:"GOOGLE_CLIENT_ID"`
 	GoogleClientSecret string        `env:"GOOGLE_CLIENT_SECRET"`
 	GitHubClientID     string        `env:"GITHUB_CLIENT_ID"`
@@ -81,7 +99,7 @@ type AuthConfig struct {
 }
 
 type DatabaseConfig struct {
-	URL         string        `env:"DATABASE_URL" envDefault:"postgres://codedock:codedock@localhost:5432/codedock?sslmode=disable"`
+	URL         string        `env:"DATABASE_URL" envDefault:"postgres://outpipe:outpipe@localhost:5432/outpipe?sslmode=disable"`
 	MaxConns    int           `env:"DATABASE_MAX_CONNS" envDefault:"25"`
 	MaxLifetime time.Duration `env:"DB_CONN_MAX_LIFETIME" envDefault:"30m"`
 	MaxIdleTime time.Duration `env:"DB_CONN_MAX_IDLE_TIME" envDefault:"5m"`
@@ -96,12 +114,13 @@ type RedisConfig struct {
 
 type MailConfig struct {
 	FromAddress string `env:"MAIL_FROM" envDefault:"noreply@localhost"`
+	Support     string `env:"SUPPORT_EMAIL" envDefault:"support@outpipe.dev"`
 	ZeptoAPIKey string `env:"ZEPTO_API_KEY"`
 	ZeptoURL    string `env:"ZEPTO_URL" envDefault:"https://api.zeptomail.com/v1.1/email"`
 }
 
 type TunnelConfig struct {
-	Domain          string        `env:"TUNNEL_DOMAIN" envDefault:"tunnel.codedock-tunnel.dev"`
+	Domain          string        `env:"TUNNEL_DOMAIN" envDefault:"outpipe.app"`
 	TokenTTL        time.Duration `env:"TUNNEL_TOKEN_TTL" envDefault:"24h"`
 	MaxConnections  int           `env:"TUNNEL_MAX_CONNECTIONS" envDefault:"1000"`
 	MaxTunnels      int           `env:"TUNNEL_MAX_TUNNELS" envDefault:"1000"`
@@ -121,12 +140,12 @@ type BillingConfig struct {
 	PolarBaseURL            string        `env:"POLAR_BASE_URL" envDefault:"https://sandbox-api.polar.sh"`
 	PolarAccessToken        string        `env:"POLAR_ACCESS_TOKEN"`
 	PolarWebhookSecret      string        `env:"POLAR_WEBHOOK_SECRET"`
-	PolarProductRay         string        `env:"POLAR_PRODUCT_RAY"`
-	PolarProductBeam        string        `env:"POLAR_PRODUCT_BEAM"`
-	PolarProductPulse       string        `env:"POLAR_PRODUCT_PULSE"`
-	PolarProductRayYearly   string        `env:"POLAR_PRODUCT_RAY_YEARLY"`
-	PolarProductBeamYearly  string        `env:"POLAR_PRODUCT_BEAM_YEARLY"`
-	PolarProductPulseYearly string        `env:"POLAR_PRODUCT_PULSE_YEARLY"`
+	PolarProductLink        string        `env:"POLAR_PRODUCT_LINK"`
+	PolarProductRoute       string        `env:"POLAR_PRODUCT_ROUTE"`
+	PolarProductEdge        string        `env:"POLAR_PRODUCT_EDGE"`
+	PolarProductLinkYearly  string        `env:"POLAR_PRODUCT_LINK_YEARLY"`
+	PolarProductRouteYearly string        `env:"POLAR_PRODUCT_ROUTE_YEARLY"`
+	PolarProductEdgeYearly  string        `env:"POLAR_PRODUCT_EDGE_YEARLY"`
 	PaystackBaseURL         string        `env:"PAYSTACK_BASE_URL" envDefault:"https://api.paystack.co"`
 	PaystackSecret          string        `env:"PAYSTACK_SECRET_KEY"`
 	WebhookSecret           string        `env:"BILLING_WEBHOOK_SECRET"`

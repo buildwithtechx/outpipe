@@ -3,6 +3,10 @@
   "pages": [
     "overview",
     "sdk",
+    "go",
+    "rust",
+    "php",
+    "angular",
     "react",
     "vite",
     "next",

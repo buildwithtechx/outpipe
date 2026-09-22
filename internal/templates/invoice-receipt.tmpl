@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en">
+  <body
+    style="
+      margin: 0;
+      background: #000;
+      color: #f7f7fb;
+      font-family: Arial, sans-serif;
+    "
+  >
+    <table
+      role="presentation"
+      width="100%"
+      cellpadding="0"
+      cellspacing="0"
+      style="padding: 40px 16px; background: #000"
+    >
+      <tr>
+        <td align="center">
+          <table
+            role="presentation"
+            width="100%"
+            cellpadding="0"
+            cellspacing="0"
+            style="
+              max-width: 600px;
+              background: #08090f;
+              border: 1px solid #24283a;
+              border-radius: 16px;
+            "
+          >
+            <tr>
+              <td style="padding: 24px 32px; border-bottom: 1px solid #24283a">
+                <strong style="font-size: 20px; color: #f7f7fb">Outpipe</strong
+                ><br /><span style="font-size: 12px; color: #777b8d"
+                  >Secure tunnel infrastructure</span
+                >
+              </td>
+            </tr>
+            <tr>
+              <td style="padding: 32px">
+                <h1
+                  style="
+                    margin: 0 0 20px;
+                    font-size: 28px;
+                    line-height: 34px;
+                    color: #f7f7fb;
+                  "
+                >
+                  Payment received
+                </h1>
+                <p style="font-size: 17px; line-height: 28px; color: #b1b2bf">
+                  Hi {{.Name}},
+                </p>
+                <p style="font-size: 17px; line-height: 28px; color: #b1b2bf">
+                  We received your {{.Organization}} payment of
+                  <strong style="color: #a5b4fc">{{.Amount}}</strong>.
+                </p>
+                {{if .InvoiceURL}}
+                <p style="margin: 28px 0">
+                  <a
+                    href="{{.InvoiceURL}}"
+                    style="
+                      display: inline-block;
+                      padding: 13px 20px;
+                      border-radius: 999px;
+                      background: #a5b4fc;
+                      color: #08090f;
+                      text-decoration: none;
+                      font-weight: bold;
+                    "
+                    >View receipt&nbsp; →</a
+                  >
+                </p>
+                {{else if .DashboardURL}}
+                <p style="margin: 28px 0">
+                  <a
+                    href="{{.DashboardURL}}"
+                    style="
+                      display: inline-block;
+                      padding: 13px 20px;
+                      border-radius: 999px;
+                      background: #a5b4fc;
+                      color: #08090f;
+                      text-decoration: none;
+                      font-weight: bold;
+                    "
+                    >Open billing&nbsp; →</a
+                  >
+                </p>
+                {{end}}
+                <p style="font-size: 15px; line-height: 24px; color: #777b8d">
+                  Keep this email for your records. Your Outpipe access remains
+                  active.
+                </p>
+              </td>
+            </tr>
+            <tr>
+              <td
+                style="
+                  padding: 20px 32px;
+                  border-top: 1px solid #24283a;
+                  color: #777b8d;
+                  font-size: 12px;
+                "
+              >
+                Outpipe · Secure public access for local services
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>

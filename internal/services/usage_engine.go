@@ -3,8 +3,8 @@ package services
 import (
 	"context"
 
-	"codedock.run/codedock-tunnel/internal/engine"
-	"codedock.run/codedock-tunnel/internal/models"
+	"outpipe.dev/outpipe/internal/engine"
+	"outpipe.dev/outpipe/internal/models"
 )
 
 type EngineUsageRecorder struct {
@@ -12,9 +12,11 @@ type EngineUsageRecorder struct {
 }
 
 func NewEngineUsageRecorder(usage *UsageService) (*EngineUsageRecorder, error) {
+
 	if usage == nil {
 		return nil, ErrUsageServiceRequired
 	}
+
 	return &EngineUsageRecorder{usage: usage}, nil
 }
 
@@ -23,8 +25,10 @@ func (r *EngineUsageRecorder) Record(ctx context.Context, measurement engine.Usa
 }
 
 func stringPointer(value string) *string {
+
 	if value == "" {
 		return nil
 	}
+
 	return &value
 }

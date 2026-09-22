@@ -12,7 +12,7 @@
   <path d="M174 194h34a18 18 0 0 1 18 18v4a18 18 0 0 1-18 18h-12" stroke="#60A5FA" stroke-width="12" stroke-linecap="round"/>
   <path d="M242 250h-34a18 18 0 0 1-18-18v-4a18 18 0 0 1 18-18h12" stroke="#A78BFA" stroke-width="12" stroke-linecap="round"/>
   <path d="M208 222h4" stroke="#F8FAFC" stroke-width="12" stroke-linecap="round"/>
-  <text x="144" y="370" fill="#F8FAFC" font-family="Arial, sans-serif" font-size="72" font-weight="700">Codedock Tunnel</text>
+  <text x="144" y="370" fill="#F8FAFC" font-family="Arial, sans-serif" font-size="72" font-weight="700">Outpipe</text>
   <text x="148" y="435" fill="#CBD5E1" font-family="Arial, sans-serif" font-size="30">Secure public access for local and private services.</text>
-  <text x="148" y="510" fill="#60A5FA" font-family="Arial, sans-serif" font-size="24" font-weight="600">codedock-tunnel.dev</text>
+  <text x="148" y="510" fill="#60A5FA" font-family="Arial, sans-serif" font-size="24" font-weight="600">outpipe.dev</text>
 </svg>

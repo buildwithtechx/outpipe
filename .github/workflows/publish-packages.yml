@@ -10,8 +10,8 @@ permissions:
   contents: read
 
 jobs:
-  publish:
-    name: Build and publish packages
+  build:
+    name: Build packages
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository
@@ -20,9 +20,8 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version-file: .nvmrc
+          node-version: 24
           cache: npm
-          registry-url: https://registry.npmjs.org
 
       - name: Install dependencies
         run: npm ci
@@ -38,14 +37,50 @@ jobs:
           npm pack --dry-run --workspace packages/next
           npm pack --dry-run --workspace packages/nest
           npm pack --dry-run --workspace packages/express
+          npm pack --dry-run --workspace packages/angular
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: package-dist
+          path: |
+            packages/*/dist/
+          retention-days: 1
+
+  publish:
+    name: Publish packages to npm
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: package-dist
+          path: packages
+
+      - name: Verify trusted publishing toolchain
+        run: |
+          node --version
+          npm --version
 
       - name: Publish packages
         run: |
-          npm publish --workspace packages/sdk
-          npm publish --workspace packages/react
-          npm publish --workspace packages/vite-plugin
-          npm publish --workspace packages/next
-          npm publish --workspace packages/nest
-          npm publish --workspace packages/express
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          npm publish --provenance --workspace packages/sdk
+          npm publish --provenance --workspace packages/react
+          npm publish --provenance --workspace packages/vite-plugin
+          npm publish --provenance --workspace packages/next
+          npm publish --provenance --workspace packages/nest
+          npm publish --provenance --workspace packages/express
+          npm publish --provenance --workspace packages/angular

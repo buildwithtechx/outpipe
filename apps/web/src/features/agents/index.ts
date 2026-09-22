@@ -1,1 +1,1 @@
-export {};
+export { AgentsPage } from './agents-page';

@@ -7,19 +7,19 @@ icon: SiNestjs
 Install the adapter:
 
 ```sh
-npm install @codedock/nest
+npm install @outpipe/nest
 ```
 
 Register the module once:
 
 ```ts
-import { CodedockTunnelModule } from '@codedock/nest';
+import { OutpipeModule } from '@outpipe/nest';
 
 @Module({
   imports: [
-    CodedockTunnelModule.forRoot({
-      relayUrl: process.env.CODEDOCK_TUNNEL_RELAY_URL!,
-      agentToken: process.env.CODEDOCK_TUNNEL_AGENT_TOKEN!,
+    OutpipeModule.forRoot({
+      relayUrl: process.env.OUTPIPE_RELAY_URL!,
+      agentToken: process.env.OUTPIPE_AGENT_TOKEN!,
       localPort: 3000,
       autoStart: true,
       password: process.env.TUNNEL_PASSWORD,

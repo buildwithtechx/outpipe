@@ -1,0 +1,38 @@
+---
+title: Rust SDK
+description: Use Outpipe from Rust applications, services, and tooling.
+icon: SiRust
+---
+
+Add the crate to your project:
+
+```toml
+[dependencies]
+outpipe = "0.1"
+tokio = { version = "1", features = ["macros", "rt-multi-thread"] }
+```
+
+Create an API client with a server-side API key and use it to inspect the
+tunnels belonging to an organization:
+
+```rust
+use outpipe::{Client, Result};
+
+#[tokio::main]
+async fn main() -> Result<()> {
+    let api_key = std::env::var("OUTPIPE_API_KEY")
+        .expect("OUTPIPE_API_KEY environment variable is required");
+
+    let client = Client::builder("https://api.outpipe.dev")
+        .api_key(api_key)
+        .build()?;
+
+    let tunnels = client.tunnels("org_123").await?;
+    println!("found {} tunnels", tunnels.len());
+    Ok(())
+}
+```
+
+Use the crate's protocol types when building a custom relay or daemon. Keep
+the agent token short-lived where possible, and close the relay gracefully so
+the dashboard can mark the tunnel offline immediately.

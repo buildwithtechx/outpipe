@@ -61,15 +61,19 @@ func (t *StatusTracker) RecordFailure(name string, err error, deadLetter bool) {
 	defer t.mu.Unlock()
 	st := t.statuses[name]
 	st.Name = name
+
 	if deadLetter {
 		st.State = StateDeadLettered
 	} else {
 		st.State = StateFailed
 	}
+
 	st.FailureCount++
+
 	if err != nil {
 		st.LastError = err.Error()
 	}
+
 	t.statuses[name] = st
 }
 
@@ -77,9 +81,11 @@ func (t *StatusTracker) Statuses() []JobStatus {
 	t.mu.RLock()
 	defer t.mu.RUnlock()
 	result := make([]JobStatus, 0, len(t.statuses))
+
 	for _, st := range t.statuses {
 		result = append(result, st)
 	}
+
 	return result
 }
 

@@ -16,9 +16,11 @@ type ReconciliationJob struct {
 }
 
 func NewReconciliationJob(reconciler OperationalReconciler) (*ReconciliationJob, error) {
+
 	if reconciler == nil {
 		return nil, fmt.Errorf("operational reconciler is required")
 	}
+
 	return &ReconciliationJob{reconciler: reconciler, now: time.Now}, nil
 }
 
@@ -27,8 +29,10 @@ func (j *ReconciliationJob) Name() string {
 }
 
 func (j *ReconciliationJob) Run(ctx context.Context) error {
+
 	if err := j.reconciler.Reconcile(ctx, j.now()); err != nil {
 		return fmt.Errorf("reconcile redis operational state: %w", err)
 	}
+
 	return nil
 }

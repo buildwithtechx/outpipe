@@ -1,15 +1,11 @@
 import { createFileRoute } from '@tanstack/react-router';
-import { PagePlaceholder } from '#/components/layout/page-placeholder';
+import { ApiKeysPage } from '#/features/api-keys';
 
 export const Route = createFileRoute('/$orgSlug/api-keys')({
-  component: ApiKeysPage,
+  component: ApiKeysRoute,
 });
 
-function ApiKeysPage() {
-  return (
-    <PagePlaceholder
-      title="API keys"
-      description="Create, scope, rotate, and revoke organization API keys."
-    />
-  );
+function ApiKeysRoute() {
+  const { orgSlug } = Route.useParams();
+  return <ApiKeysPage orgSlug={orgSlug} />;
 }

@@ -1,6 +1,6 @@
 {
-  "name": "Codedock Tunnel",
-  "short_name": "Codedock Tunnel",
+  "name": "Outpipe",
+  "short_name": "Outpipe",
   "description": "Secure public access for local and private services.",
   "start_url": "/",
   "display": "standalone",

@@ -22,7 +22,7 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
     const seo = createSeo({
       title: `${siteName} — Secure tunnels for local development`,
       description:
-        'Codedock Tunnel securely exposes local services to the internet for previews, webhooks, OAuth callbacks, and CI workflows.',
+        'Outpipe securely exposes local services to the internet for previews, webhooks, OAuth callbacks, and CI workflows.',
     });
 
     return {

@@ -24,8 +24,8 @@ export const Route = createFileRoute('/docs/$')({
   head: ({ loaderData }) =>
     createSeo({
       title: loaderData?.title
-        ? `${loaderData.title} | Codedock Tunnel Docs`
-        : 'Codedock Tunnel Documentation',
+        ? `${loaderData.title} | Outpipe Docs`
+        : 'Outpipe Documentation',
       description: loaderData?.description,
       path: loaderData?.path ?? '/docs',
     }),
@@ -76,7 +76,7 @@ function Page() {
   ) as unknown as ComponentType;
 
   return (
-    <DocsLayout tree={pageTree} nav={{ title: 'Codedock Tunnel' }}>
+    <DocsLayout tree={pageTree} nav={{ title: 'Outpipe' }}>
       <Content />
     </DocsLayout>
   );

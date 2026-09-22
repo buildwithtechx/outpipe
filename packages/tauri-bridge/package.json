@@ -1,5 +1,5 @@
 {
-  "name": "@codedock/tauri-bridge",
+  "name": "@outpipe/tauri-bridge",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -10,10 +10,10 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run --passWithNoTests"
   },
-  "description": "Tauri bridge for the Codedock Tunnel desktop client",
+  "description": "Tauri bridge for the Outpipe desktop client",
   "files": ["dist"],
   "dependencies": {
-    "@codedock/sdk": "0.1.0"
+    "@outpipe/sdk": "0.1.0"
   },
   "peerDependencies": {
     "@tauri-apps/api": ">=2"

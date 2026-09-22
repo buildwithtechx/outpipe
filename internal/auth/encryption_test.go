@@ -9,6 +9,7 @@ func TestEncryptDecryptSecret(t *testing.T) {
 	secret := "sk_test_paystack_secret_key_12345"
 
 	encrypted, err := EncryptSecret(secret, key)
+
 	if err != nil {
 		t.Fatalf("EncryptSecret failed: %v", err)
 	}
@@ -18,6 +19,7 @@ func TestEncryptDecryptSecret(t *testing.T) {
 	}
 
 	decrypted, err := DecryptSecret(encrypted, key)
+
 	if err != nil {
 		t.Fatalf("DecryptSecret failed: %v", err)
 	}

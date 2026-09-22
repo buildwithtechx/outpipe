@@ -1,15 +1,11 @@
 import { createFileRoute } from '@tanstack/react-router';
-import { PagePlaceholder } from '#/components/layout/page-placeholder';
+import { TunnelsPage } from '#/features/tunnels';
 
 export const Route = createFileRoute('/$orgSlug/tunnels/')({
-  component: TunnelsPage,
+  component: TunnelsRoute,
 });
 
-function TunnelsPage() {
-  return (
-    <PagePlaceholder
-      title="Tunnels"
-      description="Create, inspect, and manage organization tunnels."
-    />
-  );
+function TunnelsRoute() {
+  const { orgSlug } = Route.useParams();
+  return <TunnelsPage orgSlug={orgSlug} />;
 }

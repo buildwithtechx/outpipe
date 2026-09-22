@@ -16,7 +16,7 @@ type UsageSnapshot struct {
 
 type UsageEvent struct {
 	Base
-	OrganizationID string    `json:"organizationId" gorm:"type:uuid;not null;index"`
+	OrganizationID string    `json:"organizationId" gorm:"type:uuid;not null;index:usage_org_time,priority:1"`
 	TunnelID       *string   `json:"tunnelId,omitempty" gorm:"type:uuid;index"`
 	EventType      string    `json:"eventType" gorm:"not null;index"`
 	Bytes          int64     `json:"bytes" gorm:"not null;default:0"`
@@ -27,5 +27,5 @@ type UsageEvent struct {
 	DurationMillis int64     `json:"durationMillis,omitempty" gorm:"default:0"`
 	ResponseBytes  int64     `json:"responseBytes,omitempty" gorm:"default:0"`
 	ClientIP       *string   `json:"clientIp,omitempty" gorm:"type:inet"`
-	OccurredAt     time.Time `json:"occurredAt" gorm:"not null;index"`
+	OccurredAt     time.Time `json:"occurredAt" gorm:"not null;index:usage_org_time,priority:2"`
 }

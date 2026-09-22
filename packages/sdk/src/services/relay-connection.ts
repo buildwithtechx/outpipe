@@ -87,7 +87,7 @@ export class RelayConnection extends RelayConnectionBase {
         {
           min_version: minSupportedVersion,
           max_version: maxSupportedVersion,
-          client_name: this.options.clientName ?? 'codedock-sdk',
+          client_name: this.options.clientName ?? 'outpipe-sdk',
           client_version: this.options.clientVersion ?? '0.1.0',
         },
         'version_negotiate_ack',

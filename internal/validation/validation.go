@@ -7,8 +7,10 @@ import (
 )
 
 func Struct(value any) error {
+
 	if err := validator.New().Struct(value); err != nil {
 		return fmt.Errorf("request validation failed: %w", err)
 	}
+
 	return nil
 }

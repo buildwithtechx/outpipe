@@ -1,0 +1,35 @@
+---
+title: Edge Routing & Relays
+description: How Outpipe routes public traffic across distributed edge relay clusters.
+icon: Network
+---
+
+Outpipe utilizes a distributed data-plane architecture where lightweight Go relays terminate public client traffic and route requests directly to the connected local agent.
+
+## Hosted Relay Routing
+
+In a hosted Outpipe deployment, wildcard DNS and Anycast routing point traffic at the edge relay cluster:
+
+```text
+relay.outpipe.app        A/AAAA <relay-cluster-ip>
+*.outpipe.app            A/AAAA <relay-cluster-ip>
+```
+
+When an agent starts a tunnel, it connects to the nearest healthy relay via WebSocket (`wss://relay.outpipe.app/v1/connect`). The public endpoint is immediately reachable worldwide:
+
+```text
+https://my-app.outpipe.app  ──▶  Edge Relay  ──▶  Local Agent (port 3000)
+```
+
+## Redis Agent Affinity & Cluster Coordination
+
+When scaling across multiple relay instances in a cluster:
+
+1. **Session Claim**: When an agent connects to Relay A, Relay A registers active affinity for the tunnel in Redis with a TTL lease.
+2. **Direct Edge Routing**: Incoming public HTTP/TCP requests route directly through the relay holding the active agent WebSocket connection.
+3. **Reconnects & Failover**: When an agent disconnects cleanly, the lease is released immediately. On unexpected disconnects, same-relay reconnects renew the claim, while cross-relay reconnects acquire the session lease upon TTL expiration.
+
+## TLS Termination
+
+- **Relay-Direct TLS**: For standalone relay servers, Outpipe supports native TLS termination with automated certificate reloading on file update.
+- **Reverse Proxy / CDN In Front**: When placed behind Cloudflare, Nginx, or Kubernetes Ingress, TLS is terminated at the edge proxy, forwarding plaintext HTTP and WebSocket upgrades to the internal relay port.

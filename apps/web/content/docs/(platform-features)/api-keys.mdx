@@ -1,0 +1,59 @@
+---
+title: API Keys & Scopes
+description: Authenticate automated pipelines, SDKs, and CLI sessions with scoped API keys.
+icon: Key
+---
+
+API keys allow programmatic access to the Outpipe control plane for CI/CD pipelines, SDK integrations, scripts, and developer tooling.
+
+## Key Format
+
+All Outpipe API keys follow a standard prefixed format:
+
+```text
+cdk_<base64url_prefix>.<base64url_secret>
+```
+
+- **Prefix (`cdk_`)**: Identifies the credential type as a Control-plane Developer Key and enables secret scanners (GitHub Secret Scanning, TruffleHog) to detect leaked tokens easily.
+- **SHA-256 Storage**: The full token secret is displayed **only once** upon generation. Outpipe stores only the SHA-256 hash in the database, protecting your account even if database dumps are compromised.
+
+## Permission Scopes
+
+API keys can be scoped to limit access according to the principle of least privilege:
+
+| Scope | Description |
+| :--- | :--- |
+| `tunnels:read` | View tunnel status, list active sessions, inspect endpoints. |
+| `tunnels:write` | Create, update, start, stop, and delete tunnels. |
+| `agents:connect` | Connect local agents to edge relays using the key. |
+| `domains:manage` | Add, verify, and delete custom domain configurations. |
+| `webhooks:manage`| Create and configure webhook subscriptions. |
+| `audit:read` | Query organization audit logs and compliance history. |
+| `billing:read` | View subscription tiers, usage records, and invoices. |
+
+## Creating an API Key
+
+1. Navigate to **Organization Settings ➔ API Keys** in the dashboard.
+2. Click **+ Create Key**, enter a descriptive name (e.g., `GitHub Actions CI`), and select required scopes.
+3. Copy the generated `cdk_...` token and store it securely in your secret manager.
+
+## Usage in CLI and SDKs
+
+### In the CLI
+
+```sh
+export OUTPIPE_API_KEY="cdk_xxxxxxxx.yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy"
+outpipe list
+```
+
+### In TypeScript / Node SDK
+
+```typescript
+import { createOutpipeClient } from '@outpipe/sdk';
+
+const client = createOutpipeClient({
+  apiKey: process.env.OUTPIPE_API_KEY,
+});
+
+const tunnels = await client.tunnels.list();
+```

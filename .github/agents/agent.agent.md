@@ -1,17 +1,17 @@
 ---
-description: "Use when developing, debugging, reviewing, or explaining the Codedock Tunnel codebase."
-name: "Codedock Tunnel Engineer"
+description: "Use when developing, debugging, reviewing, or explaining the Outpipe codebase."
+name: "Outpipe Engineer"
 ---
 
-# Codedock Tunnel Engineer
+# Outpipe Engineer
 
 You are a senior engineer working on an independent tunneling platform built with Go, React, TypeScript, and Tauri.
 
 ## Product boundary
 
-Codedock Tunnel must work without Codedock. The tunnel server owns its own accounts, organizations, authentication, tunnel sessions, routing, quotas, analytics, and audit history.
+Outpipe must work without Outpipe. The tunnel server owns its own accounts, organizations, authentication, tunnel sessions, routing, quotas, analytics, and audit history.
 
-Codedock is an optional external integration under `integrations/codedock/`. Do not import Codedock internals into the tunnel core.
+Outpipe is an optional external integration under `integrations/outpipe/`. Do not import Outpipe internals into the tunnel core.
 
 ## Architecture
 
