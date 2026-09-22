@@ -57,7 +57,13 @@ func (p *HTTPProxy) ServeHTTP(response http.ResponseWriter, request *http.Reques
 	route, ok := resolveRouteKey(request.Host, p.baseDomain)
 
 	if !ok {
-		http.Error(response, "tunnel not found", http.StatusNotFound)
+		writeProxyError(response, request, ErrorDetails{
+			StatusCode: http.StatusNotFound,
+			Error:      "tunnel_not_found",
+			Title:      "Tunnel Not Found",
+			Message:    "The requested tunnel hostname is not registered on Outpipe or has been revoked.",
+			Host:       request.Host,
+		})
 		return
 	}
 
@@ -76,12 +82,26 @@ func (p *HTTPProxy) ServeHTTP(response http.ResponseWriter, request *http.Reques
 	if err != nil {
 
 		if err == errBodyTooLarge {
-			http.Error(response, "request body too large", http.StatusRequestEntityTooLarge)
+			writeProxyError(response, request, ErrorDetails{
+				StatusCode: http.StatusRequestEntityTooLarge,
+				Error:      "body_too_large",
+				Title:      "Request Body Too Large",
+				Message:    "The request payload exceeded the maximum allowed size for this tunnel.",
+				Host:       request.Host,
+				TunnelID:   route,
+			})
 			p.recordRequest(request, route, http.StatusRequestEntityTooLarge, 0, started)
 			return
 		}
 
-		http.Error(response, "unable to read request body", http.StatusBadRequest)
+		writeProxyError(response, request, ErrorDetails{
+			StatusCode: http.StatusBadRequest,
+			Error:      "bad_request",
+			Title:      "Bad Request",
+			Message:    "Unable to read incoming request payload.",
+			Host:       request.Host,
+			TunnelID:   route,
+		})
 		p.recordRequest(request, route, http.StatusBadRequest, 0, started)
 		return
 	}
@@ -94,13 +114,29 @@ func (p *HTTPProxy) ServeHTTP(response http.ResponseWriter, request *http.Reques
 	})
 
 	if err != nil {
-		http.Error(response, "tunnel unavailable", http.StatusBadGateway)
+		writeProxyError(response, request, ErrorDetails{
+			StatusCode: http.StatusBadGateway,
+			Error:      "tunnel_unavailable",
+			Title:      "Tunnel Offline",
+			Message:    "Outpipe could not reach an active local agent for this tunnel. The agent may be disconnected or asleep.",
+			Host:       request.Host,
+			TunnelID:   route,
+			Reason:     err.Error(),
+		})
 		p.recordRequest(request, route, http.StatusBadGateway, 0, started)
 		return
 	}
 
 	if forwarded.Error != "" {
-		http.Error(response, forwarded.Error, http.StatusBadGateway)
+		writeProxyError(response, request, ErrorDetails{
+			StatusCode: http.StatusBadGateway,
+			Error:      "local_service_unreachable",
+			Title:      "Local Server Unreachable",
+			Message:    "Outpipe agent is connected, but your local application failed to respond or the local port is closed.",
+			Host:       request.Host,
+			TunnelID:   route,
+			Reason:     forwarded.Error,
+		})
 		p.recordRequest(request, route, http.StatusBadGateway, 0, started)
 		return
 	}
