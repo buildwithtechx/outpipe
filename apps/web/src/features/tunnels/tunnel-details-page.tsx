@@ -49,7 +49,7 @@ export function TunnelDetailsPage({
   const { data: tunnel } = tunnelQuery;
 
   return (
-    <main className="mx-auto w-full max-w-6xl px-6 py-12 text-white sm:px-8 lg:py-16">
+    <div className="w-full max-w-6xl space-y-6 pb-12 text-white">
       <Link
         to="/$orgSlug/tunnels"
         params={{ orgSlug }}
@@ -58,7 +58,7 @@ export function TunnelDetailsPage({
         <ArrowLeft className="size-4" />
         All tunnels
       </Link>
-      <header className="mt-7 flex flex-col gap-6 border-b border-white/10 pb-8 lg:flex-row lg:items-end lg:justify-between">
+      <header className="mt-2 flex flex-col gap-6 border-b border-white/10 pb-6 lg:flex-row lg:items-end lg:justify-between">
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-3">
             <h1 className="truncate text-3xl font-semibold tracking-[-0.04em] sm:text-4xl">
@@ -66,16 +66,16 @@ export function TunnelDetailsPage({
             </h1>
             <TunnelStatusBadge status={tunnel.status} />
           </div>
-          <p className="mt-3 font-mono text-sm text-indigo-200">
+          <p className="mt-2 font-mono text-sm text-indigo-200">
             {tunnel.publicHostname}
           </p>
         </div>
         <TunnelDetailActions tunnel={tunnel} />
       </header>
-      <section className="pt-8" aria-label="Tunnel configuration">
+      <section className="pt-2" aria-label="Tunnel configuration">
         <TunnelDetailCard tunnel={tunnel} />
         <TunnelConfigurationForm tunnel={tunnel} />
       </section>
-    </main>
+    </div>
   );
 }

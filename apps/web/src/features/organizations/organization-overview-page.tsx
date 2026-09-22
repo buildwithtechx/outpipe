@@ -52,10 +52,10 @@ export function OrganizationOverviewPage({ orgSlug }: { orgSlug: string }) {
   ).length;
 
   return (
-    <main className="mx-auto w-full max-w-6xl px-6 py-12 text-white sm:px-8 lg:py-16">
-      <header className="flex flex-col gap-5 border-b border-white/10 pb-8 sm:flex-row sm:items-end sm:justify-between">
+    <div className="w-full max-w-6xl space-y-6 pb-12 text-white">
+      <header className="flex flex-col gap-5 border-b border-white/10 pb-6 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <p className="mb-3 text-sm font-medium text-indigo-200">
+          <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-indigo-400">
             {organization.name}
           </p>
           <h1 className="text-3xl font-semibold tracking-[-0.04em] sm:text-4xl">
@@ -147,6 +147,6 @@ export function OrganizationOverviewPage({ orgSlug }: { orgSlug: string }) {
           </div>
         )}
       </section>
-    </main>
+    </div>
   );
 }

@@ -33,13 +33,13 @@ export function WebhooksPage({ orgSlug }: { orgSlug: string }) {
   const webhooks = query.data ?? [];
 
   return (
-    <main className="mx-auto w-full max-w-6xl px-6 py-12 text-white sm:px-8 lg:py-16">
-      <header className="border-b border-white/10 pb-8">
-        <p className="mb-3 text-sm text-indigo-200">
+    <div className="w-full max-w-6xl space-y-6 pb-12 text-white">
+      <header className="border-b border-white/10 pb-6">
+        <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-indigo-400">
           {organizationQuery.organization.name}
         </p>
-        <h1 className="text-3xl font-semibold tracking-tight">Webhooks</h1>
-        <p className="mt-3 text-sm text-white/55">
+        <h1 className="text-3xl font-semibold tracking-[-0.04em]">Webhooks</h1>
+        <p className="mt-1 text-sm text-white/55">
           Send workspace lifecycle events to the tools your team already uses.
         </p>
       </header>
@@ -126,6 +126,6 @@ export function WebhooksPage({ orgSlug }: { orgSlug: string }) {
           </p>
         )}
       </section>
-    </main>
+    </div>
   );
 }

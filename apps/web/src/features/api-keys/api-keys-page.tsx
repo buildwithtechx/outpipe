@@ -37,11 +37,11 @@ export function ApiKeysPage({ orgSlug }: { orgSlug: string }) {
   };
 
   return (
-    <main className="mx-auto w-full max-w-6xl px-6 py-12 text-white sm:px-8 lg:py-16">
-      <header className="border-b border-white/10 pb-8">
-        <p className="mb-3 text-sm text-indigo-200">{organization.name}</p>
-        <h1 className="text-3xl font-semibold tracking-tight">API keys</h1>
-        <div className="mt-3 flex flex-wrap items-center justify-between gap-4">
+    <div className="w-full max-w-6xl space-y-6 pb-12 text-white">
+      <header className="border-b border-white/10 pb-6">
+        <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-indigo-400">{organization.name}</p>
+        <h1 className="text-3xl font-semibold tracking-[-0.04em]">API keys</h1>
+        <div className="mt-2 flex flex-wrap items-center justify-between gap-4">
           <p className="text-sm text-white/55">
             Credentials used by tools and automation to access this workspace.
           </p>
@@ -89,6 +89,6 @@ export function ApiKeysPage({ orgSlug }: { orgSlug: string }) {
           </p>
         )}
       </section>
-    </main>
+    </div>
   );
 }

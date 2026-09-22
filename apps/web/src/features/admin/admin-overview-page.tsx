@@ -54,14 +54,14 @@ export function AdminShell({
   children: ReactNode;
 }) {
   return (
-    <main className="mx-auto w-full max-w-6xl px-6 py-12 text-white sm:px-8 lg:py-16">
-      <header className="border-b border-white/10 pb-8">
-        <p className="mb-3 text-sm text-indigo-200">Platform administration</p>
-        <h1 className="text-3xl font-semibold tracking-tight">{title}</h1>
-        <p className="mt-3 text-sm text-white/55">{subtitle}</p>
+    <div className="w-full max-w-6xl space-y-6 pb-12 text-white">
+      <header className="border-b border-white/10 pb-6">
+        <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-purple-400">Platform administration</p>
+        <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">{title}</h1>
+        <p className="mt-1 text-sm text-white/55">{subtitle}</p>
       </header>
-      <section className="pt-8">{children}</section>
-    </main>
+      <section className="pt-2">{children}</section>
+    </div>
   );
 }
 function AdminState({

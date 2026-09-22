@@ -21,16 +21,16 @@ export function ProfileSettingsPage() {
   const { user } = sessionQuery;
 
   return (
-    <main className="mx-auto w-full max-w-3xl px-6 py-12 text-white sm:px-8 lg:py-16">
-      <header className="border-b border-white/10 pb-8">
-        <h1 className="text-3xl font-semibold tracking-tight">
+    <div className="w-full max-w-4xl space-y-6 pb-12 text-white">
+      <header className="border-b border-white/10 pb-6">
+        <h1 className="text-3xl font-semibold tracking-[-0.04em]">
           Profile settings
         </h1>
-        <p className="mt-3 text-sm text-white/55">
+        <p className="mt-1 text-sm text-white/55">
           Review the identity connected to your Outpipe account.
         </p>
       </header>
-      <section className="mt-8 grid gap-5 rounded-2xl border border-white/10 bg-white/[0.025] p-6">
+      <section className="mt-6 grid gap-5 rounded-2xl border border-white/10 bg-white/[0.025] p-6">
         <div>
           <p className="text-xs uppercase tracking-wider text-white/40">Name</p>
           <p className="mt-2 text-white/85">{user.name || 'Not provided'}</p>
@@ -48,7 +48,7 @@ export function ProfileSettingsPage() {
           <p className="mt-2 text-emerald-200">{user.status}</p>
         </div>
       </section>
-      <section className="mt-8 rounded-2xl border border-white/10 bg-white/[0.025] p-6">
+      <section className="mt-6 rounded-2xl border border-white/10 bg-white/[0.025] p-6">
         <h2 className="text-lg font-medium">Session</h2>
         <p className="mt-2 text-sm text-white/50">
           Sign out on shared or temporary machines.
@@ -63,6 +63,6 @@ export function ProfileSettingsPage() {
           {logout.isPending ? 'Signing out…' : 'Sign out'}
         </Button>
       </section>
-    </main>
+    </div>
   );
 }

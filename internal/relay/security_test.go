@@ -192,6 +192,9 @@ func TestTCPAdmissionEnforcesOrganizationLimit(t *testing.T) {
 		t.Fatalf("expected exactly 2 connections counted, got %d", got)
 	}
 
+	for _, connection := range accepted {
+		_ = connection.Close()
+	}
 	handler.tcp.CloseTunnel("admit-tunnel")
 	deadline = time.Now().Add(2 * time.Second)
 
@@ -206,9 +209,5 @@ func TestTCPAdmissionEnforcesOrganizationLimit(t *testing.T) {
 
 	if got := orgConnectionCount(handler, "org-1"); got != 0 {
 		t.Fatalf("organization connection accounting leaked after tunnel close: %d", got)
-	}
-
-	for _, connection := range accepted {
-		_ = connection.Close()
 	}
 }

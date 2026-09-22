@@ -26,17 +26,17 @@ export function AuditLogsPage({ orgSlug }: { orgSlug: string }) {
   const events = query.data?.events ?? [];
 
   return (
-    <main className="mx-auto w-full max-w-6xl px-6 py-12 text-white sm:px-8 lg:py-16">
-      <header className="border-b border-white/10 pb-8">
-        <p className="mb-3 text-sm text-indigo-200">
+    <div className="w-full max-w-6xl space-y-6 pb-12 text-white">
+      <header className="border-b border-white/10 pb-6">
+        <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-indigo-400">
           {organizationQuery.organization.name}
         </p>
-        <h1 className="text-3xl font-semibold tracking-tight">Audit history</h1>
-        <p className="mt-3 text-sm text-white/55">
+        <h1 className="text-3xl font-semibold tracking-[-0.04em]">Audit history</h1>
+        <p className="mt-1 text-sm text-white/55">
           A record of sensitive workspace and tunnel activity.
         </p>
       </header>
-      <section className="mt-8 overflow-hidden rounded-2xl border border-white/10 bg-white/[0.025]">
+      <section className="mt-6 overflow-hidden rounded-2xl border border-white/10 bg-white/[0.025]">
         {events.length ? (
           events.map((event) => (
             <div
@@ -61,7 +61,7 @@ export function AuditLogsPage({ orgSlug }: { orgSlug: string }) {
           </p>
         )}
       </section>
-    </main>
+    </div>
   );
 }
 

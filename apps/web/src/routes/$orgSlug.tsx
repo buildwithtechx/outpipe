@@ -1,4 +1,5 @@
-import { createFileRoute, Outlet, redirect } from '@tanstack/react-router';
+import { createFileRoute, redirect } from '@tanstack/react-router';
+import { DashboardLayout } from '#/components/navigation';
 import { getAuthSession } from '#/features/auth/services/auth-service';
 import { getOrganizations } from '#/features/organizations/services/organization-service';
 
@@ -30,5 +31,5 @@ export const Route = createFileRoute('/$orgSlug')({
 });
 
 function OrganizationLayout() {
-  return <Outlet />;
+  return <DashboardLayout />;
 }

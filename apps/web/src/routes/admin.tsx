@@ -1,4 +1,5 @@
-import { createFileRoute, Outlet, redirect } from '@tanstack/react-router';
+import { createFileRoute, redirect } from '@tanstack/react-router';
+import { AdminDashboardLayout } from '#/components/navigation';
 import { getAuthSession } from '#/features/auth/services/auth-service';
 import { requirePlatformAdmin } from '#/lib/route-guards';
 
@@ -25,5 +26,5 @@ export const Route = createFileRoute('/admin')({
 });
 
 function AdminLayout() {
-  return <Outlet />;
+  return <AdminDashboardLayout />;
 }

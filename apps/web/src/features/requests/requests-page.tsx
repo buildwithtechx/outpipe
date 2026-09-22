@@ -27,46 +27,50 @@ export function RequestsPage({ orgSlug }: { orgSlug: string }) {
   const events = query.data?.events ?? [];
 
   return (
-    <main className="mx-auto w-full max-w-6xl px-6 py-12 text-white sm:px-8 lg:py-16">
-      <header className="border-b border-white/10 pb-8">
-        <p className="mb-3 text-sm text-indigo-200">{organization.name}</p>
-        <h1 className="text-3xl font-semibold tracking-tight">Requests</h1>
-        <p className="mt-3 text-sm text-white/55">
+    <div className="w-full max-w-6xl space-y-6 pb-12 text-white">
+      <header className="border-b border-white/10 pb-6">
+        <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-indigo-400">{organization.name}</p>
+        <h1 className="text-3xl font-semibold tracking-[-0.04em]">Requests</h1>
+        <p className="mt-1 text-sm text-white/55">
           Recent traffic observed across your public endpoints.
         </p>
       </header>
-      <section className="mt-8 overflow-hidden rounded-2xl border border-white/10 bg-white/[0.025]">
-        <div className="grid grid-cols-[80px_minmax(0,1fr)_80px_80px] gap-4 border-b border-white/10 px-5 py-3 text-xs uppercase tracking-wider text-white/35">
-          <span>Method</span>
-          <span>Path</span>
-          <span>Status</span>
-          <span>Time</span>
-        </div>
-        {events.length ? (
-          events.map((event) => (
-            <div
-              key={event.id}
-              className="grid grid-cols-[80px_minmax(0,1fr)_80px_80px] gap-4 border-b border-white/5 px-5 py-4 font-mono text-sm last:border-0"
-            >
-              <span className="text-white/55">{event.method ?? '—'}</span>
-              <span className="truncate text-white/80">
-                {event.path ?? event.eventType}
-              </span>
-              <span className={statusColor(event.statusCode)}>
-                {event.statusCode ?? '—'}
-              </span>
-              <span className="text-right text-white/45">
-                {event.durationMillis ? `${event.durationMillis}ms` : '—'}
-              </span>
+      <section className="mt-6 overflow-hidden rounded-2xl border border-white/10 bg-white/[0.025]">
+        <div className="overflow-x-auto">
+          <div className="min-w-[500px]">
+            <div className="grid grid-cols-[80px_minmax(0,1fr)_80px_80px] gap-4 border-b border-white/10 px-5 py-3 text-xs uppercase tracking-wider text-white/35">
+              <span>Method</span>
+              <span>Path</span>
+              <span>Status</span>
+              <span>Time</span>
             </div>
-          ))
-        ) : (
-          <p className="px-5 py-12 text-center text-sm text-white/50">
-            No requests recorded in the last 24 hours.
-          </p>
-        )}
+            {events.length ? (
+              events.map((event) => (
+                <div
+                  key={event.id}
+                  className="grid grid-cols-[80px_minmax(0,1fr)_80px_80px] gap-4 border-b border-white/5 px-5 py-4 font-mono text-sm last:border-0"
+                >
+                  <span className="text-white/55">{event.method ?? '—'}</span>
+                  <span className="truncate text-white/80">
+                    {event.path ?? event.eventType}
+                  </span>
+                  <span className={statusColor(event.statusCode)}>
+                    {event.statusCode ?? '—'}
+                  </span>
+                  <span className="text-right text-white/45">
+                    {event.durationMillis ? `${event.durationMillis}ms` : '—'}
+                  </span>
+                </div>
+              ))
+            ) : (
+              <p className="px-5 py-12 text-center text-sm text-white/50">
+                No requests recorded in the last 24 hours.
+              </p>
+            )}
+          </div>
+        </div>
       </section>
-    </main>
+    </div>
   );
 }
 
