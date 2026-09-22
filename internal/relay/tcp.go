@@ -97,7 +97,11 @@ func (m *TCPManager) accept(tunnelID string, listener net.Listener) {
 		m.mu.Lock()
 		tunnelConns, ok := m.tunnels[tunnelID]
 		if !ok || tunnelConns == nil {
+			hook := m.usageHook
 			m.mu.Unlock()
+			if hook != nil && admission != nil {
+				hook(tunnelID, "tcp_connection_close", -1)
+			}
 			_ = connection.Close()
 			continue
 		}

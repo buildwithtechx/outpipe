@@ -170,13 +170,6 @@ func TestTCPAdmissionEnforcesOrganizationLimit(t *testing.T) {
 		accepted = append(accepted, connection)
 	}
 
-	third, dialErr := net.Dial("tcp", address)
-
-	if dialErr != nil {
-		t.Fatalf("dial 3: %v", dialErr)
-	}
-
-	_ = third.Close()
 	deadline := time.Now().Add(2 * time.Second)
 
 	for time.Now().Before(deadline) {
@@ -189,7 +182,20 @@ func TestTCPAdmissionEnforcesOrganizationLimit(t *testing.T) {
 	}
 
 	if got := orgConnectionCount(handler, "org-1"); got != 2 {
-		t.Fatalf("expected exactly 2 connections counted, got %d", got)
+		t.Fatalf("expected exactly 2 connections counted before 3rd dial, got %d", got)
+	}
+
+	third, dialErr := net.Dial("tcp", address)
+
+	if dialErr != nil {
+		t.Fatalf("dial 3: %v", dialErr)
+	}
+
+	_ = third.Close()
+	time.Sleep(50 * time.Millisecond)
+
+	if got := orgConnectionCount(handler, "org-1"); got != 2 {
+		t.Fatalf("expected exactly 2 connections counted after rejected 3rd dial, got %d", got)
 	}
 
 	for _, connection := range accepted {
