@@ -4,6 +4,11 @@
   "publishConfig": {
     "access": "public"
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/buildwithtechx/outpipe",
+    "directory": "packages/nest"
+  },
   "type": "module",
   "scripts": {
     "build": "tsup && npm run build:types",
