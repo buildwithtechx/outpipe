@@ -19,11 +19,11 @@ func (h *Handler) setOrganizationLimit(organizationID string, limit int) {
 	}
 }
 
-func (h *Handler) allowConnection(tunnelID string) bool {
+func (h *Handler) allowConnection(tunnelID string) (func(), bool) {
 	organizationID, ok := h.router.OrganizationID(tunnelID)
 
 	if !ok {
-		return false
+		return nil, false
 	}
 
 	h.mu.Lock()
@@ -31,11 +31,13 @@ func (h *Handler) allowConnection(tunnelID string) bool {
 	limit := h.orgLimits[organizationID]
 
 	if limit > 0 && h.orgConnections[organizationID] >= limit {
-		return false
+		return nil, false
 	}
 
 	h.orgConnections[organizationID]++
-	return true
+	return func() {
+		h.updateOrganizationConnections(organizationID, -1)
+	}, true
 }
 
 func (h *Handler) updateOrganizationConnections(organizationID string, delta int) {

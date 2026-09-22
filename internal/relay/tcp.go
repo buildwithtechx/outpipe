@@ -19,7 +19,7 @@ type TCPManager struct {
 	tunnels     map[string]map[string]struct{}
 	senders     map[string]func(context.Context, protocol.Envelope) error
 	usageHook   func(string, string, int)
-	admission   func(string) bool
+	admission   func(string) (func(), bool)
 	max         int
 }
 
@@ -29,7 +29,7 @@ func (m *TCPManager) SetUsageHook(hook func(string, string, int)) {
 	m.mu.Unlock()
 }
 
-func (m *TCPManager) SetAdmissionHook(admission func(string) bool) {
+func (m *TCPManager) SetAdmissionHook(admission func(string) (func(), bool)) {
 	m.mu.Lock()
 	m.admission = admission
 	m.mu.Unlock()
@@ -88,19 +88,23 @@ func (m *TCPManager) accept(tunnelID string, listener net.Listener) {
 		admission := m.admission
 		m.mu.Unlock()
 
-		if admission != nil && !admission(tunnelID) {
-			_ = connection.Close()
-			continue
+		var rollback func()
+		if admission != nil {
+			var allowed bool
+			rollback, allowed = admission(tunnelID)
+			if !allowed {
+				_ = connection.Close()
+				continue
+			}
 		}
 
 		connectionID := uuid.NewString()
 		m.mu.Lock()
 		tunnelConns, ok := m.tunnels[tunnelID]
 		if !ok || tunnelConns == nil {
-			hook := m.usageHook
 			m.mu.Unlock()
-			if hook != nil && admission != nil {
-				hook(tunnelID, "tcp_connection_close", -1)
+			if rollback != nil {
+				rollback()
 			}
 			_ = connection.Close()
 			continue

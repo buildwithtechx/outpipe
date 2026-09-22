@@ -55,7 +55,12 @@ git push origin "packages-v${VERSION}"
 
 - Uses **npm Trusted Publishing** via GitHub Actions OIDC (`--provenance`).
 - No long-lived `NPM_TOKEN` secret is needed.
-- Builds all workspace packages (`npm run build:packages`), verifies dry-run package packs, and publishes each workspace.
+- Configure the repository and workflow as a trusted publisher on npmjs.com for every public `@outpipe/*` package:
+  - Publisher: GitHub Actions
+  - Repository: `buildwithtechx/outpipe`
+  - Workflow: `publish-packages.yml`
+  - Environment: none
+- The workflow builds all workspace packages (`npm run build:packages`), validates dry-run package packs, and publishes each workspace.
 
 ---
 
@@ -94,16 +99,17 @@ git push origin "rust-v${VERSION}"
 
 ### Rust publishing process
 
-- Requires repository secret `CRATES_IO_TOKEN`.
+- Requires repository secret `CRATES_IO_TOKEN` containing a crates.io publish token.
 - Runs formatting (`cargo fmt --check`), tests (`cargo test`), dry-run validation (`cargo publish --dry-run`), and finally publishes to crates.io.
 
 ---
 
 ## 5. PHP SDK Package
 
-The root `composer.json` maps autoloading to `packages/php`.
+The root `composer.json` maps autoloading for `outpipe/outpipe-php` to `packages/php`.
 
-- When a `v*` tag is pushed to GitHub, the Packagist webhook notifies Packagist to index the new release.
+- **Initial Setup**: Submit `https://github.com/buildwithtechx/outpipe` once at `https://packagist.org/packages/submit`, then enable the Packagist GitHub webhook for push events. Packagist will discover new tags automatically.
+- When a `v*` tag is pushed to GitHub, Packagist indexes the new release.
 - Pre-release verification:
 
   ```bash

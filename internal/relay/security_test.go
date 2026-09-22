@@ -124,12 +124,12 @@ func TestOrganizationConnectionLimitReservation(t *testing.T) {
 
 	for i := 0; i < 2; i++ {
 
-		if !handler.allowConnection("limit-tunnel") {
+		if _, ok := handler.allowConnection("limit-tunnel"); !ok {
 			t.Fatalf("connection %d should be admitted", i+1)
 		}
 	}
 
-	if handler.allowConnection("limit-tunnel") {
+	if _, ok := handler.allowConnection("limit-tunnel"); ok {
 		t.Fatal("connection at the plan limit must be rejected")
 	}
 
@@ -140,7 +140,7 @@ func TestOrganizationConnectionLimitReservation(t *testing.T) {
 	handler.updateOrganizationConnections("org-1", -1)
 	handler.updateOrganizationConnections("org-1", -1)
 
-	if !handler.allowConnection("limit-tunnel") {
+	if _, ok := handler.allowConnection("limit-tunnel"); !ok {
 		t.Fatal("capacity must be released after connections close")
 	}
 
@@ -192,7 +192,18 @@ func TestTCPAdmissionEnforcesOrganizationLimit(t *testing.T) {
 	}
 
 	_ = third.Close()
-	time.Sleep(50 * time.Millisecond)
+
+	deadline = time.Now().Add(2 * time.Second)
+
+	for time.Now().Before(deadline) {
+		got := orgConnectionCount(handler, "org-1")
+
+		if got > 2 {
+			t.Fatalf("organization connection count exceeded limit during rejected dial: %d", got)
+		}
+
+		time.Sleep(10 * time.Millisecond)
+	}
 
 	if got := orgConnectionCount(handler, "org-1"); got != 2 {
 		t.Fatalf("expected exactly 2 connections counted after rejected 3rd dial, got %d", got)
