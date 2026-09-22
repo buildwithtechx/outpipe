@@ -1,10 +1,18 @@
+use serde::{Deserialize, Serialize};
 use std::process::Child;
 use std::sync::Mutex;
 
-#[derive(Clone)]
+#[derive(Clone, Default, Debug, Serialize, Deserialize)]
+pub struct TunnelOptions {
+    pub subdomain: Option<String>,
+    pub password: Option<String>,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct LastTunnel {
     pub port: u16,
     pub protocol: String,
+    pub options: TunnelOptions,
 }
 
 pub struct TunnelState {

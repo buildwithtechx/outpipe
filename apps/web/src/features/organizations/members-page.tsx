@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Button } from '#/components/ui/button';
 import { useMemberMutations } from './hooks/use-member-mutations';
 import { useMembers } from './hooks/use-members';
@@ -9,6 +10,7 @@ export function MembersPage({ orgSlug }: { orgSlug: string }) {
 
   const query = useMembers(organizationId);
   const mutations = useMemberMutations(organizationId);
+  const [inviteSuccess, setInviteSuccess] = useState<string | null>(null);
 
   if (organizationQuery.isLoading || query.isLoading) {
     return <p className="p-8 text-sm text-white/55">Loading members…</p>;
@@ -29,10 +31,25 @@ export function MembersPage({ orgSlug }: { orgSlug: string }) {
   const organization = organizationQuery.organization;
 
   const invite = () => {
-    const email = window.prompt('Email address to invite');
+    const email = window.prompt('Email address to invite:');
     if (!email?.trim()) return;
 
-    mutations.invite.mutate({ email: email.trim(), role: 'member' });
+    const roleInput = window
+      .prompt('Role (member, admin, viewer):', 'member')
+      ?.trim()
+      .toLowerCase();
+    const role: 'admin' | 'member' | 'viewer' =
+      roleInput === 'admin' || roleInput === 'viewer' ? roleInput : 'member';
+
+    mutations.invite.mutate(
+      { email: email.trim(), role },
+      {
+        onSuccess: () => {
+          setInviteSuccess(`Invitation sent to ${email.trim()} as ${role}.`);
+          setTimeout(() => setInviteSuccess(null), 4000);
+        },
+      },
+    );
   };
 
   return (
@@ -55,7 +72,31 @@ export function MembersPage({ orgSlug }: { orgSlug: string }) {
           </Button>
         </div>
       </header>
-      <section className="mt-8 overflow-hidden rounded-2xl border border-white/10 bg-white/[0.025]">
+
+      {/* Action feedback */}
+      {inviteSuccess && (
+        <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-4 text-xs text-emerald-300">
+          {inviteSuccess}
+        </div>
+      )}
+      {mutations.invite.isError && (
+        <div className="rounded-xl border border-rose-500/30 bg-rose-500/10 p-4 text-xs text-rose-300">
+          Failed to send invitation:{' '}
+          {mutations.invite.error instanceof Error
+            ? mutations.invite.error.message
+            : 'An error occurred'}
+        </div>
+      )}
+      {mutations.remove.isError && (
+        <div className="rounded-xl border border-rose-500/30 bg-rose-500/10 p-4 text-xs text-rose-300">
+          Failed to remove member:{' '}
+          {mutations.remove.error instanceof Error
+            ? mutations.remove.error.message
+            : 'An error occurred'}
+        </div>
+      )}
+
+      <section className="mt-8 overflow-hidden rounded-2xl border border-white/10 bg-white/2.5">
         {query.data?.length ? (
           query.data.map((member) => (
             <div
@@ -77,11 +118,17 @@ export function MembersPage({ orgSlug }: { orgSlug: string }) {
                 {member.role !== 'owner' && (
                   <button
                     type="button"
-                    className="text-xs text-rose-200 hover:text-rose-100"
-                    onClick={() => mutations.remove.mutate(member.userId)}
+                    className="text-xs text-rose-200 hover:text-rose-100 disabled:opacity-50"
+                    onClick={() => {
+                      if (
+                        window.confirm('Remove this member from the workspace?')
+                      ) {
+                        mutations.remove.mutate(member.userId);
+                      }
+                    }}
                     disabled={mutations.remove.isPending}
                   >
-                    Remove
+                    {mutations.remove.isPending ? 'Removing…' : 'Remove'}
                   </button>
                 )}
               </div>

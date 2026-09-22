@@ -1,6 +1,7 @@
 import { Link, useLocation } from '@tanstack/react-router';
 import { ArrowLeft, Server } from 'lucide-react';
 import { Badge } from '#/components/ui/badge';
+import { useAdminOverview } from '#/features/admin/hooks/use-admin-resources';
 import { ADMIN_NAV_ITEMS } from './constants';
 
 interface AdminSidebarProps {
@@ -10,6 +11,19 @@ interface AdminSidebarProps {
 
 export function AdminSidebar({ mobileOpen, setMobileOpen }: AdminSidebarProps) {
   const location = useLocation();
+  const overview = useAdminOverview();
+
+  const statusLabel = overview.isLoading
+    ? 'Checking…'
+    : overview.isError
+      ? 'Degraded'
+      : 'Operational';
+
+  const statusBadgeClass = overview.isLoading
+    ? 'border-purple-400/30 bg-purple-500/20 text-purple-300'
+    : overview.isError
+      ? 'border-rose-500/30 bg-rose-500/20 text-rose-300'
+      : 'border-emerald-400/30 bg-emerald-500/20 text-emerald-300';
 
   const content = (
     <div className="flex h-full flex-col justify-between p-4 text-white">
@@ -31,9 +45,9 @@ export function AdminSidebar({ mobileOpen, setMobileOpen }: AdminSidebarProps) {
           </div>
           <Badge
             variant="outline"
-            className="shrink-0 border-purple-400/30 bg-purple-500/20 text-[10px] text-purple-200 py-0.5 px-1.5"
+            className={`shrink-0 text-[10px] py-0.5 px-1.5 ${statusBadgeClass}`}
           >
-            Healthy
+            {statusLabel}
           </Badge>
         </div>
 

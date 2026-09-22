@@ -1,6 +1,21 @@
 import { AdminShell } from './admin-overview-page';
 import { useAdminSubscriptions } from './hooks/use-admin-resources';
 
+function getSubscriptionStatusBadgeClass(status: string) {
+  switch (status.toLowerCase()) {
+    case 'active':
+    case 'trialing':
+      return 'text-emerald-300 bg-emerald-500/10 border-emerald-500/20';
+    case 'past_due':
+    case 'unpaid':
+      return 'text-rose-300 bg-rose-500/10 border-rose-500/20';
+    case 'paused':
+      return 'text-amber-300 bg-amber-500/10 border-amber-500/20';
+    default:
+      return 'text-white/50 bg-white/5 border-white/10';
+  }
+}
+
 export function AdminSubscriptionsPage() {
   const query = useAdminSubscriptions();
 
@@ -33,7 +48,11 @@ export function AdminSubscriptionsPage() {
             <span className="text-sm text-white/70">
               {subscription.provider}
             </span>
-            <span className="text-xs text-emerald-200">
+            <span
+              className={`rounded-full border px-2.5 py-0.5 text-xs font-medium ${getSubscriptionStatusBadgeClass(
+                subscription.status,
+              )}`}
+            >
               {subscription.status}
             </span>
           </div>

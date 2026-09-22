@@ -18,8 +18,14 @@ export function useAccountActions(organizationId?: string) {
   const transfer = useMutation({
     mutationFn: (newOwnerId: string) =>
       transferOrganizationOwnership(organizationId ?? '', newOwnerId),
-    onSuccess: () =>
-      queryClient.invalidateQueries({ queryKey: ['organizations'] }),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ['organizations'] });
+      if (organizationId) {
+        void queryClient.invalidateQueries({
+          queryKey: ['members', organizationId],
+        });
+      }
+    },
   });
 
   return { remove, transfer };

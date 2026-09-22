@@ -51,21 +51,45 @@ export function OrganizationDangerZone({
               actions.transfer.mutate(newOwnerId);
           }}
         >
-          Transfer ownership
+          {actions.transfer.isPending ? 'Transferring…' : 'Transfer ownership'}
         </Button>
       </div>
-      <Button
-        type="button"
-        variant="destructive"
-        className="mt-8"
-        disabled={actions.remove.isPending}
-        onClick={() => {
-          if (window.confirm('Delete your account? This cannot be undone.'))
-            actions.remove.mutate();
-        }}
-      >
-        Delete account
-      </Button>
+
+      {actions.transfer.isError && (
+        <p className="mt-3 text-xs text-rose-300">
+          Transfer failed:{' '}
+          {actions.transfer.error instanceof Error
+            ? actions.transfer.error.message
+            : 'Unknown error'}
+        </p>
+      )}
+      {actions.transfer.isSuccess && (
+        <p className="mt-3 text-xs text-emerald-300">
+          Ownership transferred successfully.
+        </p>
+      )}
+
+      <div className="mt-8 border-t border-rose-300/10 pt-6">
+        <Button
+          type="button"
+          variant="destructive"
+          disabled={actions.remove.isPending}
+          onClick={() => {
+            if (window.confirm('Delete your account? This cannot be undone.'))
+              actions.remove.mutate();
+          }}
+        >
+          {actions.remove.isPending ? 'Deleting…' : 'Delete account'}
+        </Button>
+        {actions.remove.isError && (
+          <p className="mt-3 text-xs text-rose-300">
+            Account deletion failed:{' '}
+            {actions.remove.error instanceof Error
+              ? actions.remove.error.message
+              : 'Unknown error'}
+          </p>
+        )}
+      </div>
     </section>
   );
 }

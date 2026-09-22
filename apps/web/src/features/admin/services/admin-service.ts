@@ -30,24 +30,41 @@ export function getAdminOrganization(organizationId: string) {
     `/api/v1/admin/organizations/${organizationId}`,
   );
 }
-export function getAdminUsers() {
+export type PaginationParams = {
+  limit?: number;
+  offset?: number;
+};
+
+export function getAdminUsers(
+  params: PaginationParams = { limit: 50, offset: 0 },
+) {
+  const { limit = 50, offset = 0 } = params;
   return apiClient.get<PaginatedResponse<AuthUser>>(
-    '/api/v1/admin/users?limit=50',
+    `/api/v1/admin/users?limit=${limit}&offset=${offset}`,
   );
 }
-export function getAdminOrganizations() {
+export function getAdminOrganizations(
+  params: PaginationParams = { limit: 50, offset: 0 },
+) {
+  const { limit = 50, offset = 0 } = params;
   return apiClient.get<PaginatedResponse<Organization>>(
-    '/api/v1/admin/organizations?limit=50',
+    `/api/v1/admin/organizations?limit=${limit}&offset=${offset}`,
   );
 }
-export function getAdminTunnels() {
+export function getAdminTunnels(
+  params: PaginationParams = { limit: 50, offset: 0 },
+) {
+  const { limit = 50, offset = 0 } = params;
   return apiClient.get<PaginatedResponse<Tunnel>>(
-    '/api/v1/admin/tunnels?limit=50',
+    `/api/v1/admin/tunnels?limit=${limit}&offset=${offset}`,
   );
 }
-export function getAdminSubscriptions() {
+export function getAdminSubscriptions(
+  params: PaginationParams = { limit: 50, offset: 0 },
+) {
+  const { limit = 50, offset = 0 } = params;
   return apiClient.get<PaginatedResponse<Subscription>>(
-    '/api/v1/admin/subscriptions?limit=50',
+    `/api/v1/admin/subscriptions?limit=${limit}&offset=${offset}`,
   );
 }
 export function setAdminUserStatus(

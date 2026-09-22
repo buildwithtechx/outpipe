@@ -8,12 +8,24 @@ import {
 export function useBillingActions(organizationId: string | undefined) {
   const queryClient = useQueryClient();
 
-  const invalidate = () =>
-    queryClient.invalidateQueries({ queryKey: ['billing', organizationId] });
+  const invalidate = () => {
+    void queryClient.invalidateQueries({
+      queryKey: ['billing', organizationId],
+    });
+    setTimeout(() => {
+      void queryClient.invalidateQueries({
+        queryKey: ['billing', organizationId],
+      });
+    }, 2000);
+  };
 
   const portal = useMutation({
     mutationFn: () => getBillingPortal(organizationId ?? ''),
-    onSuccess: ({ url }) => window.open(url, '_blank', 'noopener,noreferrer'),
+    onSuccess: ({ url }) => {
+      if (url) {
+        window.location.assign(url);
+      }
+    },
   });
 
   const cancel = useMutation({

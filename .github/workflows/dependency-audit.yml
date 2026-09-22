@@ -10,14 +10,14 @@ on:
 permissions:
   contents: read
 
-  # Review dependency changes on pull requests before they can merge.
-  pull-requests: write
-
 jobs:
   dependency-review:
     name: Review dependency changes
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
     continue-on-error: true
     steps:
       - uses: actions/checkout@v4
@@ -55,6 +55,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions-rust-lang/setup-rust-toolchain@v1
+      - run: cargo generate-lockfile
+        working-directory: packages/rust
       - run: cargo install cargo-audit --locked
       - run: cargo audit
         working-directory: packages/rust

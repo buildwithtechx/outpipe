@@ -38,7 +38,7 @@ export function AuditLogsPage({ orgSlug }: { orgSlug: string }) {
           A record of sensitive workspace and tunnel activity.
         </p>
       </header>
-      <section className="mt-6 overflow-hidden rounded-2xl border border-white/10 bg-white/[0.025]">
+      <section className="mt-6 overflow-hidden rounded-2xl border border-white/10 bg-white/2.5">
         {events.length ? (
           events.map((event) => (
             <div
@@ -48,6 +48,10 @@ export function AuditLogsPage({ orgSlug }: { orgSlug: string }) {
               <div>
                 <p className="text-sm text-white/80">{event.action}</p>
                 <p className="mt-1 text-xs text-white/40">
+                  <span className="font-mono text-indigo-300/80">
+                    {event.userId || 'system'}
+                  </span>
+                  {' · '}
                   {event.resourceType}
                   {event.resourceId ? ` · ${event.resourceId}` : ''}
                 </p>

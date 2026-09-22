@@ -61,7 +61,7 @@ jobs:
           (cd dist && sha256sum * > SHA256SUMS)
       - name: Verify release package smoke tests
         run: |
-          go test ./packages/go/...
+          (cd packages/go && go test ./...)
           cargo package --manifest-path packages/rust/Cargo.toml --allow-dirty --no-verify
           composer validate --strict --no-check-publish --working-dir packages/php
           npm pack --dry-run --workspace packages/sdk
@@ -115,6 +115,19 @@ jobs:
       - name: Install Rust
         run: rustup default stable
       - run: npm ci
+      - name: Set desktop version from tag
+        working-directory: apps/desktop
+        env:
+          APP_VERSION: ${{ github.ref_name }}
+        run: |
+          node -e '
+            const fs = require("fs");
+            const configPath = "src-tauri/tauri.conf.json";
+            const config = JSON.parse(fs.readFileSync(configPath, "utf8"));
+            const rawVer = (process.env.APP_VERSION || "").replace(/^v/, "");
+            if (rawVer) { config.version = rawVer; }
+            fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
+          '
       - name: Build and package desktop app
         working-directory: apps/desktop
         run: npm run build -- --bundles ${{ matrix.bundles }}

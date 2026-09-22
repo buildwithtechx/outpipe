@@ -51,13 +51,15 @@ pub fn credentials_clear(kind: CredentialKind) -> Result<(), String> {
 #[tauri::command]
 pub fn credentials_status() -> Result<CredentialsStatus, String> {
     Ok(CredentialsStatus {
-        has_api_key: credential(CredentialKind::ApiKey).is_some(),
-        has_agent_token: credential(CredentialKind::AgentToken).is_some(),
+        has_api_key: credential(CredentialKind::ApiKey)?.is_some(),
+        has_agent_token: credential(CredentialKind::AgentToken)?.is_some(),
     })
 }
 
-pub(crate) fn credential(kind: CredentialKind) -> Option<String> {
-    entry(kind)
-        .ok()
-        .and_then(|stored| stored.get_password().ok())
+pub(crate) fn credential(kind: CredentialKind) -> Result<Option<String>, String> {
+    match entry(kind)?.get_password() {
+        Ok(secret) => Ok(Some(secret)),
+        Err(keyring::Error::NoEntry) => Ok(None),
+        Err(error) => Err(format!("retrieve credential: {error}")),
+    }
 }

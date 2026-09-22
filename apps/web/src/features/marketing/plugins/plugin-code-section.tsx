@@ -36,7 +36,11 @@ export function PluginCodeSection({ plugin }: { plugin: PluginDefinition }) {
             </Link>
             <Link
               to="/docs/$"
-              params={{ _splat: plugin.docsSlug }}
+              params={{
+                _splat: plugin.docsSlug.startsWith('integrations/')
+                  ? plugin.docsSlug
+                  : `integrations/${plugin.docsSlug}`,
+              }}
               className="inline-flex items-center gap-2 text-sm text-white/55 hover:text-white"
             >
               Documentation <ArrowRight className="size-4" />
@@ -59,7 +63,7 @@ export function PluginCodeSection({ plugin }: { plugin: PluginDefinition }) {
 function CodePanel({ plugin }: { plugin: PluginDefinition }) {
   return (
     <div className="overflow-hidden rounded-3xl border border-white/10 bg-[#0a0a0a] shadow-2xl shadow-indigo-950/20">
-      <div className="flex items-center gap-2 border-b border-white/10 bg-white/[0.03] px-5 py-4">
+      <div className="flex items-center gap-2 border-b border-white/10 bg-white/3 px-5 py-4">
         <span className="size-2.5 rounded-full bg-red-400/70" />
         <span className="size-2.5 rounded-full bg-amber-300/70" />
         <span className="size-2.5 rounded-full bg-emerald-400/70" />

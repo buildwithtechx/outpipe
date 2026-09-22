@@ -40,31 +40,33 @@ export function useAdminOrganization(organizationId: string) {
   });
 }
 
-export function useAdminUsers() {
+import type { PaginationParams } from '../services/admin-service';
+
+export function useAdminUsers(params?: PaginationParams) {
   return useQuery({
-    queryKey: ['admin', 'users'],
-    queryFn: getAdminUsers,
+    queryKey: ['admin', 'users', params],
+    queryFn: () => getAdminUsers(params),
   });
 }
 
-export function useAdminOrganizations() {
+export function useAdminOrganizations(params?: PaginationParams) {
   return useQuery({
-    queryKey: ['admin', 'organizations'],
-    queryFn: getAdminOrganizations,
+    queryKey: ['admin', 'organizations', params],
+    queryFn: () => getAdminOrganizations(params),
   });
 }
 
-export function useAdminTunnels() {
+export function useAdminTunnels(params?: PaginationParams) {
   return useQuery({
-    queryKey: ['admin', 'tunnels'],
-    queryFn: getAdminTunnels,
+    queryKey: ['admin', 'tunnels', params],
+    queryFn: () => getAdminTunnels(params),
   });
 }
 
-export function useAdminSubscriptions() {
+export function useAdminSubscriptions(params?: PaginationParams) {
   return useQuery({
-    queryKey: ['admin', 'subscriptions'],
-    queryFn: getAdminSubscriptions,
+    queryKey: ['admin', 'subscriptions', params],
+    queryFn: () => getAdminSubscriptions(params),
   });
 }
 

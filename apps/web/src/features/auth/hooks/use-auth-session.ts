@@ -16,16 +16,19 @@ export function useAuthSession() {
   });
 
   useEffect(() => {
-    if (query.data) {
-      setUser(query.data.user);
-    } else if (query.isError) {
+    if (query.isError) {
       clear();
+    } else if (query.data) {
+      setUser(query.data.user);
     }
   }, [clear, query.data, query.isError, setUser]);
 
+  const isAuthenticated = !query.isError && query.data !== undefined;
+  const user = !query.isError ? (query.data?.user ?? null) : null;
+
   return {
     ...query,
-    isAuthenticated: query.data !== undefined,
-    user: query.data?.user ?? null,
+    isAuthenticated,
+    user,
   };
 }

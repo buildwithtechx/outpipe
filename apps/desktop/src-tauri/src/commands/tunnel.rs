@@ -6,6 +6,7 @@ use tauri::{AppHandle, Manager, State};
 
 use crate::credentials::{credential, CredentialKind};
 use crate::notify::notify;
+pub use crate::state::TunnelOptions;
 use crate::state::{LastTunnel, TunnelState};
 use crate::tray::set_status;
 
@@ -14,12 +15,6 @@ pub struct TunnelProcess {
     pub pid: u32,
     pub status: String,
     pub exit_code: Option<i32>,
-}
-
-#[derive(Clone, Default)]
-pub struct TunnelOptions {
-    pub subdomain: Option<String>,
-    pub password: Option<String>,
 }
 
 #[tauri::command]
@@ -37,9 +32,13 @@ pub fn tunnel_start(
         subdomain,
         password,
     };
-    let tunnel = spawn_tunnel(&app, port, protocol.clone(), options)?;
+    let tunnel = spawn_tunnel(&app, port, protocol.clone(), options.clone())?;
     if let Ok(mut last) = state.last.lock() {
-        *last = Some(LastTunnel { port, protocol });
+        *last = Some(LastTunnel {
+            port,
+            protocol,
+            options,
+        });
     }
     set_status(&app, &format!("Tunnel: {}", tunnel.status));
     Ok(tunnel)
@@ -83,10 +82,10 @@ pub fn spawn_tunnel(
     if let Some(password) = options.password {
         command.arg("--password").arg(password);
     }
-    if let Some(api_key) = credential(CredentialKind::ApiKey) {
+    if let Some(api_key) = credential(CredentialKind::ApiKey)? {
         command.env("OUTPIPE_API_KEY", api_key);
     }
-    if let Some(agent_token) = credential(CredentialKind::AgentToken) {
+    if let Some(agent_token) = credential(CredentialKind::AgentToken)? {
         command.env("OUTPIPE_AGENT_TOKEN", agent_token);
     }
 

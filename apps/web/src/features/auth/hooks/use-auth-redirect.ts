@@ -6,10 +6,15 @@ import { getOrganizations } from '#/features/organizations/services/organization
 
 export function useAuthRedirect() {
   const navigate = useNavigate();
-  const { data: session } = useAuthSession();
+  const {
+    data: session,
+    isAuthenticated,
+    isError,
+    isLoading,
+  } = useAuthSession();
 
   useEffect(() => {
-    if (!session) return;
+    if (isLoading || isError || !isAuthenticated || !session) return;
     let cancelled = false;
 
     void getOrganizations()
@@ -23,6 +28,7 @@ export function useAuthRedirect() {
           void navigate({
             to: '/$orgSlug',
             params: { orgSlug: lastOrganization.slug },
+            replace: true,
           });
           return;
         }
@@ -30,17 +36,18 @@ export function useAuthRedirect() {
           void navigate({
             to: '/$orgSlug',
             params: { orgSlug: organizations[0].slug },
+            replace: true,
           });
           return;
         }
-        void navigate({ to: '/select' });
+        void navigate({ to: '/select', replace: true });
       })
       .catch(() => {
-        if (!cancelled) void navigate({ to: '/select' });
+        if (!cancelled) void navigate({ to: '/select', replace: true });
       });
 
     return () => {
       cancelled = true;
     };
-  }, [navigate, session]);
+  }, [isAuthenticated, isError, isLoading, navigate, session]);
 }

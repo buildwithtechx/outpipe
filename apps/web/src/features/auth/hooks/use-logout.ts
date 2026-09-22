@@ -8,7 +8,7 @@ export function useLogout() {
 
   return useMutation({
     mutationFn: logout,
-    onSuccess: () => {
+    onSettled: () => {
       clear();
       queryClient.clear();
       window.location.assign('/');

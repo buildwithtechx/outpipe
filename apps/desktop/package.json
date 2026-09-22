@@ -9,7 +9,7 @@
   "scripts": {
     "dev": "npm run bundle:cli && tauri dev",
     "build": "npm run bundle:cli && tauri build",
-    "bundle:cli": "go build -o src-tauri/resources/outpipe ../../cmd/cli",
+    "bundle:cli": "mkdir -p src-tauri/resources && go build -o src-tauri/resources/outpipe ../../cmd/cli",
     "typecheck": "cargo check --manifest-path src-tauri/Cargo.toml",
     "test": "vitest run --passWithNoTests"
   },

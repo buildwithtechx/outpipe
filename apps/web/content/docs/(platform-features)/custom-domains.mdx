@@ -37,8 +37,8 @@ Once verified, Outpipe automatically provisions and manages free SSL/TLS certifi
 
 ## Connecting with the CLI
 
-Once your domain is active and verified, start your tunnel specifying your custom domain:
+Once your domain is active and verified, start your tunnel specifying your managed tunnel ID or custom subdomain:
 
 ```sh
-outpipe http 3000 --domain api.example.com
+outpipe http --port 3000 --tunnel-id <your_tunnel_id>
 ```

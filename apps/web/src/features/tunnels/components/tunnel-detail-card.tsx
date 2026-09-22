@@ -14,10 +14,10 @@ type TunnelDetailCardProps = {
 };
 
 export function TunnelDetailCard({ tunnel }: TunnelDetailCardProps) {
-  const publicURL = buildPublicURL(tunnel);
+  const publicEndpoint = buildPublicEndpoint(tunnel);
 
   return (
-    <Card className="border-white/10 bg-white/[0.025] py-0 text-white shadow-none">
+    <Card className="border-white/10 bg-white/2.5 py-0 text-white shadow-none">
       <CardHeader className="border-b border-white/10 px-5 py-5 sm:px-6">
         <CardTitle>Connection details</CardTitle>
         <CardDescription className="text-white/45">
@@ -26,9 +26,13 @@ export function TunnelDetailCard({ tunnel }: TunnelDetailCardProps) {
       </CardHeader>
       <CardContent className="grid gap-5 px-5 py-5 sm:grid-cols-2 sm:px-6">
         <DetailItem
-          label="Public address"
-          value={publicURL}
-          copyValue={publicURL}
+          label={
+            tunnel.protocol === 'tcp' || tunnel.protocol === 'udp'
+              ? 'Public endpoint'
+              : 'Public address'
+          }
+          value={publicEndpoint}
+          copyValue={publicEndpoint}
         />
         <DetailItem
           label="Local target"
@@ -82,10 +86,16 @@ function DetailItem({
   );
 }
 
-function buildPublicURL(tunnel: Tunnel) {
-  const scheme = tunnel.protocol === 'https' ? 'https' : 'http';
-  const port = tunnel.publicPort ? `:${tunnel.publicPort}` : '';
-  return `${scheme}://${tunnel.publicHostname}${port}`;
+function buildPublicEndpoint(tunnel: Tunnel) {
+  if (tunnel.protocol === 'tcp' || tunnel.protocol === 'udp') {
+    const port = tunnel.publicPort ? `:${tunnel.publicPort}` : '';
+    return `${tunnel.publicHostname}${port}`;
+  }
+  const port =
+    tunnel.publicPort && tunnel.publicPort !== 443 && tunnel.publicPort !== 80
+      ? `:${tunnel.publicPort}`
+      : '';
+  return `https://${tunnel.publicHostname}${port}`;
 }
 
 function formatPolicy(policy: string) {

@@ -10,11 +10,9 @@ Outpipe provides a robust webhook delivery engine that notifies your external se
 
 | Event Type | Description |
 | :--- | :--- |
-| `tunnel.created` | Triggered when a new tunnel configuration is created. |
-| `tunnel.online` | Triggered when a local agent establishes an active session with a relay. |
-| `tunnel.offline` | Triggered when an agent disconnects or its session expires. |
-| `tunnel.deleted` | Triggered when a tunnel is permanently removed or revoked. |
-| `usage.threshold` | Triggered when monthly bandwidth or connection quotas cross 80% and 100%. |
+| `tunnel.connected` | Triggered when a local agent establishes an active session with an edge relay. |
+| `tunnel.disconnected` | Triggered when an agent session disconnects or reaches inactivity timeout. |
+| `tunnel.revoked` | Triggered when a tunnel configuration is deleted or revoked from the dashboard. |
 
 ## Signature Verification (`X-Outpipe-Signature`)
 

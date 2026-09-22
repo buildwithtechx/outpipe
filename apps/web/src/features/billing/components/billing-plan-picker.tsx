@@ -1,4 +1,6 @@
 import { Button } from '#/components/ui/button';
+import { useAuthSession } from '#/features/auth/hooks/use-auth-session';
+import { useMembers } from '#/features/organizations/hooks/use-members';
 import type { Plan } from '#/interfaces/billing';
 import { useBillingCheckout } from '../hooks/use-billing-checkout';
 
@@ -10,6 +12,12 @@ export function BillingPlanPicker({
   plans: Plan[];
 }) {
   const checkout = useBillingCheckout(organizationId);
+  const members = useMembers(organizationId);
+  const { user } = useAuthSession();
+
+  const currentMember = members.data?.find((m) => m.userId === user?.id);
+  const isOwner = currentMember?.role === 'owner';
+
   return (
     <section className="mt-8 rounded-2xl border border-white/10 bg-white/[0.025] p-6">
       <h2 className="text-lg font-medium">Change plan</h2>
@@ -31,7 +39,12 @@ export function BillingPlanPicker({
               <Button
                 type="button"
                 variant="outline"
-                disabled={checkout.isPending}
+                disabled={!isOwner || checkout.isPending}
+                title={
+                  !isOwner
+                    ? 'Only workspace owners can change billing tiers.'
+                    : undefined
+                }
                 onClick={() =>
                   checkout.mutate({
                     planKey: plan.key,

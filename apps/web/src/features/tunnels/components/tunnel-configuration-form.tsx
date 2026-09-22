@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Button } from '#/components/ui/button';
 import { Input } from '#/components/ui/input';
 import { Label } from '#/components/ui/label';
@@ -10,6 +10,12 @@ export function TunnelConfigurationForm({ tunnel }: { tunnel: Tunnel }) {
   const mutation = useTunnelConfigurationMutation(tunnel.id);
   const [expiresAt, setExpiresAt] = useState(toInputDate(tunnel.expiresAt));
   const [accessPolicy, setAccessPolicy] = useState(tunnel.accessPolicy || '{}');
+
+  useEffect(() => {
+    setExpiresAt(toInputDate(tunnel.expiresAt));
+    setAccessPolicy(tunnel.accessPolicy || '{}');
+  }, [tunnel.expiresAt, tunnel.accessPolicy]);
+
   const save = () => {
     try {
       const parsed = JSON.parse(accessPolicy);

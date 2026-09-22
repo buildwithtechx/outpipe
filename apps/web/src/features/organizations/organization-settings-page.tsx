@@ -6,16 +6,16 @@ export function OrganizationSettingsPage({ orgSlug }: { orgSlug: string }) {
   const query = useOrganization(orgSlug);
   const members = useMembers(query.organization?.id);
 
-  if (query.isLoading) {
+  if (query.isLoading || members.isLoading) {
     return (
       <p className="p-8 text-sm text-white/55">Loading workspace settings…</p>
     );
   }
 
-  if (query.isError || !query.organization) {
+  if (query.isError || members.isError || !query.organization) {
     return (
       <p className="p-8 text-sm text-rose-200">
-        We could not load workspace settings.
+        We could not load workspace settings or members.
       </p>
     );
   }

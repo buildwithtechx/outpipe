@@ -2,7 +2,7 @@ use tauri::menu::{Menu, MenuItem};
 use tauri::tray::TrayIconBuilder;
 use tauri::{App, AppHandle, Manager};
 
-use crate::commands::tunnel::{spawn_tunnel, stop_child_for, TunnelOptions};
+use crate::commands::tunnel::{spawn_tunnel, stop_child_for};
 use crate::notify::notify;
 use crate::state::TunnelState;
 
@@ -68,7 +68,7 @@ fn start_from_tray(app: &AppHandle) {
         );
         return;
     };
-    match spawn_tunnel(app, state.port, state.protocol, TunnelOptions::default()) {
+    match spawn_tunnel(app, state.port, state.protocol, state.options) {
         Ok(process) => set_status(app, &format!("Tunnel: {}", process.status)),
         Err(error) => {
             let _ = notify(app, "Tunnel failed to start", &error);

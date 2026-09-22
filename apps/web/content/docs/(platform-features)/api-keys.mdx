@@ -11,10 +11,10 @@ API keys allow programmatic access to the Outpipe control plane for CI/CD pipeli
 All Outpipe API keys follow a standard prefixed format:
 
 ```text
-opk_live_<random_base64_encoded_token>
+cdk_<base64url_prefix>.<base64url_secret>
 ```
 
-- **Prefix (`opk_live_`)**: Enables secret scanners (GitHub Secret Scanning, TruffleHog) to detect leaked tokens easily.
+- **Prefix (`cdk_`)**: Identifies the credential type as a Control-plane Developer Key and enables secret scanners (GitHub Secret Scanning, TruffleHog) to detect leaked tokens easily.
 - **SHA-256 Storage**: The full token secret is displayed **only once** upon generation. Outpipe stores only the SHA-256 hash in the database, protecting your account even if database dumps are compromised.
 
 ## Permission Scopes
@@ -35,14 +35,14 @@ API keys can be scoped to limit access according to the principle of least privi
 
 1. Navigate to **Organization Settings ➔ API Keys** in the dashboard.
 2. Click **+ Create Key**, enter a descriptive name (e.g., `GitHub Actions CI`), and select required scopes.
-3. Copy the generated `opk_live_...` token and store it securely in your secret manager.
+3. Copy the generated `cdk_...` token and store it securely in your secret manager.
 
 ## Usage in CLI and SDKs
 
 ### In the CLI
 
 ```sh
-export OUTPIPE_API_KEY="opk_live_xxxxxxxxxxxxxxxxxxxx"
+export OUTPIPE_API_KEY="cdk_xxxxxxxx.yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy"
 outpipe list
 ```
 
