@@ -110,6 +110,16 @@ export function ApiKeysPage({ orgSlug }: { orgSlug: string }) {
         </div>
       )}
 
+      {/* Revocation Error Feedback */}
+      {mutations.revoke.isError && (
+        <div className="rounded-xl border border-rose-500/20 bg-rose-500/10 p-4 text-xs text-rose-300">
+          Failed to revoke API key:{' '}
+          {mutations.revoke.error instanceof Error
+            ? mutations.revoke.error.message
+            : 'An error occurred'}
+        </div>
+      )}
+
       {/* Newly Created Key Alert Banner */}
       {newlyCreatedKey && (
         <div className="rounded-2xl border border-emerald-500/30 bg-emerald-950/20 p-5 shadow-lg">
@@ -146,7 +156,7 @@ export function ApiKeysPage({ orgSlug }: { orgSlug: string }) {
         </div>
       )}
 
-      <section className="mt-8 overflow-hidden rounded-2xl border border-white/10 bg-white/[0.025]">
+      <section className="mt-8 overflow-hidden rounded-2xl border border-white/10 bg-white/2.5">
         {query.data?.length ? (
           query.data.map((key) => (
             <div

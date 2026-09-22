@@ -6,7 +6,7 @@ export type SubscriptionStatus =
   | 'canceled'
   | 'expired';
 
-export type BillingProvider = 'polar' | 'paystack';
+export type BillingProvider = 'polar' | 'paystack' | 'internal';
 
 import type { Entity } from '#/interfaces/api';
 

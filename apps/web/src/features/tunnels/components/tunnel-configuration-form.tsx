@@ -26,11 +26,12 @@ export function TunnelConfigurationForm({ tunnel }: { tunnel: Tunnel }) {
         expiresAt: expiresAt ? new Date(expiresAt).toISOString() : undefined,
       });
     } catch {
+      mutation.reset();
       window.alert('Access policy must be a JSON object.');
     }
   };
   return (
-    <section className="mt-6 rounded-2xl border border-white/10 bg-white/[0.025] p-5 sm:p-6">
+    <section className="mt-6 rounded-2xl border border-white/10 bg-white/2.5 p-5 sm:p-6">
       <div>
         <h2 className="text-lg font-medium">Tunnel controls</h2>
         <p className="mt-1 text-sm text-white/45">
@@ -46,7 +47,10 @@ export function TunnelConfigurationForm({ tunnel }: { tunnel: Tunnel }) {
             id="tunnel-expires"
             type="datetime-local"
             value={expiresAt}
-            onChange={(event) => setExpiresAt(event.target.value)}
+            onChange={(event) => {
+              mutation.reset();
+              setExpiresAt(event.target.value);
+            }}
             className="border-white/10 bg-black text-white"
           />
           <p className="text-xs text-white/40">
@@ -60,7 +64,10 @@ export function TunnelConfigurationForm({ tunnel }: { tunnel: Tunnel }) {
           <Textarea
             id="tunnel-policy"
             value={accessPolicy}
-            onChange={(event) => setAccessPolicy(event.target.value)}
+            onChange={(event) => {
+              mutation.reset();
+              setAccessPolicy(event.target.value);
+            }}
             rows={4}
             className="border-white/10 bg-black font-mono text-sm text-white"
           />

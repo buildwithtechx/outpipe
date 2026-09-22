@@ -62,14 +62,19 @@ export function TunnelCreateForm({
               />
             </div>
             <div className="grid gap-2">
-              <Label className="text-white/70">Protocol</Label>
+              <Label htmlFor="tunnel-protocol" className="text-white/70">
+                Protocol
+              </Label>
               <Select
                 value={request.protocol}
                 onValueChange={(protocol: TunnelProtocol) =>
                   onChange({ ...request, protocol })
                 }
               >
-                <SelectTrigger className="h-11 w-full rounded-xl border-white/10 bg-black/40 text-white">
+                <SelectTrigger
+                  id="tunnel-protocol"
+                  className="h-11 w-full rounded-xl border-white/10 bg-black/40 text-white"
+                >
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -106,11 +111,14 @@ export function TunnelCreateForm({
                 type="number"
                 min="1"
                 max="65535"
-                value={request.targetPort}
+                value={request.targetPort || ''}
                 onChange={(event) =>
                   onChange({
                     ...request,
-                    targetPort: Number(event.target.value),
+                    targetPort:
+                      event.target.value === ''
+                        ? ('' as unknown as number)
+                        : Number(event.target.value),
                   })
                 }
                 className="h-11 rounded-xl border-white/10 bg-black/40 text-white"

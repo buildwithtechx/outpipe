@@ -55,5 +55,5 @@ app.post('/webhook', express.raw({ type: 'application/json' }), (req, res) => {
 ## Reliability & Retries
 
 - **Fast Acknowledgment**: Receiver endpoints must respond with an HTTP `2xx` status code within 5 seconds.
-- **Exponential Backoff**: If delivery fails (non-2xx response or network timeout), Outpipe automatically retries with exponential backoff over a 24-hour window.
+- **Exponential Backoff**: If delivery fails (non-2xx response or network timeout), Outpipe automatically retries with exponential backoff across 5 attempts over ~30 minutes (1, 2, 4, 8, and 16 minutes) before dead-lettering.
 - **Idempotency**: Use `X-Outpipe-Event-ID` to detect and safely ignore replayed deliveries.

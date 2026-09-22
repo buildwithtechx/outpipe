@@ -25,8 +25,10 @@ Outpipe enforces Role-Based Access Control to govern permissions within an organ
 
 ## Switching Organizations
 
-Users can belong to multiple organizations simultaneously. Switch active organizations at any time using the workspace switcher in the dashboard navigation bar or passing the `--org` flag in the CLI:
+Users can belong to multiple organizations simultaneously. Switch active organizations at any time using the workspace switcher in the dashboard navigation bar.
+
+When connecting a tunnel to your active organization via the CLI, specify your target port and tunnel identifier:
 
 ```sh
-outpipe http 3000 --org acme-corp
+outpipe http --port 3000 --tunnel-id <tunnel-id>
 ```

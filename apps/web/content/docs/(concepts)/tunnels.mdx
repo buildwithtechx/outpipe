@@ -27,8 +27,8 @@ Outpipe supports all major transport and application protocols:
 
 ```mermaid
 stateDiagram-v2
-    [*] --> Creating
-    Creating --> Connecting
+    [*] --> Created
+    Created --> Connecting
     Connecting --> Active: Agent Connects
     Active --> Disconnected: Network Drop / Sleep
     Disconnected --> Active: Agent Reconnects
@@ -38,7 +38,7 @@ stateDiagram-v2
     Revoked --> [*]
 ```
 
-- `creating`: The tunnel resource has been registered in the database, awaiting an agent connection.
+- `created`: The tunnel resource has been registered in the database, awaiting an agent connection.
 - `connecting`: An agent has initiated a WebSocket upgrade with the relay and is performing the handshake.
 - `active`: The tunnel is online, registered in the request router, and actively forwarding incoming requests.
 - `disconnected`: The agent disconnected temporarily (e.g. laptop closed). The public hostname remains reserved during the inactivity grace window.

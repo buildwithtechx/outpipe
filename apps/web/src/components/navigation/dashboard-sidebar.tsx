@@ -1,6 +1,6 @@
 import { Link, useLocation } from '@tanstack/react-router';
 import { Check, Copy, ShieldCheck, Terminal } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Badge } from '#/components/ui/badge';
 import { useAuthSession } from '#/features/auth/hooks/use-auth-session';
 import { useOrganization } from '#/features/organizations/hooks/use-organization';
@@ -21,6 +21,17 @@ export function DashboardSidebar({
   const { data: session } = useAuthSession();
   const { organization } = useOrganization(orgSlug);
   const [copied, setCopied] = useState(false);
+
+  useEffect(() => {
+    if (!mobileOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setMobileOpen(false);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [mobileOpen, setMobileOpen]);
 
   const isPlatformAdmin = Boolean(session?.isPlatformAdmin);
   const navItems = getWorkspaceNavItems(orgSlug);

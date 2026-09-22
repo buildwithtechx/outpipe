@@ -21,13 +21,13 @@ When an agent starts a tunnel, it connects to the nearest healthy relay via WebS
 https://my-app.outpipe.app  ──▶  Edge Relay  ──▶  Local Agent (port 3000)
 ```
 
-## Redis Agent Affinity
+## Redis Agent Affinity & Cluster Coordination
 
 When scaling across multiple relay instances in a cluster:
 
-1. **Session Claim**: When an agent connects to Relay A, Relay A claims affinity for the tunnel in Redis with an automatic TTL lease.
-2. **Global Request Routing**: If an incoming HTTP request hits Relay B, Relay B checks Redis and coordinates with the holding relay or routes traffic seamlessly.
-3. **Automatic Failover & Reconnect**: If an agent reconnects to a different relay instance after a network interruption, the new relay acquires the lease and resumes traffic forwarding without downtime.
+1. **Session Claim**: When an agent connects to Relay A, Relay A registers active affinity for the tunnel in Redis with an automatic heartbeat TTL lease.
+2. **Direct Edge Routing**: Incoming public HTTP/TCP requests route directly through the relay holding the active agent WebSocket connection.
+3. **Reconnects & Failover**: When an agent disconnects cleanly, the lease is released immediately. On unexpected disconnects, same-relay reconnects resume instantly, while cross-relay reconnects acquire the session lease upon TTL expiration.
 
 ## TLS Termination
 

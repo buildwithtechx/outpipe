@@ -20,10 +20,10 @@ use Outpipe\Client\OutpipeClient;
 
 $client = new OutpipeClient(
     'https://api.outpipe.dev',
-    $_ENV['OUTPIPE_API_KEY'],
+    getenv('OUTPIPE_API_KEY'),
 );
 
-$tunnels = $client->tunnels($_ENV['OUTPIPE_ORG_ID']);
+$tunnels = $client->tunnels(getenv('OUTPIPE_ORG_ID'));
 ```
 
 Laravel applications can bind the client as a singleton and read both values

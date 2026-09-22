@@ -5,12 +5,18 @@ type TunnelPageStateProps = {
   label?: string;
   error?: string;
   compact?: boolean;
+  action?: {
+    label: string;
+    to?: string;
+    onClick?: () => void;
+  };
 };
 
 export function TunnelPageState({
   label,
   error,
   compact = false,
+  action,
 }: TunnelPageStateProps) {
   const content = error ?? label;
 
@@ -25,14 +31,23 @@ export function TunnelPageState({
           <LoaderCircle className="mx-auto size-5 animate-spin text-indigo-200" />
         )}
         <p className="mt-3 text-sm leading-6 text-white/55">{content}</p>
-        {error && (
-          <Link
-            to="/login"
-            className="mt-4 inline-block text-sm font-medium text-indigo-200 hover:text-indigo-100"
-          >
-            Sign in again
-          </Link>
-        )}
+        {action &&
+          (action.to ? (
+            <Link
+              to={action.to}
+              className="mt-4 inline-block text-sm font-medium text-indigo-200 hover:text-indigo-100"
+            >
+              {action.label}
+            </Link>
+          ) : (
+            <button
+              type="button"
+              onClick={action.onClick}
+              className="mt-4 inline-block text-sm font-medium text-indigo-200 hover:text-indigo-100"
+            >
+              {action.label}
+            </button>
+          ))}
       </div>
     </div>
   );

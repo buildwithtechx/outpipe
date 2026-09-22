@@ -1,5 +1,6 @@
 import { Link, useLocation } from '@tanstack/react-router';
 import { ArrowLeft, Server } from 'lucide-react';
+import { useEffect } from 'react';
 import { Badge } from '#/components/ui/badge';
 import { useAdminOverview } from '#/features/admin/hooks/use-admin-resources';
 import { ADMIN_NAV_ITEMS } from './constants';
@@ -12,6 +13,17 @@ interface AdminSidebarProps {
 export function AdminSidebar({ mobileOpen, setMobileOpen }: AdminSidebarProps) {
   const location = useLocation();
   const overview = useAdminOverview();
+
+  useEffect(() => {
+    if (!mobileOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setMobileOpen(false);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [mobileOpen, setMobileOpen]);
 
   const statusLabel = overview.isLoading
     ? 'Checking…'

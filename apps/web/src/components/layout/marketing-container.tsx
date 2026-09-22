@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import { cn } from '#/lib/utils';
 
 type MarketingContainerProps = {
   children: ReactNode;
@@ -7,10 +8,10 @@ type MarketingContainerProps = {
 
 export function MarketingContainer({
   children,
-  className = '',
+  className,
 }: MarketingContainerProps) {
   return (
-    <div className={`mx-auto w-full max-w-7xl px-6 lg:px-8 ${className}`}>
+    <div className={cn('mx-auto w-full max-w-7xl px-6 lg:px-8', className)}>
       {children}
     </div>
   );
