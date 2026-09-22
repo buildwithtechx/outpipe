@@ -41,7 +41,10 @@ pub fn credentials_save(kind: CredentialKind, secret: String) -> Result<(), Stri
 
 #[tauri::command]
 pub fn credentials_clear(kind: CredentialKind) -> Result<(), String> {
-    match entry(kind)?.delete_credential() {
+    let Ok(entry) = entry(kind) else {
+        return Ok(());
+    };
+    match entry.delete_credential() {
         Ok(()) => Ok(()),
         Err(keyring::Error::NoEntry) => Ok(()),
         Err(error) => Err(format!("clear credential: {error}")),
@@ -51,15 +54,18 @@ pub fn credentials_clear(kind: CredentialKind) -> Result<(), String> {
 #[tauri::command]
 pub fn credentials_status() -> Result<CredentialsStatus, String> {
     Ok(CredentialsStatus {
-        has_api_key: credential(CredentialKind::ApiKey)?.is_some(),
-        has_agent_token: credential(CredentialKind::AgentToken)?.is_some(),
+        has_api_key: credential(CredentialKind::ApiKey).unwrap_or(None).is_some(),
+        has_agent_token: credential(CredentialKind::AgentToken).unwrap_or(None).is_some(),
     })
 }
 
 pub(crate) fn credential(kind: CredentialKind) -> Result<Option<String>, String> {
-    match entry(kind)?.get_password() {
+    let Ok(entry) = entry(kind) else {
+        return Ok(None);
+    };
+    match entry.get_password() {
         Ok(secret) => Ok(Some(secret)),
         Err(keyring::Error::NoEntry) => Ok(None),
-        Err(error) => Err(format!("retrieve credential: {error}")),
+        Err(_) => Ok(None),
     }
 }

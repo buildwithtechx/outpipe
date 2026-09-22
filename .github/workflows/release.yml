@@ -125,7 +125,12 @@ jobs:
             const configPath = "src-tauri/tauri.conf.json";
             const config = JSON.parse(fs.readFileSync(configPath, "utf8"));
             const rawVer = (process.env.APP_VERSION || "").replace(/^v/, "");
-            if (rawVer) { config.version = rawVer; }
+            const semverRegex = /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$/;
+            if (!semverRegex.test(rawVer)) {
+              console.error(`Invalid semver version extracted from tag: "${rawVer}" (original tag: "${process.env.APP_VERSION}")`);
+              process.exit(1);
+            }
+            config.version = rawVer;
             fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
           '
       - name: Build and package desktop app

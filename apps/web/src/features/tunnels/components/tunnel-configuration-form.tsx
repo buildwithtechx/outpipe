@@ -48,7 +48,9 @@ export function TunnelConfigurationForm({ tunnel }: { tunnel: Tunnel }) {
             type="datetime-local"
             value={expiresAt}
             onChange={(event) => {
-              mutation.reset();
+              if (!mutation.isPending) {
+                mutation.reset();
+              }
               setExpiresAt(event.target.value);
             }}
             className="border-white/10 bg-black text-white"
@@ -65,7 +67,9 @@ export function TunnelConfigurationForm({ tunnel }: { tunnel: Tunnel }) {
             id="tunnel-policy"
             value={accessPolicy}
             onChange={(event) => {
-              mutation.reset();
+              if (!mutation.isPending) {
+                mutation.reset();
+              }
               setAccessPolicy(event.target.value);
             }}
             rows={4}

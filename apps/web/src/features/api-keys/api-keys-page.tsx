@@ -33,6 +33,7 @@ export function ApiKeysPage({ orgSlug }: { orgSlug: string }) {
   if (
     organizationQuery.isError ||
     query.isError ||
+    membersQuery.isError ||
     !organizationQuery.organization
   ) {
     return (
@@ -66,11 +67,15 @@ export function ApiKeysPage({ orgSlug }: { orgSlug: string }) {
     );
   };
 
-  const copyToken = () => {
+  const copyToken = async () => {
     if (!newlyCreatedKey?.token) return;
-    void navigator.clipboard.writeText(newlyCreatedKey.token);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    try {
+      await navigator.clipboard.writeText(newlyCreatedKey.token);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      // Clipboard write denied or unavailable
+    }
   };
 
   return (
@@ -137,16 +142,27 @@ export function ApiKeysPage({ orgSlug }: { orgSlug: string }) {
                 .
               </p>
             </div>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={copyToken}
-              className="shrink-0 border-emerald-400/40 bg-emerald-500/20 text-emerald-200 hover:bg-emerald-500/30"
-            >
-              <Copy className="mr-1.5 size-3.5" />
-              {copied ? 'Copied!' : 'Copy Key'}
-            </Button>
+            <div className="flex items-center gap-2 shrink-0">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={copyToken}
+                className="border-emerald-400/40 bg-emerald-500/20 text-emerald-200 hover:bg-emerald-500/30"
+              >
+                <Copy className="mr-1.5 size-3.5" />
+                {copied ? 'Copied!' : 'Copy Key'}
+              </Button>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={() => setNewlyCreatedKey(null)}
+                className="text-white/60 hover:text-white"
+              >
+                Dismiss
+              </Button>
+            </div>
           </div>
           <div className="mt-3 overflow-x-auto rounded-xl border border-white/10 bg-black/60 p-3">
             <code className="font-mono text-xs text-emerald-200 select-all">

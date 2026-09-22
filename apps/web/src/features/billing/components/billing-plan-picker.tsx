@@ -2,21 +2,24 @@ import { Button } from '#/components/ui/button';
 import { useAuthSession } from '#/features/auth/hooks/use-auth-session';
 import { useMembers } from '#/features/organizations/hooks/use-members';
 import type { Plan } from '#/interfaces/billing';
+import type { Organization } from '#/interfaces/organization';
 import { useBillingCheckout } from '../hooks/use-billing-checkout';
 
 export function BillingPlanPicker({
-  organizationId,
+  organization,
   plans,
 }: {
-  organizationId: string;
+  organization: Organization;
   plans: Plan[];
 }) {
-  const checkout = useBillingCheckout(organizationId);
-  const members = useMembers(organizationId);
+  const checkout = useBillingCheckout(organization.id);
+  const members = useMembers(organization.id);
   const { user } = useAuthSession();
 
   const currentMember = members.data?.find((m) => m.userId === user?.id);
-  const isOwner = currentMember?.role === 'owner';
+  const isOwner =
+    (user && organization.ownerId === user.id) ||
+    (members.isSuccess && currentMember?.role === 'owner');
 
   return (
     <section className="mt-8 rounded-2xl border border-white/10 bg-white/[0.025] p-6">

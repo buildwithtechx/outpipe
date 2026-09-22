@@ -96,7 +96,7 @@ export function BillingPage({ orgSlug }: { orgSlug: string }) {
       </section>
       {!plans.isLoading && plans.data?.plans && (
         <BillingPlanPicker
-          organizationId={organization.id}
+          organization={organization}
           plans={plans.data.plans}
         />
       )}

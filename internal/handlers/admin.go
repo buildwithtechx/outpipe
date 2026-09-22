@@ -127,7 +127,14 @@ func (h *AdminHandler) SetUserStatus(c *fiber.Ctx) error {
 		return writeError(c, fiber.StatusBadRequest, fmt.Errorf("decode user status request: %w", err))
 	}
 
-	if err := h.admin.SetUserStatus(c.UserContext(), c.Params("userID"), input.Status); err != nil {
+	targetUserID := c.Params("userID")
+	if session, ok := c.Locals("session").(models.Session); ok && session.UserID != "" {
+		if targetUserID == session.UserID && input.Status == models.UserStatusDisabled {
+			return writeError(c, fiber.StatusBadRequest, fmt.Errorf("cannot disable your own administrator account"))
+		}
+	}
+
+	if err := h.admin.SetUserStatus(c.UserContext(), targetUserID, input.Status); err != nil {
 		return writeError(c, fiber.StatusBadRequest, err)
 	}
 

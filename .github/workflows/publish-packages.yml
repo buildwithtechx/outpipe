@@ -68,6 +68,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: package-dist
+          path: packages
 
       - name: Verify trusted publishing toolchain
         run: |

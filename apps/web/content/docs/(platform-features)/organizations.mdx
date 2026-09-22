@@ -23,12 +23,10 @@ Outpipe enforces Role-Based Access Control to govern permissions within an organ
 3. Outpipe sends a secure email invitation link valid for 7 days (`168h`).
 4. Once the recipient accepts and signs in with their Google or GitHub account, they are instantly granted access to the shared organization workspaces.
 
-## Switching Organizations
+## Connecting Managed Tunnels
 
-Users can belong to multiple organizations simultaneously. Switch active organizations at any time using the workspace switcher in the dashboard navigation bar.
-
-When connecting a tunnel to your active organization via the CLI, specify your target port and tunnel identifier:
+All tunnels belong directly to an organization. Once a managed tunnel is created in the dashboard or via API, connect to it with your target port and tunnel identifier using an authenticated CLI session or `OUTPIPE_API_KEY`:
 
 ```sh
-outpipe http --port 3000 --tunnel-id <tunnel-id>
+outpipe http --port 3000 --tunnel-id <managed-tunnel-id>
 ```

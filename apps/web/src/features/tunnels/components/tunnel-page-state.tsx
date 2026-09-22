@@ -1,15 +1,15 @@
 import { Link } from '@tanstack/react-router';
 import { CircleAlert, LoaderCircle } from 'lucide-react';
 
+type TunnelPageStateAction =
+  | { label: string; to: string; onClick?: never }
+  | { label: string; onClick: () => void; to?: never };
+
 type TunnelPageStateProps = {
   label?: string;
   error?: string;
   compact?: boolean;
-  action?: {
-    label: string;
-    to?: string;
-    onClick?: () => void;
-  };
+  action?: TunnelPageStateAction;
 };
 
 export function TunnelPageState({
@@ -32,7 +32,7 @@ export function TunnelPageState({
         )}
         <p className="mt-3 text-sm leading-6 text-white/55">{content}</p>
         {action &&
-          (action.to ? (
+          ('to' in action && action.to ? (
             <Link
               to={action.to}
               className="mt-4 inline-block text-sm font-medium text-indigo-200 hover:text-indigo-100"

@@ -9,7 +9,7 @@ Add the crate to your project:
 ```toml
 [dependencies]
 outpipe = "0.1"
-tokio = { version = "1", features = ["full"] }
+tokio = { version = "1", features = ["macros", "rt-multi-thread"] }
 ```
 
 Create an API client with a server-side API key and use it to inspect the

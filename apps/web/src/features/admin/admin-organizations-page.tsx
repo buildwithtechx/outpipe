@@ -28,7 +28,7 @@ export function AdminOrganizationsPage() {
             key={organization.id}
             to="/admin/organizations/$organizationID"
             params={{ organizationID: organization.id }}
-            className="block rounded-2xl border border-white/10 bg-white/2.5 p-5 transition-colors hover:border-purple-500/30 hover:bg-white/5"
+            className="block rounded-2xl border border-white/10 bg-white/2.5 p-5 transition-colors hover:border-purple-500/30 hover:bg-white/5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-purple-400"
           >
             <div className="flex items-center justify-between gap-4">
               <p className="font-medium text-white">{organization.name}</p>

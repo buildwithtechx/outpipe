@@ -9,7 +9,7 @@ import { useOAuthSignIn } from '#/features/auth/hooks/use-oauth-sign-in';
 export function SignupPage() {
   const notice = useAuthNotice();
   useAuthRedirect();
-  const { provider, signIn } = useOAuthSignIn('/signup');
+  const { provider, signIn } = useOAuthSignIn();
 
   return (
     <AuthPageShell

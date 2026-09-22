@@ -9,14 +9,14 @@ export function useBillingActions(organizationId: string | undefined) {
   const queryClient = useQueryClient();
 
   const invalidate = () => {
-    void queryClient.invalidateQueries({
-      queryKey: ['billing', organizationId],
-    });
     setTimeout(() => {
       void queryClient.invalidateQueries({
         queryKey: ['billing', organizationId],
       });
     }, 2000);
+    return queryClient.invalidateQueries({
+      queryKey: ['billing', organizationId],
+    });
   };
 
   const portal = useMutation({

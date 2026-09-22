@@ -1,14 +1,25 @@
-use serde::{Deserialize, Serialize};
 use std::process::Child;
 use std::sync::Mutex;
 
-#[derive(Clone, Default, Debug, Serialize, Deserialize)]
+#[derive(Clone, Default)]
 pub struct TunnelOptions {
     pub subdomain: Option<String>,
     pub password: Option<String>,
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+impl std::fmt::Debug for TunnelOptions {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("TunnelOptions")
+            .field("subdomain", &self.subdomain)
+            .field(
+                "password",
+                &self.password.as_ref().map(|_| "[REDACTED]"),
+            )
+            .finish()
+    }
+}
+
+#[derive(Clone, Debug)]
 pub struct LastTunnel {
     pub port: u16,
     pub protocol: String,

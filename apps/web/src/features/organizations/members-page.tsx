@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Button } from '#/components/ui/button';
 import { useMemberMutations } from './hooks/use-member-mutations';
 import { useMembers } from './hooks/use-members';
@@ -11,6 +11,15 @@ export function MembersPage({ orgSlug }: { orgSlug: string }) {
   const query = useMembers(organizationId);
   const mutations = useMemberMutations(organizationId);
   const [inviteSuccess, setInviteSuccess] = useState<string | null>(null);
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+    };
+  }, []);
 
   if (organizationQuery.isLoading || query.isLoading) {
     return <p className="p-8 text-sm text-white/55">Loading members…</p>;
@@ -31,22 +40,29 @@ export function MembersPage({ orgSlug }: { orgSlug: string }) {
   const organization = organizationQuery.organization;
 
   const invite = () => {
-    const email = window.prompt('Email address to invite:');
-    if (!email?.trim()) return;
+    const emailPrompt = window.prompt('Email address to invite:');
+    if (emailPrompt === null) return;
+    const email = emailPrompt.trim();
+    if (!email) return;
 
-    const roleInput = window
-      .prompt('Role (member, admin, viewer):', 'member')
-      ?.trim()
-      .toLowerCase();
+    const rolePrompt = window.prompt('Role (member, admin, viewer):', 'member');
+    if (rolePrompt === null) return;
+    const roleInput = rolePrompt.trim().toLowerCase();
     const role: 'admin' | 'member' | 'viewer' =
       roleInput === 'admin' || roleInput === 'viewer' ? roleInput : 'member';
 
     mutations.invite.mutate(
-      { email: email.trim(), role },
+      { email, role },
       {
         onSuccess: () => {
-          setInviteSuccess(`Invitation sent to ${email.trim()} as ${role}.`);
-          setTimeout(() => setInviteSuccess(null), 4000);
+          if (timeoutRef.current) {
+            clearTimeout(timeoutRef.current);
+          }
+          setInviteSuccess(`Invitation sent to ${email} as ${role}.`);
+          timeoutRef.current = setTimeout(() => {
+            setInviteSuccess(null);
+            timeoutRef.current = null;
+          }, 4000);
         },
       },
     );

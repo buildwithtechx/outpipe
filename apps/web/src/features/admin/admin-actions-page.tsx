@@ -1,10 +1,12 @@
 import { Button } from '#/components/ui/button';
+import { useAuthSession } from '#/features/auth/hooks/use-auth-session';
 import { AdminShell } from './admin-overview-page';
 import { useAdminUserStatus, useAdminUsers } from './hooks/use-admin-resources';
 
 export function AdminActionsPage() {
   const users = useAdminUsers();
   const status = useAdminUserStatus();
+  const { user: currentUser } = useAuthSession();
 
   if (users.isLoading) {
     return (
@@ -26,32 +28,55 @@ export function AdminActionsPage() {
       subtitle="Controlled account operations are recorded by the platform audit trail."
     >
       <div className="overflow-hidden rounded-2xl border border-white/10 bg-white/[0.025]">
-        {users.data?.items.slice(0, 10).map((user) => (
-          <div
-            key={user.id}
-            className="flex flex-wrap items-center justify-between gap-4 border-b border-white/5 px-5 py-4 last:border-0"
-          >
-            <div>
-              <p className="text-sm text-white/80">{user.email}</p>
-              <p className="mt-1 text-xs text-white/40">
-                Current status: {user.status}
-              </p>
-            </div>
-            <Button
-              type="button"
-              variant="outline"
-              disabled={status.isPending}
-              onClick={() =>
-                status.mutate({
-                  userId: user.id,
-                  status: user.status === 'active' ? 'disabled' : 'active',
-                })
-              }
+        {users.data?.items.slice(0, 10).map((user) => {
+          const isCurrentAdmin = user.id === currentUser?.id;
+          return (
+            <div
+              key={user.id}
+              className="flex flex-wrap items-center justify-between gap-4 border-b border-white/5 px-5 py-4 last:border-0"
             >
-              {user.status === 'active' ? 'Disable account' : 'Enable account'}
-            </Button>
-          </div>
-        ))}
+              <div>
+                <p className="text-sm text-white/80">
+                  {user.email}{' '}
+                  {isCurrentAdmin && (
+                    <span className="ml-2 rounded-full border border-purple-500/30 bg-purple-500/20 px-2 py-0.5 text-[10px] text-purple-300">
+                      You
+                    </span>
+                  )}
+                </p>
+                <p className="mt-1 text-xs text-white/40">
+                  Current status: {user.status}
+                </p>
+              </div>
+              {isCurrentAdmin && user.status === 'active' ? (
+                <Button
+                  type="button"
+                  variant="outline"
+                  disabled
+                  title="You cannot disable your own administrator account."
+                >
+                  Active
+                </Button>
+              ) : (
+                <Button
+                  type="button"
+                  variant="outline"
+                  disabled={status.isPending}
+                  onClick={() =>
+                    status.mutate({
+                      userId: user.id,
+                      status: user.status === 'active' ? 'disabled' : 'active',
+                    })
+                  }
+                >
+                  {user.status === 'active'
+                    ? 'Disable account'
+                    : 'Enable account'}
+                </Button>
+              )}
+            </div>
+          );
+        })}
       </div>
     </AdminShell>
   );

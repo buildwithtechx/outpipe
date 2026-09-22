@@ -32,6 +32,13 @@ export function TunnelCreateForm({
 }: TunnelCreateFormProps) {
   function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (
+      !request.targetPort ||
+      request.targetPort < 1 ||
+      request.targetPort > 65535
+    ) {
+      return;
+    }
     onSubmit();
   }
 
@@ -111,16 +118,15 @@ export function TunnelCreateForm({
                 type="number"
                 min="1"
                 max="65535"
-                value={request.targetPort || ''}
-                onChange={(event) =>
+                value={request.targetPort ? request.targetPort : ''}
+                onChange={(event) => {
+                  const raw = event.target.value;
+                  const parsed = Number.parseInt(raw, 10);
                   onChange({
                     ...request,
-                    targetPort:
-                      event.target.value === ''
-                        ? ('' as unknown as number)
-                        : Number(event.target.value),
-                  })
-                }
+                    targetPort: Number.isFinite(parsed) ? parsed : 0,
+                  });
+                }}
                 className="h-11 rounded-xl border-white/10 bg-black/40 text-white"
               />
             </div>

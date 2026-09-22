@@ -28,8 +28,8 @@ export function AdminSidebar({ mobileOpen, setMobileOpen }: AdminSidebarProps) {
   const statusLabel = overview.isLoading
     ? 'Checking…'
     : overview.isError
-      ? 'Degraded'
-      : 'Operational';
+      ? 'Unavailable'
+      : 'Available';
 
   const statusBadgeClass = overview.isLoading
     ? 'border-purple-400/30 bg-purple-500/20 text-purple-300'
@@ -51,7 +51,7 @@ export function AdminSidebar({ mobileOpen, setMobileOpen }: AdminSidebarProps) {
                 Control Plane
               </h4>
               <p className="truncate text-[10px] text-purple-300/60 font-mono">
-                Global Edge Cluster
+                API Service
               </p>
             </div>
           </div>

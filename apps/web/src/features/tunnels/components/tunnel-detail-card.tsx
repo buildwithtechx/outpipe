@@ -32,7 +32,13 @@ export function TunnelDetailCard({ tunnel }: TunnelDetailCardProps) {
               : 'Public address'
           }
           value={publicEndpoint}
-          copyValue={publicEndpoint}
+          copyValue={
+            tunnel.protocol === 'tcp' || tunnel.protocol === 'udp'
+              ? tunnel.publicPort
+                ? publicEndpoint
+                : undefined
+              : publicEndpoint
+          }
         />
         <DetailItem
           label="Local target"
@@ -88,8 +94,10 @@ function DetailItem({
 
 function buildPublicEndpoint(tunnel: Tunnel) {
   if (tunnel.protocol === 'tcp' || tunnel.protocol === 'udp') {
-    const port = tunnel.publicPort ? `:${tunnel.publicPort}` : '';
-    return `${tunnel.publicHostname}${port}`;
+    if (tunnel.publicPort) {
+      return `${tunnel.publicHostname}:${tunnel.publicPort}`;
+    }
+    return `${tunnel.publicHostname} (assigned on connection)`;
   }
   const port =
     tunnel.publicPort && tunnel.publicPort !== 443 && tunnel.publicPort !== 80
