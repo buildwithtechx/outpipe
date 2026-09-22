@@ -1,4 +1,4 @@
 {
   "title": "Core Concepts",
-  "pages": ["tunnels", "protocol"]
+  "pages": ["tunnels", "protocol", "edge-routing"]
 }

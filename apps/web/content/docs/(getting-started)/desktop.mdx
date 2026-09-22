@@ -1,0 +1,32 @@
+---
+title: Outpipe Desktop
+description: Cross-platform desktop client for managing local tunnels visually.
+icon: Layout
+---
+
+Outpipe Desktop provides a native GUI client for macOS, Windows, and Linux built with Tauri and React. It allows developers to create, monitor, and manage tunnels without keeping terminal sessions open.
+
+## Features
+
+- **System Tray Integration**: Run Outpipe silently in the background with quick access from the menu bar or taskbar.
+- **Visual Tunnel Management**: Start, stop, and configure HTTP, HTTPS, TCP, and UDP tunnels with one click.
+- **Live Traffic Inspector**: View real-time incoming HTTP requests, headers, status codes, and latency.
+- **Local Service Presets**: Save port configurations and custom domain mappings for frequently used local projects.
+- **Zero-Configuration Authentication**: Automatically synchronizes with your logged-in browser session or API key.
+
+## Installation
+
+Download the latest release for your operating system:
+
+| Platform | Installer Format | Architecture |
+| :--- | :--- | :--- |
+| **macOS** | `.dmg` / Universal Binary | Apple Silicon (M1/M2/M3) & Intel x64 |
+| **Windows** | `.msi` / `.exe` (NSIS) | x64 |
+| **Linux** | `.deb` / `.AppImage` / `.rpm` | x64 & ARM64 |
+
+## Getting Started
+
+1. Launch **Outpipe Desktop**.
+2. Click **Sign In** to authenticate via browser OAuth, or paste an existing `opk_live_...` API key in **Settings**.
+3. Click **+ New Tunnel**, select your local port (e.g., `3000`), choose your desired subdomain, and click **Start Tunnel**.
+4. Your public URL is immediately copied to your clipboard and ready to share.

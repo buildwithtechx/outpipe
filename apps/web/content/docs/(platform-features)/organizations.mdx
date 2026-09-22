@@ -1,0 +1,32 @@
+---
+title: Organizations & Teams
+description: Multi-tenant team collaboration, role-based access control (RBAC), and invitations.
+icon: Users
+---
+
+Outpipe is built from the ground up around **multi-tenant Organizations**. All tunnels, custom domains, API keys, webhooks, and billing limits belong to an Organization rather than an individual user account.
+
+## Organization Roles (RBAC)
+
+Outpipe enforces Role-Based Access Control to govern permissions within an organization:
+
+| Role | Permissions |
+| :--- | :--- |
+| **Owner** | Full administrative access, billing management, organization deletion, and member role assignment. |
+| **Admin** | Create and manage tunnels, custom domains, API keys, webhooks, and invite team members. Cannot modify billing or delete the organization. |
+| **Member** | Open tunnels, view tunnel dashboards, and inspect local development traffic. Cannot modify organization-wide settings. |
+
+## Inviting Team Members
+
+1. Go to **Organization ➔ Members** in the dashboard.
+2. Click **+ Invite Member**, enter their email address, and select their role (`Admin` or `Member`).
+3. Outpipe sends a secure email invitation link valid for 7 days (`168h`).
+4. Once the recipient accepts and signs in with their Google or GitHub account, they are instantly granted access to the shared organization workspaces.
+
+## Switching Organizations
+
+Users can belong to multiple organizations simultaneously. Switch active organizations at any time using the workspace switcher in the dashboard navigation bar or passing the `--org` flag in the CLI:
+
+```sh
+outpipe http 3000 --org acme-corp
+```

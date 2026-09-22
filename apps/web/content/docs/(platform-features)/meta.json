@@ -1,4 +1,12 @@
 {
   "title": "Platform Features",
-  "pages": ["password-protection", "ci-cd", "observability"]
+  "pages": [
+    "custom-domains",
+    "webhooks",
+    "api-keys",
+    "organizations",
+    "password-protection",
+    "ci-cd",
+    "observability"
+  ]
 }

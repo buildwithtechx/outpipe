@@ -1,0 +1,44 @@
+---
+title: Custom Domains
+description: Bind your own custom domains to local tunnels with automated SSL/TLS certificates.
+icon: Globe
+---
+
+Outpipe allows you to serve tunnels from your own branded domain names (e.g., `api.yourcompany.com` or `preview.internal.dev`) instead of default `*.outpipe.app` subdomains.
+
+## Adding a Custom Domain
+
+1. In the **Outpipe Dashboard**, navigate to **Domains** and click **+ Add Domain**.
+2. Enter your fully qualified domain name (e.g., `api.example.com`).
+3. Outpipe generates unique verification records for your domain.
+
+## DNS Verification
+
+You can verify ownership using either **CNAME** or **TXT** records in your DNS provider (Cloudflare, Route53, Namecheap, etc.):
+
+### Option A: CNAME Record (Recommended)
+Point your subdomain directly to the Outpipe relay hostname:
+- **Type**: `CNAME`
+- **Name**: `api` (or your subdomain)
+- **Target**: `cname.outpipe.app`
+
+### Option B: TXT Verification Record
+Add a TXT record to prove ownership before pointing traffic:
+- **Type**: `TXT`
+- **Name**: `_outpipe-challenge.api.example.com`
+- **Value**: `outpipe-verify=<verification_token>`
+
+## Automated SSL/TLS Certificates (Let's Encrypt)
+
+Once verified, Outpipe automatically provisions and manages free SSL/TLS certificates via Let's Encrypt (ACME). 
+
+- **Automatic Renewal**: Certificates are renewed in the background 30 days before expiration.
+- **Zero-Downtime Reloads**: The relay dynamically reloads certificates in memory without dropping active WebSocket or HTTP tunnel connections.
+
+## Connecting with the CLI
+
+Once your domain is active and verified, start your tunnel specifying your custom domain:
+
+```sh
+outpipe http 3000 --domain api.example.com
+```
