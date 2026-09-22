@@ -1,25 +1,10 @@
 import { Link, useLocation } from '@tanstack/react-router';
-import {
-  Activity,
-  Cable,
-  Check,
-  Copy,
-  CreditCard,
-  Globe,
-  Key,
-  Layers,
-  Radio,
-  ScrollText,
-  Settings,
-  ShieldCheck,
-  Terminal,
-  Users,
-  Webhook,
-} from 'lucide-react';
+import { Check, Copy, ShieldCheck, Terminal } from 'lucide-react';
 import { useState } from 'react';
 import { Badge } from '#/components/ui/badge';
 import { useAuthSession } from '#/features/auth/hooks/use-auth-session';
 import { useOrganization } from '#/features/organizations/hooks/use-organization';
+import { getWorkspaceNavItems } from './constants';
 
 interface DashboardSidebarProps {
   orgSlug: string;
@@ -38,21 +23,7 @@ export function DashboardSidebar({
   const [copied, setCopied] = useState(false);
 
   const isPlatformAdmin = Boolean(session?.isPlatformAdmin);
-
-  const navItems = [
-    { label: 'Overview', to: `/${orgSlug}`, icon: Layers, exact: true },
-    { label: 'Tunnels', to: `/${orgSlug}/tunnels`, icon: Cable },
-    { label: 'Agents', to: `/${orgSlug}/agents`, icon: Radio },
-    { label: 'Domains', to: `/${orgSlug}/domains`, icon: Globe },
-    { label: 'Live Requests', to: `/${orgSlug}/requests`, icon: Activity },
-    { label: 'Usage', to: `/${orgSlug}/usage`, icon: ScrollText },
-    { label: 'Billing', to: `/${orgSlug}/billing`, icon: CreditCard },
-    { label: 'Members', to: `/${orgSlug}/members`, icon: Users },
-    { label: 'API Keys', to: `/${orgSlug}/api-keys`, icon: Key },
-    { label: 'Webhooks', to: `/${orgSlug}/webhooks`, icon: Webhook },
-    { label: 'Audit Logs', to: `/${orgSlug}/audit-logs`, icon: ScrollText },
-    { label: 'Settings', to: `/${orgSlug}/settings`, icon: Settings },
-  ];
+  const navItems = getWorkspaceNavItems(orgSlug);
 
   const copyCliCommand = async () => {
     await navigator.clipboard.writeText('outpipe http 3000');

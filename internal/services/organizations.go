@@ -9,6 +9,7 @@ import (
 
 	"outpipe.dev/outpipe/internal/models"
 	"outpipe.dev/outpipe/internal/repositories"
+	"outpipe.dev/outpipe/internal/validation"
 	"outpipe.dev/outpipe/pkg/utils"
 )
 
@@ -38,7 +39,11 @@ func (s *OrganizationService) Create(ctx context.Context, ownerID, name, slug st
 		return models.Organization{}, fmt.Errorf("owner, name, and valid slug are required")
 	}
 
-	organization := models.Organization{Name: name, Slug: slug, OwnerID: ownerID, Settings: `{}`}
+	if validation.IsReservedSlug(slug) {
+		return models.Organization{}, fmt.Errorf("slug %q is reserved for platform routes", slug)
+	}
+
+	organization := models.Organization{Name: name, Slug: slug}
 
 	if err := s.organizations.Create(ctx, &organization); err != nil {
 		return models.Organization{}, fmt.Errorf("create organization: %w", err)
@@ -137,6 +142,10 @@ func (s *OrganizationService) IsSlugAvailable(ctx context.Context, slug string) 
 
 	if !slugPattern.MatchString(slug) {
 		return false, fmt.Errorf("slug must use lowercase letters, numbers, and single hyphens")
+	}
+
+	if validation.IsReservedSlug(slug) {
+		return false, nil
 	}
 
 	available, err := s.organizations.IsSlugAvailable(ctx, slug)

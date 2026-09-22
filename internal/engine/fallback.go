@@ -23,6 +23,17 @@ type ErrorDetails struct {
 	Reason     string `json:"reason,omitempty"`
 }
 
+func (e ErrorDetails) IsQuotaExceeded() bool {
+	return e.StatusCode == http.StatusTooManyRequests ||
+		e.StatusCode == 509 ||
+		e.Error == "bandwidth_limit_exceeded" ||
+		e.Error == "quota_exceeded"
+}
+
+func (e ErrorDetails) IsNotFound() bool {
+	return e.StatusCode == http.StatusNotFound || e.Error == "tunnel_not_found"
+}
+
 func writeProxyError(response http.ResponseWriter, request *http.Request, details ErrorDetails) {
 	accept := request.Header.Get("Accept")
 	if strings.Contains(accept, "text/html") {
