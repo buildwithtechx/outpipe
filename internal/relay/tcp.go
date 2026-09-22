@@ -95,8 +95,14 @@ func (m *TCPManager) accept(tunnelID string, listener net.Listener) {
 
 		connectionID := uuid.NewString()
 		m.mu.Lock()
+		tunnelConns, ok := m.tunnels[tunnelID]
+		if !ok || tunnelConns == nil {
+			m.mu.Unlock()
+			_ = connection.Close()
+			continue
+		}
 		m.connections[connectionID] = connection
-		m.tunnels[tunnelID][connectionID] = struct{}{}
+		tunnelConns[connectionID] = struct{}{}
 		hook := m.usageHook
 		m.mu.Unlock()
 

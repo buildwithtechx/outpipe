@@ -8,6 +8,7 @@ import (
 	"net/url"
 	"strings"
 
+	"outpipe.dev/outpipe/internal/auth"
 	"outpipe.dev/outpipe/internal/infra/httpclient"
 )
 
@@ -37,6 +38,18 @@ func NewInternalAgentAuthenticator(baseURL, secret string, client *http.Client) 
 }
 
 func (a *InternalAgentAuthenticator) Authenticate(ctx context.Context, token string) (AgentIdentity, error) {
+	if strings.Count(token, ".") == 2 {
+		if claims, err := auth.VerifyRelayToken(token, a.secret); err == nil {
+			return AgentIdentity{
+				AgentID:        claims.Sub,
+				OrganizationID: claims.Org,
+				MaxTunnels:     claims.MaxTunnels,
+				MaxConnections: claims.MaxConnections,
+				BandwidthBytes: claims.BandwidthBytes,
+			}, nil
+		}
+	}
+
 	request, err := http.NewRequestWithContext(ctx, http.MethodGet, a.baseURL+"/internal/agents/authenticate", nil)
 
 	if err != nil {
