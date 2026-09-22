@@ -10,8 +10,11 @@
   ],
   "scripts": {
     "dev": "concurrently -k -n api,tunnel,web -c blue,cyan,magenta \"npm run dev:api\" \"npm run dev:tunnel\" \"npm run dev --workspace apps/web\"",
-    "dev:api": "OUTPIPE_PORT=8080 go run ./cmd/server",
-    "dev:tunnel": "OUTPIPE_PORT=8081 go run ./cmd/tunnel",
+    "dev:api": "OUTPIPE_PORT=8080 air -c .air/server.toml",
+    "dev:tunnel": "OUTPIPE_PORT=8081 air -c .air/tunnel.toml",
+    "dev:cron": "air -c .air/cron.toml",
+    "dev:check": "air -c .air/check.toml",
+    "dev:cli": "air -c .air/cli.toml",
     "build": "npm run build:web && npm run build:api && npm run build:tunnel && npm run build:cron && npm run build:check && npm run build:cli && npm run build:packages && npm run build:go-sdk && npm run build:rust-sdk && npm run check:php && npm run build:desktop",
     "build:web": "npm run generate-routes && npm run build --workspace apps/web",
     "dev:web": "npm run dev --workspace apps/web",

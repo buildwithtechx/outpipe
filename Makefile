@@ -1,7 +1,28 @@
-.PHONY: dev build fmt format typecheck test clean build-binaries install-cli docker-build docker-images docker-api docker-tunnel docker-cron docker-check
+.PHONY: dev dev-api dev-tunnel dev-cron dev-check dev-cli dev-web dev-desktop build fmt format typecheck test clean build-binaries install-cli docker-build docker-images docker-api docker-tunnel docker-cron docker-check
 
 dev:
 	npm run dev
+
+dev-api:
+	npm run dev:api
+
+dev-tunnel:
+	npm run dev:tunnel
+
+dev-cron:
+	npm run dev:cron
+
+dev-check:
+	npm run dev:check
+
+dev-cli:
+	npm run dev:cli
+
+dev-web:
+	npm run dev:web
+
+dev-desktop:
+	npm run dev:desktop
 
 build:
 	npm run build
