@@ -1,18 +1,22 @@
 import { Cable } from 'lucide-react';
 import {
+  SiAngular,
   SiAstro,
   SiDrizzle,
   SiExpress,
+  SiGo,
   SiGraphql,
   SiMongodb,
   SiNestjs,
   SiNextdotjs,
   SiNodedotjs,
+  SiPhp,
   SiPostgresql,
   SiPrisma,
   SiReact,
   SiRedis,
   SiRemix,
+  SiRust,
   SiSocketdotio,
   SiSolid,
   SiStripe,
@@ -26,7 +30,17 @@ import {
   SiVuedotjs,
 } from 'react-icons/si';
 
-export type PluginId = 'sdk' | 'react' | 'vite' | 'next' | 'nest' | 'express';
+export type PluginId =
+  | 'sdk'
+  | 'react'
+  | 'vite'
+  | 'next'
+  | 'nest'
+  | 'express'
+  | 'go'
+  | 'rust'
+  | 'php'
+  | 'angular';
 
 export type PluginDefinition = {
   id: PluginId;
@@ -265,6 +279,122 @@ export const pluginDefinitions: PluginDefinition[] = [
       { label: 'Socket.IO', icon: SiSocketdotio },
       { label: 'Stripe', icon: SiStripe },
     ],
+  },
+  {
+    id: 'go',
+    name: 'Go SDK',
+    packageName: 'github.com/buildwithtechx/outpipe/packages/go',
+    eyebrow: 'Go SDK',
+    headline: 'Connect Go services\nto Outpipe.',
+    description:
+      'API and relay helpers for Go services and command-line tools that manage tunnels and local connections.',
+    docsSlug: 'go',
+    install: 'go get github.com/buildwithtechx/outpipe/packages/go',
+    fileName: 'main.go',
+    code: 'api, err := client.New(client.Config{\n  BaseURL: "https://api.outpipe.dev",\n  APIKey: os.Getenv("OUTPIPE_API_KEY"),\n})\nif err != nil { log.Fatal(err) }\n\ntunnels, err := api.Tunnels(ctx, os.Getenv("OUTPIPE_ORG_ID"))',
+    colorClass: 'text-cyan-300',
+    icon: SiGo,
+    features: [
+      'Authenticated API client',
+      'Relay helper',
+      'Typed protocol',
+      'Go services and CLI tools',
+    ],
+    useCases: ['Go service previews', 'Developer tooling', 'Tunnel automation'],
+    stackDescription:
+      'Use the Go module in services and tools that already manage their own processes and local ports.',
+    integrationHeading: 'Manage tunnels from\nyour Go service.',
+    integrationDescription:
+      'Create an API client with your server-side key, or attach the relay helper to a long-running process.',
+    technologies: [{ label: 'Go', icon: SiGo }],
+  },
+  {
+    id: 'rust',
+    name: 'Rust SDK',
+    packageName: 'outpipe',
+    eyebrow: 'Rust SDK',
+    headline: 'Build reliable tunnels\nwith Rust.',
+    description:
+      'An async client and protocol types for Rust applications, services, and developer tooling.',
+    docsSlug: 'rust',
+    install: 'cargo add outpipe',
+    fileName: 'main.rs',
+    code: 'let api_key = std::env::var("OUTPIPE_API_KEY")?;\nlet client = Client::builder("https://api.outpipe.dev")\n    .api_key(api_key)\n    .build()?;\n\nlet tunnels = client.tunnels("org_123").await?;',
+    colorClass: 'text-orange-300',
+    icon: SiRust,
+    features: [
+      'Async API client',
+      'Typed protocol',
+      'Tunnel operations',
+      'Rust services and tools',
+    ],
+    useCases: ['Service automation', 'Custom daemons', 'Tunnel inspection'],
+    stackDescription:
+      'Keep Outpipe operations in the same async Rust runtime as the rest of your service.',
+    integrationHeading: 'Bring Outpipe into\nyour Rust runtime.',
+    integrationDescription:
+      'Use the async client to inspect and manage tunnels, with protocol types available for custom relay tooling.',
+    technologies: [{ label: 'Rust', icon: SiRust }],
+  },
+  {
+    id: 'php',
+    name: 'PHP SDK',
+    packageName: 'outpipe/outpipe-php',
+    eyebrow: 'PHP SDK',
+    headline: 'Connect PHP apps\nto Outpipe.',
+    description:
+      'A Composer client for PHP and Laravel applications that need authenticated Outpipe API operations.',
+    docsSlug: 'php',
+    install: 'composer require outpipe/outpipe-php',
+    fileName: 'app.php',
+    code: "use Outpipe\\Client\\OutpipeClient;\n\n$client = new OutpipeClient(\n    'https://api.outpipe.dev',\n    getenv('OUTPIPE_API_KEY'),\n);\n\n$tunnels = $client->tunnels(getenv('OUTPIPE_ORG_ID'));",
+    colorClass: 'text-indigo-300',
+    icon: SiPhp,
+    features: [
+      'Composer package',
+      'Authenticated API client',
+      'Laravel-friendly setup',
+      'Tunnel operations',
+    ],
+    useCases: [
+      'Laravel integrations',
+      'Webhook tooling',
+      'PHP service dashboards',
+    ],
+    stackDescription:
+      'Use the Composer package alongside your existing PHP application and service container.',
+    integrationHeading: 'Manage tunnels from\nyour PHP app.',
+    integrationDescription:
+      'Create a client at your application boundary and keep its API key on the server.',
+    technologies: [{ label: 'PHP', icon: SiPhp }],
+  },
+  {
+    id: 'angular',
+    name: 'Angular',
+    packageName: '@outpipe/angular',
+    eyebrow: 'Angular integration',
+    headline: 'Add Outpipe to\nyour Angular app.',
+    description:
+      'Standalone providers and an injectable API service for Angular applications that manage tunnels.',
+    docsSlug: 'angular',
+    install: 'npm install @outpipe/angular',
+    fileName: 'app.config.ts',
+    code: "import { Component, inject } from '@angular/core';\nimport { OutpipeApiService } from '@outpipe/angular';\n\n@Component({ selector: 'app-tunnels', template: '' })\nexport class TunnelsComponent {\n  private outpipe = inject(OutpipeApiService);\n  tunnels = this.outpipe.listTunnels('organization-id');\n}",
+    colorClass: 'text-red-300',
+    icon: SiAngular,
+    features: [
+      'Standalone provider',
+      'Injectable API service',
+      'Angular-first setup',
+      'Typed tunnel operations',
+    ],
+    useCases: ['Developer dashboards', 'Tunnel controls', 'Internal tools'],
+    stackDescription:
+      'Register the provider with your Angular application and inject the service where tunnel data is needed.',
+    integrationHeading: 'Use Outpipe in\nyour Angular app.',
+    integrationDescription:
+      'Set up the provider once, then use the injectable service for tunnel operations throughout your app.',
+    technologies: [{ label: 'Angular', icon: SiAngular }, typescript],
   },
 ];
 

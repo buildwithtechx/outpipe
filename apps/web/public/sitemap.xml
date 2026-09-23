@@ -21,7 +21,17 @@
   <url><loc>https://outpipe.dev/docs/integrations/rust</loc></url>
   <url><loc>https://outpipe.dev/docs/integrations/php</loc></url>
   <url><loc>https://outpipe.dev/docs/integrations/angular</loc></url>
-  <url><loc>https://outpipe.dev/sdks</loc></url>
+  <url><loc>https://outpipe.dev/plugins</loc></url>
+  <url><loc>https://outpipe.dev/plugins/sdk</loc></url>
+  <url><loc>https://outpipe.dev/plugins/react</loc></url>
+  <url><loc>https://outpipe.dev/plugins/vite</loc></url>
+  <url><loc>https://outpipe.dev/plugins/next</loc></url>
+  <url><loc>https://outpipe.dev/plugins/nest</loc></url>
+  <url><loc>https://outpipe.dev/plugins/express</loc></url>
+  <url><loc>https://outpipe.dev/plugins/go</loc></url>
+  <url><loc>https://outpipe.dev/plugins/rust</loc></url>
+  <url><loc>https://outpipe.dev/plugins/php</loc></url>
+  <url><loc>https://outpipe.dev/plugins/angular</loc></url>
   <url><loc>https://outpipe.dev/docs/reference/architecture</loc></url>
   <url><loc>https://outpipe.dev/docs/reference/cli</loc></url>
 </urlset>

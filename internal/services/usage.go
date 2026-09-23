@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"time"
 
@@ -169,6 +170,9 @@ func (s *UsageService) FindSnapshot(ctx context.Context, organizationID string, 
 	snapshot, err := s.usage.FindSnapshot(ctx, organizationID, periodStart)
 
 	if err != nil {
+		if errors.Is(err, repositories.ErrNotFound) {
+			return s.usage.AggregatePeriod(ctx, organizationID, periodStart, periodStart.Add(time.Hour))
+		}
 		return models.UsageSnapshot{}, fmt.Errorf("find usage snapshot: %w", err)
 	}
 

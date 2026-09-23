@@ -32,6 +32,22 @@ const accents = {
     text: 'text-amber-300',
     button: 'bg-amber-300 text-[#171107]',
   },
+  go: {
+    text: 'text-cyan-300',
+    button: 'bg-cyan-300 text-[#081116]',
+  },
+  rust: {
+    text: 'text-orange-300',
+    button: 'bg-orange-300 text-[#171107]',
+  },
+  php: {
+    text: 'text-indigo-300',
+    button: 'bg-indigo-300 text-[#0b0b18]',
+  },
+  angular: {
+    text: 'text-red-300',
+    button: 'bg-red-300 text-[#19080d]',
+  },
 } as const;
 
 const particleAngles = [
@@ -134,7 +150,7 @@ export function PluginHero({ plugin }: { plugin: PluginDefinition }) {
             initial={{ opacity: 0, y: 14 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.1 }}
-            className="mx-auto mt-5 max-w-4xl text-5xl font-semibold tracking-[-0.07em] sm:text-7xl"
+            className="mx-auto mt-5 max-w-4xl text-4xl font-semibold tracking-[-0.07em] sm:text-7xl"
           >
             {plugin.headline.split('\n').map((line, index) => (
               <span
@@ -148,18 +164,18 @@ export function PluginHero({ plugin }: { plugin: PluginDefinition }) {
           <p className="mx-auto mt-7 max-w-2xl text-lg leading-8 text-white/50">
             {plugin.description}
           </p>
-          <div className="mt-9 flex flex-col items-center gap-3 sm:flex-row">
+          <div className="mt-9 flex w-full flex-col items-stretch gap-3 sm:w-auto sm:flex-row sm:items-center">
             <Link
               to="/signup"
-              className={`group inline-flex items-center gap-2 rounded-full px-7 py-4 text-sm font-semibold transition-transform hover:-translate-y-0.5 ${accent.button}`}
+              className={`group inline-flex items-center justify-center gap-2 rounded-full px-7 py-4 text-sm font-semibold transition-transform hover:-translate-y-0.5 ${accent.button}`}
             >
               Start building{' '}
               <ArrowRight className="size-4 transition-transform group-hover:translate-x-1" />
             </Link>
             <Link
               to="/docs/$"
-              params={{ _splat: plugin.docsSlug }}
-              className="rounded-full border border-white/15 px-7 py-4 text-sm text-white/70 hover:bg-white/5"
+              params={{ _splat: `integrations/${plugin.docsSlug}` }}
+              className="rounded-full border border-white/15 px-7 py-4 text-center text-sm text-white/70 hover:bg-white/5"
             >
               Documentation
             </Link>
@@ -167,14 +183,16 @@ export function PluginHero({ plugin }: { plugin: PluginDefinition }) {
           <button
             type="button"
             onClick={copyInstall}
-            className="group mt-8 inline-flex items-center gap-3 rounded-full border border-white/10 bg-black/35 px-5 py-3 font-mono text-xs text-white/55 hover:border-white/25"
+            className="group mt-8 flex max-w-full items-center gap-3 rounded-2xl border border-white/10 bg-black/35 px-5 py-3 font-mono text-xs text-white/55 hover:border-white/25 sm:rounded-full"
           >
-            <span className={accent.text}>$</span>
-            {plugin.install}
+            <span className={`shrink-0 ${accent.text}`}>$</span>
+            <span className="min-w-0 break-all text-left">
+              {plugin.install}
+            </span>
             {copied ? (
-              <Check className="size-4 text-emerald-300" />
+              <Check className="size-4 shrink-0 text-emerald-300" />
             ) : (
-              <Copy className="size-4 opacity-0 group-hover:opacity-100" />
+              <Copy className="size-4 shrink-0 opacity-0 group-hover:opacity-100" />
             )}
           </button>
         </MarketingContainer>

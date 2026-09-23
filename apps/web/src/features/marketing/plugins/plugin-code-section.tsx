@@ -9,12 +9,13 @@ export function PluginCodeSection({ plugin }: { plugin: PluginDefinition }) {
     <section className="py-16 sm:py-20">
       <MarketingContainer className="grid items-center gap-14 lg:grid-cols-[0.85fr_1.15fr]">
         <motion.div
+          className="min-w-0"
           initial={{ opacity: 0, x: -20 }}
           whileInView={{ opacity: 1, x: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.5 }}
         >
-          <h2 className="text-4xl font-semibold tracking-[-0.06em] sm:text-6xl">
+          <h2 className="text-3xl font-semibold tracking-[-0.06em] sm:text-6xl">
             {plugin.integrationHeading.split('\n').map((line, index) => (
               <span
                 key={line}
@@ -27,7 +28,7 @@ export function PluginCodeSection({ plugin }: { plugin: PluginDefinition }) {
           <p className="mt-6 max-w-xl text-lg leading-8 text-white/45">
             {plugin.integrationDescription}
           </p>
-          <div className="mt-9 flex items-center gap-6">
+          <div className="mt-9 flex flex-wrap items-center gap-4 sm:gap-6">
             <Link
               to="/signup"
               className="rounded-full bg-white px-6 py-3 text-sm font-semibold text-black transition-transform hover:-translate-y-0.5"
@@ -48,6 +49,7 @@ export function PluginCodeSection({ plugin }: { plugin: PluginDefinition }) {
           </div>
         </motion.div>
         <motion.div
+          className="min-w-0"
           initial={{ opacity: 0, x: 20 }}
           whileInView={{ opacity: 1, x: 0 }}
           viewport={{ once: true }}
@@ -62,7 +64,7 @@ export function PluginCodeSection({ plugin }: { plugin: PluginDefinition }) {
 
 function CodePanel({ plugin }: { plugin: PluginDefinition }) {
   return (
-    <div className="overflow-hidden rounded-3xl border border-white/10 bg-[#0a0a0a] shadow-2xl shadow-indigo-950/20">
+    <div className="w-full min-w-0 overflow-hidden rounded-3xl border border-white/10 bg-[#0a0a0a] shadow-2xl shadow-indigo-950/20">
       <div className="flex items-center gap-2 border-b border-white/10 bg-white/3 px-5 py-4">
         <span className="size-2.5 rounded-full bg-red-400/70" />
         <span className="size-2.5 rounded-full bg-amber-300/70" />
@@ -71,16 +73,16 @@ function CodePanel({ plugin }: { plugin: PluginDefinition }) {
           {plugin.fileName}
         </span>
       </div>
-      <pre className="min-h-72 overflow-x-auto p-6 font-mono text-xs leading-7 text-white/70 sm:text-sm">
+      <pre className="max-w-full min-h-72 overflow-x-auto p-4 font-mono text-xs leading-7 text-white/70 sm:p-6 sm:text-sm">
         <code>{highlightCode(plugin.code)}</code>
       </pre>
-      <div className="grid gap-2 border-t border-white/10 bg-black/25 px-6 py-5 font-mono text-xs text-white/35">
+      <div className="grid min-w-0 gap-2 border-t border-white/10 bg-black/25 px-4 py-5 font-mono text-xs text-white/35 sm:px-6">
         <span>$ npm run dev</span>
-        <span>
+        <span className="min-w-0 break-all">
           <b className="font-normal text-emerald-300">➜</b> Local:{' '}
           <b className="font-normal text-indigo-300">http://localhost:5173/</b>
         </span>
-        <span>
+        <span className="min-w-0 break-all">
           <b className="font-normal text-emerald-300">➜</b> Tunnel:{' '}
           <b className="font-normal text-cyan-300">
             https://preview.outpipe.app

@@ -1,7 +1,11 @@
 import { Link } from '@tanstack/react-router';
 import { ArrowRight, Braces } from 'lucide-react';
 import { MarketingContainer } from '#/components/layout';
-import { sdkDefinitions } from '../sdks/sdk-data';
+import { pluginDefinitions } from '../plugins/plugin-data';
+
+const sdkPlugins = pluginDefinitions.filter((plugin) =>
+  ['sdk', 'go', 'rust', 'php', 'angular'].includes(plugin.id),
+);
 
 export function SdkSection() {
   return (
@@ -21,18 +25,18 @@ export function SdkSection() {
           </p>
         </div>
         <div className="mx-auto mt-12 grid max-w-5xl gap-3 sm:grid-cols-2 lg:grid-cols-5">
-          {sdkDefinitions.map((sdk) => {
-            const Icon = sdk.icon;
+          {sdkPlugins.map((plugin) => {
+            const Icon = plugin.icon;
             return (
               <Link
-                key={sdk.name}
-                to="/docs/$"
-                params={{ _splat: `integrations/${sdk.docsSlug}` }}
+                key={plugin.id}
+                to="/plugins/$pluginId"
+                params={{ pluginId: plugin.id }}
                 className="group flex items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.025] px-4 py-4 transition-colors hover:border-indigo-300/35 hover:bg-indigo-300/[0.05]"
               >
-                <Icon className={`size-5 ${sdk.color}`} />
+                <Icon className={`size-5 ${plugin.colorClass}`} />
                 <span className="text-sm font-medium text-white/70 group-hover:text-white">
-                  {sdk.name}
+                  {plugin.name}
                 </span>
                 <ArrowRight className="ml-auto size-3.5 text-white/25 transition-transform group-hover:translate-x-0.5 group-hover:text-white" />
               </Link>

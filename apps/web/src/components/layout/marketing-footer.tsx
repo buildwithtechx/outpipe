@@ -1,9 +1,13 @@
 import { Link } from '@tanstack/react-router';
 import {
+  SiAngular,
   SiExpress,
+  SiGo,
   SiNestjs,
   SiNextdotjs,
+  SiPhp,
   SiReact,
+  SiRust,
   SiVite,
 } from 'react-icons/si';
 import { MarketingContainer } from './marketing-container';
@@ -42,7 +46,6 @@ export function MarketingFooter() {
               Documentation
             </Link>
             <FooterLink to="/plugins">Plugins</FooterLink>
-            <FooterLink to="/sdks">SDKs</FooterLink>
             <Link
               to="/docs/$"
               params={{ _splat: 'cli' }}
@@ -66,6 +69,18 @@ export function MarketingFooter() {
             </FooterPlugin>
             <FooterPlugin to="/plugins/express" icon={SiExpress}>
               Express
+            </FooterPlugin>
+            <FooterPlugin to="/plugins/go" icon={SiGo}>
+              Go
+            </FooterPlugin>
+            <FooterPlugin to="/plugins/rust" icon={SiRust}>
+              Rust
+            </FooterPlugin>
+            <FooterPlugin to="/plugins/php" icon={SiPhp}>
+              PHP
+            </FooterPlugin>
+            <FooterPlugin to="/plugins/angular" icon={SiAngular}>
+              Angular
             </FooterPlugin>
           </FooterGroup>
           <FooterGroup title="Legal">

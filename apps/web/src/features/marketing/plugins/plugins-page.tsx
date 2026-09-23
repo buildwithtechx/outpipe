@@ -16,9 +16,8 @@ export function PluginsPage() {
             One lifecycle for every stack.
           </h1>
           <p className="mt-6 text-lg leading-8 text-white/50">
-            Install the package that matches your runtime. Each integration
-            handles its own framework details and shares the same secure Outpipe
-            protocol underneath.
+            Find the plugin or SDK that matches your runtime. Each integration
+            shares the same Outpipe protocol underneath.
           </p>
         </div>
         <div className="mt-12 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
@@ -27,7 +26,7 @@ export function PluginsPage() {
               key={plugin.id}
               to="/plugins/$pluginId"
               params={{ pluginId: plugin.id }}
-              className="group relative overflow-hidden rounded-3xl border border-white/10 bg-white/[0.025] p-7 transition-all hover:-translate-y-1 hover:border-indigo-300/35"
+              className="group relative min-w-0 overflow-hidden rounded-3xl border border-white/10 bg-white/[0.025] p-5 transition-all hover:-translate-y-1 hover:border-indigo-300/35 sm:p-7"
             >
               <div className="absolute inset-0 bg-gradient-to-br from-indigo-300/[0.08] to-transparent opacity-0 transition-opacity group-hover:opacity-100" />
               <div className="relative">
@@ -40,7 +39,7 @@ export function PluginsPage() {
                   <ArrowRight className="size-4 text-white/25 transition-all group-hover:translate-x-1 group-hover:text-white" />
                 </div>
                 <h2 className="mt-8 text-xl font-semibold">{plugin.name}</h2>
-                <p className="mt-1 font-mono text-xs text-white/35">
+                <p className="mt-1 break-all font-mono text-xs text-white/35">
                   {plugin.packageName}
                 </p>
                 <p className="mt-5 min-h-12 text-sm leading-6 text-white/50">
@@ -72,10 +71,11 @@ export function PluginsPage() {
             only the integration your project needs.
           </p>
           <Link
-            to="/sdks"
-            className="mt-6 inline-flex items-center gap-2 text-sm font-medium text-indigo-300 transition-colors hover:text-indigo-200"
+            to="/docs/$"
+            params={{ _splat: 'integrations/overview' }}
+            className="mt-6 inline-flex flex-wrap items-center justify-center gap-2 text-sm font-medium text-indigo-300 transition-colors hover:text-indigo-200"
           >
-            Browse Go, Rust, PHP, Angular, and TypeScript SDKs
+            Read the integration overview
             <ArrowRight className="size-4" />
           </Link>
         </div>
