@@ -12,6 +12,8 @@ go get github.com/buildwithtechx/outpipe/packages/go
 
 The SDK uses the same API key and organization model as the dashboard. Keep
 the key on the server and pass it through an environment variable.
+The client is independent of the HTTP router, so you can use it alongside
+Gorilla Mux, Fiber, or Gin without replacing your existing server.
 
 ```go
 package main

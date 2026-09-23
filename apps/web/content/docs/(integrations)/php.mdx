@@ -26,6 +26,7 @@ $client = new OutpipeClient(
 $tunnels = $client->tunnels(getenv('OUTPIPE_ORG_ID'));
 ```
 
-Laravel applications can bind the client as a singleton and read both values
-from `config/services.php`. The package stays focused on authenticated API
-operations; use the CLI or a relay process for a persistent local tunnel.
+Laravel applications can use the package's service provider or bind the client
+as a singleton. Symfony and CakePHP applications can instantiate the
+framework-neutral Composer client in their service containers. Use the CLI or
+a relay process for a persistent local tunnel.

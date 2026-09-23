@@ -3,7 +3,14 @@ import { MarketingContainer } from '#/components/layout';
 import type { PluginDefinition } from './plugin-data';
 
 export function PluginStackSection({ plugin }: { plugin: PluginDefinition }) {
-  const ecosystem = plugin.id === 'sdk' ? 'TypeScript' : plugin.name;
+  const ecosystem =
+    plugin.id === 'sdk'
+      ? 'TypeScript'
+      : plugin.id === 'go'
+        ? 'Go'
+        : plugin.id === 'php'
+          ? 'PHP'
+          : plugin.name;
 
   return (
     <section className="bg-black py-16 sm:py-20">
