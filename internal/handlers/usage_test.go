@@ -15,7 +15,7 @@ import (
 	"outpipe.dev/outpipe/internal/services"
 )
 
-func TestUsageSnapshotReturnsEmptyPeriodWhenNoSnapshotExists(t *testing.T) {
+func TestUsageSnapshotAggregatesPeriodWhenNoSnapshotExists(t *testing.T) {
 	db, err := gorm.Open(sqlite.Open("file:usage-snapshot?mode=memory&cache=shared"), &gorm.Config{})
 	if err != nil {
 		t.Fatal(err)
