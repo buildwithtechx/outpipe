@@ -171,7 +171,11 @@ func (s *UsageService) FindSnapshot(ctx context.Context, organizationID string, 
 
 	if err != nil {
 		if errors.Is(err, repositories.ErrNotFound) {
-			return s.usage.AggregatePeriod(ctx, organizationID, periodStart, periodStart.Add(time.Hour))
+			snapshot, err := s.usage.AggregatePeriod(ctx, organizationID, periodStart, periodStart.Add(time.Hour))
+			if err != nil {
+				return models.UsageSnapshot{}, fmt.Errorf("find usage snapshot: aggregate period: %w", err)
+			}
+			return snapshot, nil
 		}
 		return models.UsageSnapshot{}, fmt.Errorf("find usage snapshot: %w", err)
 	}

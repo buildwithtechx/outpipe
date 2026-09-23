@@ -76,19 +76,23 @@ function CodePanel({ plugin }: { plugin: PluginDefinition }) {
       <pre className="max-w-full min-h-72 overflow-x-auto p-4 font-mono text-xs leading-7 text-white/70 sm:p-6 sm:text-sm">
         <code>{highlightCode(plugin.code)}</code>
       </pre>
-      <div className="grid min-w-0 gap-2 border-t border-white/10 bg-black/25 px-4 py-5 font-mono text-xs text-white/35 sm:px-6">
-        <span>$ npm run dev</span>
-        <span className="min-w-0 break-all">
-          <b className="font-normal text-emerald-300">➜</b> Local:{' '}
-          <b className="font-normal text-indigo-300">http://localhost:5173/</b>
-        </span>
-        <span className="min-w-0 break-all">
-          <b className="font-normal text-emerald-300">➜</b> Tunnel:{' '}
-          <b className="font-normal text-cyan-300">
-            https://preview.outpipe.app
-          </b>
-        </span>
-      </div>
+      {plugin.id === 'vite' && (
+        <div className="grid min-w-0 gap-2 border-t border-white/10 bg-black/25 px-4 py-5 font-mono text-xs text-white/35 sm:px-6">
+          <span>$ npm run dev</span>
+          <span className="min-w-0">
+            <b className="font-normal text-emerald-300">➜</b> Local:{' '}
+            <b className="break-all font-normal text-indigo-300">
+              http://localhost:5173/
+            </b>
+          </span>
+          <span className="min-w-0">
+            <b className="font-normal text-emerald-300">➜</b> Tunnel:{' '}
+            <b className="break-all font-normal text-cyan-300">
+              https://preview.outpipe.app
+            </b>
+          </span>
+        </div>
+      )}
     </div>
   );
 }

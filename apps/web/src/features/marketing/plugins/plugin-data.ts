@@ -347,7 +347,7 @@ export const pluginDefinitions: PluginDefinition[] = [
     docsSlug: 'php',
     install: 'composer require outpipe/outpipe-php',
     fileName: 'app.php',
-    code: "use Outpipe\\Client\\OutpipeClient;\n\n$client = new OutpipeClient(\n    'https://api.outpipe.dev',\n    getenv('OUTPIPE_API_KEY'),\n);\n\n$tunnels = $client->tunnels(getenv('OUTPIPE_ORG_ID'));",
+    code: "<?php\n\nuse Outpipe\\Client\\OutpipeClient;\n\n$client = new OutpipeClient(\n    'https://api.outpipe.dev',\n    getenv('OUTPIPE_API_KEY'),\n);\n\n$tunnels = $client->tunnels(getenv('OUTPIPE_ORG_ID'));",
     colorClass: 'text-indigo-300',
     icon: SiPhp,
     features: [
@@ -378,7 +378,7 @@ export const pluginDefinitions: PluginDefinition[] = [
       'Standalone providers and an injectable API service for Angular applications that manage tunnels.',
     docsSlug: 'angular',
     install: 'npm install @outpipe/angular',
-    fileName: 'app.config.ts',
+    fileName: 'app.component.ts',
     code: "import { Component, inject } from '@angular/core';\nimport { OutpipeApiService } from '@outpipe/angular';\n\n@Component({ selector: 'app-tunnels', template: '' })\nexport class TunnelsComponent {\n  private outpipe = inject(OutpipeApiService);\n  tunnels = this.outpipe.listTunnels('organization-id');\n}",
     colorClass: 'text-red-300',
     icon: SiAngular,
