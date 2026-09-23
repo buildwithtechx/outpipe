@@ -43,7 +43,7 @@ func (s *OrganizationService) Create(ctx context.Context, ownerID, name, slug st
 		return models.Organization{}, fmt.Errorf("slug %q is reserved for platform routes", slug)
 	}
 
-	organization := models.Organization{Name: name, Slug: slug}
+	organization := models.Organization{Name: name, Slug: slug, OwnerID: ownerID}
 
 	if err := s.organizations.Create(ctx, &organization); err != nil {
 		return models.Organization{}, fmt.Errorf("create organization: %w", err)

@@ -80,7 +80,7 @@ func (h *UsageHandler) Snapshot(c *fiber.Ctx) error {
 	snapshot, err := h.usage.FindSnapshot(c.UserContext(), c.Params("organizationID"), periodStart)
 
 	if err != nil {
-		return writeError(c, fiber.StatusNotFound, err)
+		return writeError(c, fiber.StatusInternalServerError, err)
 	}
 
 	return c.JSON(snapshot)

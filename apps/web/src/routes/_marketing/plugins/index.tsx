@@ -7,7 +7,7 @@ export const Route = createFileRoute('/_marketing/plugins/')({
     createSeo({
       title: 'Plugins and SDKs — Outpipe',
       description:
-        'Connect Outpipe to React, Vite, Next.js, NestJS, and Express.',
+        'Outpipe plugins and SDKs for TypeScript, React, Vite, Next.js, NestJS, Express, Go, Rust, PHP, and Angular.',
       path: '/plugins',
     }),
   component: PluginsPage,

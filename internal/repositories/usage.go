@@ -51,9 +51,13 @@ func (r *GormUsageRepository) UpsertSnapshot(ctx context.Context, snapshot *mode
 
 func (r *GormUsageRepository) FindSnapshot(ctx context.Context, organizationID string, periodStart time.Time) (models.UsageSnapshot, error) {
 	var snapshot models.UsageSnapshot
+	result := r.db.WithContext(ctx).Where("organization_id = ? AND period_start = ?", organizationID, periodStart).Limit(1).Find(&snapshot)
 
-	if err := r.db.WithContext(ctx).Where("organization_id = ? AND period_start = ?", organizationID, periodStart).First(&snapshot).Error; err != nil {
-		return models.UsageSnapshot{}, mapError(err)
+	if result.Error != nil {
+		return models.UsageSnapshot{}, mapError(result.Error)
+	}
+	if result.RowsAffected == 0 {
+		return models.UsageSnapshot{}, ErrNotFound
 	}
 
 	return snapshot, nil
