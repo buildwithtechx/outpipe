@@ -1,11 +1,14 @@
-import { Cable } from 'lucide-react';
+import { Cable, Route, Zap } from 'lucide-react';
 import {
   SiAngular,
   SiAstro,
+  SiCakephp,
   SiDrizzle,
   SiExpress,
+  SiGin,
   SiGo,
   SiGraphql,
+  SiLaravel,
   SiMongodb,
   SiNestjs,
   SiNextdotjs,
@@ -22,6 +25,7 @@ import {
   SiStripe,
   SiSvelte,
   SiSwagger,
+  SiSymfony,
   SiTailwindcss,
   SiTrpc,
   SiTypescript,
@@ -287,7 +291,7 @@ export const pluginDefinitions: PluginDefinition[] = [
     eyebrow: 'Go SDK',
     headline: 'Connect Go services\nto Outpipe.',
     description:
-      'API and relay helpers for Go services and command-line tools that manage tunnels and local connections.',
+      'API and relay helpers for Go services, including apps using Gorilla Mux, Fiber, and Gin.',
     docsSlug: 'go',
     install: 'go get github.com/buildwithtechx/outpipe/packages/go',
     fileName: 'main.go',
@@ -302,11 +306,16 @@ export const pluginDefinitions: PluginDefinition[] = [
     ],
     useCases: ['Go service previews', 'Developer tooling', 'Tunnel automation'],
     stackDescription:
-      'Use the Go module in services and tools that already manage their own processes and local ports.',
+      'Use the framework-neutral Go client alongside Gorilla Mux, Fiber, or Gin. Keep your existing HTTP router and local server.',
     integrationHeading: 'Manage tunnels from\nyour Go service.',
     integrationDescription:
       'Create an API client with your server-side key, or attach the relay helper to a long-running process.',
-    technologies: [{ label: 'Go', icon: SiGo }],
+    technologies: [
+      { label: 'Go', icon: SiGo },
+      { label: 'Gorilla Mux', icon: Route },
+      { label: 'Fiber', icon: Zap },
+      { label: 'Gin', icon: SiGin },
+    ],
   },
   {
     id: 'rust',
@@ -343,7 +352,7 @@ export const pluginDefinitions: PluginDefinition[] = [
     eyebrow: 'PHP SDK',
     headline: 'Connect PHP apps\nto Outpipe.',
     description:
-      'A Composer client for PHP and Laravel applications that need authenticated Outpipe API operations.',
+      'A Composer client with Laravel integration that also works alongside Symfony and CakePHP.',
     docsSlug: 'php',
     install: 'composer require outpipe/outpipe-php',
     fileName: 'app.php',
@@ -362,11 +371,16 @@ export const pluginDefinitions: PluginDefinition[] = [
       'PHP service dashboards',
     ],
     stackDescription:
-      'Use the Composer package alongside your existing PHP application and service container.',
+      'Laravel has a dedicated service provider. Symfony and CakePHP can use the same framework-neutral Composer client in their services.',
     integrationHeading: 'Manage tunnels from\nyour PHP app.',
     integrationDescription:
       'Create a client at your application boundary and keep its API key on the server.',
-    technologies: [{ label: 'PHP', icon: SiPhp }],
+    technologies: [
+      { label: 'PHP', icon: SiPhp },
+      { label: 'Laravel', icon: SiLaravel },
+      { label: 'Symfony', icon: SiSymfony },
+      { label: 'CakePHP', icon: SiCakephp },
+    ],
   },
   {
     id: 'angular',
