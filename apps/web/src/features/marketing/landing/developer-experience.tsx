@@ -35,11 +35,11 @@ export function DeveloperExperience() {
           <br />
           already connected
         </h2>
-        <div className="mt-10 grid items-start gap-6 lg:grid-cols-2">
-          <div className="grid gap-6">
-            <article className="group flex flex-col rounded-3xl border border-white/5 bg-white/[0.02] p-8 transition-colors hover:border-white/10">
+        <div className="mt-10 grid grid-cols-1 items-start gap-6 lg:grid-cols-2">
+          <div className="grid min-w-0 grid-cols-1 gap-6">
+            <article className="group flex min-w-0 flex-col rounded-3xl border border-white/5 bg-white/[0.02] p-5 transition-colors hover:border-white/10 sm:p-8">
               <div className="flex items-center gap-4">
-                <span className="flex size-10 items-center justify-center rounded-full bg-indigo-300/10 transition-colors group-hover:bg-indigo-300/20">
+                <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-indigo-300/10 transition-colors group-hover:bg-indigo-300/20">
                   <Terminal className="size-5 text-indigo-300" />
                 </span>
                 <h3 className="text-xl font-semibold">Online in one command</h3>
@@ -52,9 +52,9 @@ export function DeveloperExperience() {
                 <span className="text-indigo-300">$</span> outpipe 3000
               </div>
             </article>
-            <article className="group rounded-3xl border border-white/5 bg-white/[0.02] p-8 transition-colors hover:border-white/10">
+            <article className="group min-w-0 rounded-3xl border border-white/5 bg-white/[0.02] p-5 transition-colors hover:border-white/10 sm:p-8">
               <div className="flex items-center gap-4">
-                <span className="flex size-10 items-center justify-center rounded-full bg-indigo-300/10 transition-colors group-hover:bg-indigo-300/20">
+                <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-indigo-300/10 transition-colors group-hover:bg-indigo-300/20">
                   <Code2 className="size-5 text-indigo-300" />
                 </span>
                 <h3 className="text-xl font-semibold">
@@ -68,11 +68,11 @@ export function DeveloperExperience() {
               <PluginTabs />
             </article>
           </div>
-          <article className="group relative flex h-full flex-col overflow-hidden rounded-3xl border border-white/5 bg-white/[0.02] p-8 transition-colors hover:border-white/10">
+          <article className="group relative flex h-full min-w-0 flex-col overflow-hidden rounded-3xl border border-white/5 bg-white/[0.02] p-5 transition-colors hover:border-white/10 sm:p-8">
             <div className="absolute -right-24 -top-24 size-64 rounded-full bg-indigo-400/10 blur-3xl" />
             <div className="relative">
               <div className="flex items-center gap-4">
-                <span className="flex size-10 items-center justify-center rounded-full bg-indigo-300/10 transition-colors group-hover:bg-indigo-300/20">
+                <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-indigo-300/10 transition-colors group-hover:bg-indigo-300/20">
                   <Activity className="size-5 text-indigo-300" />
                 </span>
                 <h3 className="text-xl font-semibold">Instant observability</h3>
@@ -86,7 +86,7 @@ export function DeveloperExperience() {
               {liveTraffic.map(([status, method, path, time]) => (
                 <div
                   key={`${status}-${path}-${offset}`}
-                  className="grid grid-cols-[90px_48px_1fr_42px] gap-2 rounded-lg border border-white/5 bg-black/30 px-3 py-3 text-white/50"
+                  className="grid min-w-0 grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 gap-y-1 rounded-lg border border-white/5 bg-black/30 px-3 py-3 text-white/50 sm:grid-cols-[90px_48px_minmax(0,1fr)_42px] sm:gap-2"
                 >
                   <span
                     className={
@@ -99,8 +99,8 @@ export function DeveloperExperience() {
                   >
                     {status}
                   </span>
-                  <span>{method}</span>
-                  <span>{path}</span>
+                  <span className="text-right sm:text-left">{method}</span>
+                  <span className="min-w-0 truncate">{path}</span>
                   <span className="text-right text-white/25">{time}</span>
                 </div>
               ))}

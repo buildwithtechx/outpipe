@@ -25,7 +25,7 @@ export function OpenSourceSection() {
   return (
     <section className="pb-20 pt-12 sm:pb-24 sm:pt-16">
       <MarketingContainer>
-        <div className="rounded-3xl bg-white/[0.035] p-7 sm:p-10 lg:grid lg:grid-cols-[0.85fr_1.15fr] lg:gap-16">
+        <div className="rounded-3xl bg-white/[0.035] p-5 sm:p-10 lg:grid lg:grid-cols-[0.85fr_1.15fr] lg:gap-16">
           <div>
             <p className="text-sm font-medium text-indigo-300">Open source</p>
             <h2 className="mt-4 text-4xl font-semibold tracking-[-0.05em] sm:text-5xl">
@@ -39,7 +39,7 @@ export function OpenSourceSection() {
               href={githubRepositoryUrl}
               target="_blank"
               rel="noreferrer"
-              className="mt-8 inline-flex items-center gap-2 rounded-full bg-white px-5 py-3 text-sm font-semibold text-black transition-transform hover:-translate-y-0.5"
+              className="mt-8 inline-flex w-full items-center justify-center gap-2 rounded-full bg-white px-4 py-3 text-xs font-semibold text-black transition-transform hover:-translate-y-0.5 sm:w-auto sm:px-5 sm:text-sm"
             >
               <SiGithub className="size-4" />
               Explore the repository <ArrowUpRight className="size-4" />
@@ -49,7 +49,7 @@ export function OpenSourceSection() {
             {commitments.map(({ title, text, icon: Icon }) => (
               <div
                 key={title}
-                className="flex gap-4 rounded-2xl bg-black/25 p-5"
+                className="flex gap-3 rounded-2xl bg-black/25 p-4 sm:gap-4 sm:p-5"
               >
                 <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-indigo-300/10 text-indigo-300">
                   <Icon className="size-5" />

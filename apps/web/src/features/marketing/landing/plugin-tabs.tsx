@@ -33,7 +33,7 @@ export function PluginTabs() {
   const selected = tabs[active];
 
   return (
-    <div className="mt-auto pt-7">
+    <div className="mt-auto min-w-0 pt-7">
       <div className="mb-3 flex flex-wrap gap-2">
         {(Object.keys(tabs) as Tab[]).map((id) => {
           const tab = tabs[id];
@@ -52,7 +52,7 @@ export function PluginTabs() {
           );
         })}
       </div>
-      <div className="overflow-hidden rounded-2xl border border-white/5 bg-black/40">
+      <div className="min-w-0 overflow-hidden rounded-2xl border border-white/5 bg-black/40">
         <div className="flex items-center gap-1.5 border-b border-white/5 bg-white/4 px-4 py-2.5">
           <span className="size-2.5 rounded-full bg-red-400/65" />
           <span className="size-2.5 rounded-full bg-amber-300/65" />

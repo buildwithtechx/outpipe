@@ -51,19 +51,20 @@ export function MarketingHeader() {
 
   return (
     <header
-      className={`fixed inset-x-0 top-0 z-50 border-b transition-[background-color,border-color,box-shadow,backdrop-filter] duration-300 ${
+      className={`fixed inset-x-0 top-0 z-50 w-full border-b transition-[background-color,border-color,box-shadow,backdrop-filter] duration-300 ${
         scrolled
           ? 'border-white/10 bg-black shadow-[0_10px_35px_rgba(0,0,0,0.32)] backdrop-blur-xl'
           : 'border-transparent bg-transparent'
       }`}
     >
-      <MarketingContainer className="relative flex h-18 items-center justify-between">
+      <MarketingContainer className="relative flex h-18 items-center justify-between gap-4">
         <BrandLockup
+          className="shrink-0"
           onClick={() => setOpen(false)}
           nameClassName="hidden font-semibold tracking-tight text-white sm:inline"
         />
         <nav
-          className="absolute left-1/2 hidden -translate-x-1/2 items-center gap-8 md:flex"
+          className="hidden items-center gap-5 lg:flex xl:gap-8"
           aria-label="Main navigation"
         >
           <DropdownButton
@@ -175,7 +176,7 @@ export function MarketingHeader() {
             </div>
           </DropdownButton>
         </nav>
-        <div className="hidden items-center gap-3 md:flex">
+        <div className="hidden items-center gap-3 lg:flex">
           <a
             href={githubRepositoryUrl}
             target="_blank"
@@ -208,13 +209,13 @@ export function MarketingHeader() {
           aria-label={open ? 'Close navigation' : 'Open navigation'}
           aria-expanded={open}
           onClick={() => setOpen((value) => !value)}
-          className="rounded-lg border border-white/15 p-2 text-white md:hidden"
+          className="flex size-11 shrink-0 items-center justify-center rounded-lg border border-white/15 text-white lg:hidden"
         >
           {open ? <X className="size-5" /> : <Menu className="size-5" />}
         </button>
       </MarketingContainer>
       {open && (
-        <div className="border-t border-indigo-200/10 bg-black px-6 py-5 md:hidden">
+        <div className="max-h-[calc(100dvh-4.5rem)] overflow-y-auto border-t border-indigo-200/10 bg-black px-4 py-5 sm:px-6 lg:hidden">
           <nav
             className="mx-auto flex max-w-7xl flex-col gap-1"
             aria-label="Mobile navigation"

@@ -47,7 +47,7 @@ export function ProtocolsSection() {
             {protocols.map(({ title, detail, command, icon: Icon, color }) => (
               <article
                 key={title}
-                className="group grid gap-4 rounded-2xl border border-transparent bg-black/25 p-4 transition-colors hover:border-white/10 hover:bg-white/[0.035] sm:grid-cols-[auto_1fr_auto] sm:items-center"
+                className="group grid min-w-0 grid-cols-1 gap-4 rounded-2xl border border-transparent bg-black/25 p-4 transition-colors hover:border-white/10 hover:bg-white/[0.035] sm:grid-cols-[auto_minmax(0,1fr)] sm:items-center lg:grid-cols-[auto_minmax(0,1fr)_auto]"
               >
                 <span
                   className={`flex size-10 items-center justify-center rounded-xl bg-white/5 ${color}`}
@@ -58,9 +58,11 @@ export function ProtocolsSection() {
                   <h3 className="font-medium text-white">{title}</h3>
                   <p className="mt-1 text-sm text-white/40">{detail}</p>
                 </div>
-                <div className="flex items-center justify-between gap-4 font-mono text-xs text-white/50 sm:justify-end">
-                  <code>{command}</code>
-                  <ArrowUpRight className={`size-4 ${color}`} />
+                <div className="flex min-w-0 items-center justify-between gap-4 font-mono text-xs text-white/50 sm:col-span-2 lg:col-span-1 lg:justify-end">
+                  <code className="min-w-0 [overflow-wrap:anywhere]">
+                    {command}
+                  </code>
+                  <ArrowUpRight className={`size-4 shrink-0 ${color}`} />
                 </div>
               </article>
             ))}
