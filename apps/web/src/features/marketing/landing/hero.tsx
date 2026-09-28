@@ -62,7 +62,7 @@ export function Hero() {
   }
 
   return (
-    <section className="relative min-h-screen overflow-hidden bg-black pb-16 pt-20">
+    <section className="relative min-h-screen overflow-hidden bg-black pb-12 pt-28 sm:pb-16 sm:pt-20">
       <div className="pointer-events-none absolute inset-0 z-0 md:translate-x-[-10%]">
         <Canvas camera={{ position: [0, 0, 15], fov: 45 }}>
           <color attach="background" args={['#000000']} />
@@ -70,12 +70,12 @@ export function Hero() {
         </Canvas>
       </div>
       <MarketingContainer className="relative z-10 flex flex-col items-center">
-        <div className="mt-20 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/4 px-3 py-1.5 text-xs text-white/55 backdrop-blur-xs">
-          <span className="size-1.5 rounded-full bg-cyan-300" />
+        <div className="inline-flex max-w-full items-center gap-2 rounded-full border border-white/10 bg-white/4 px-3 py-1.5 text-center text-[10px] text-white/55 backdrop-blur-xs sm:mt-20 sm:text-xs">
+          <span className="size-1.5 shrink-0 rounded-full bg-cyan-300" />
           Open-source tunnel infrastructure for developers
         </div>
-        <h1 className="mt-8 w-full text-center text-[clamp(1.8rem,6vw,4.5rem)] font-bold leading-[1.02] tracking-[-0.055em]">
-          <span className="block whitespace-nowrap">
+        <h1 className="mt-6 w-full text-center text-[clamp(1.75rem,6vw,4.5rem)] font-bold leading-[1.1] tracking-[-0.055em] sm:mt-8 sm:leading-[1.02]">
+          <span className="block sm:whitespace-nowrap">
             <motion.button
               type="button"
               className="relative inline-block cursor-default appearance-none border-0 bg-transparent p-0 text-inherit"
@@ -85,7 +85,7 @@ export function Hero() {
               <motion.span
                 animate={{ rotate: hovered ? -5 : 0, y: hovered ? -4 : 0 }}
                 transition={{ type: 'spring', stiffness: 300, damping: 20 }}
-                className="relative z-10 inline-block rounded-2xl border border-indigo-300/35 bg-indigo-300/15 px-4 py-1"
+                className="relative z-10 inline-block rounded-2xl border border-indigo-300/35 bg-indigo-300/15 px-2 py-1 sm:px-4"
               >
                 Share
               </motion.span>
@@ -113,11 +113,13 @@ export function Hero() {
                 </span>
               </span>
             </motion.button>{' '}
-            your local app
+            <span className="inline-block whitespace-nowrap">
+              your local app
+            </span>
           </span>
           <span className="block">with the world</span>
         </h1>
-        <p className="mt-8 max-w-2xl text-center text-lg leading-8 text-white/55 sm:text-xl">
+        <p className="mt-6 max-w-2xl text-center text-base leading-7 text-white/55 sm:mt-8 sm:text-xl sm:leading-8">
           Outpipe gives your local apps a secure, observable public endpoint for
           previews, webhooks, OAuth callbacks, and CI workflows.
         </p>
@@ -172,16 +174,16 @@ function TerminalWindow() {
   }, []);
 
   return (
-    <div className="mt-14 w-full max-w-5xl overflow-hidden rounded-[1.25rem] border border-white/15 bg-[#090a0c] text-left font-mono text-sm shadow-2xl shadow-indigo-950/50">
-      <div className="relative flex items-center gap-3 border-b border-white/10 bg-white/6 px-6 py-4">
-        <span className="size-3 rounded-full bg-red-400" />
-        <span className="size-3 rounded-full bg-amber-300" />
-        <span className="size-3 rounded-full bg-emerald-400" />
-        <span className="absolute inset-x-0 text-center text-sm text-white/35">
+    <div className="mt-10 w-full min-w-0 max-w-5xl overflow-hidden rounded-[1.25rem] border border-white/15 bg-[#090a0c] text-left font-mono text-sm shadow-2xl shadow-indigo-950/50 sm:mt-14">
+      <div className="relative flex items-center gap-2 border-b border-white/10 bg-white/6 px-4 py-4 sm:gap-3 sm:px-6">
+        <span className="size-2.5 shrink-0 rounded-full bg-red-400 sm:size-3" />
+        <span className="size-2.5 shrink-0 rounded-full bg-amber-300 sm:size-3" />
+        <span className="size-2.5 shrink-0 rounded-full bg-emerald-400 sm:size-3" />
+        <span className="ml-2 min-w-0 truncate text-xs text-white/35 sm:absolute sm:inset-x-0 sm:ml-0 sm:text-center sm:text-sm">
           user@outpipe-cli
         </span>
       </div>
-      <div className="grid gap-2 px-6 py-7 text-xs leading-6 sm:px-8 sm:py-8 sm:text-sm">
+      <div className="grid min-w-0 grid-cols-1 gap-2 px-4 py-6 text-[11px] leading-6 [overflow-wrap:anywhere] sm:px-8 sm:py-8 sm:text-sm">
         <p className="text-white/85">
           <span className="text-emerald-300">➜</span>{' '}
           <span className="text-cyan-300">~</span> outpipe 3000
@@ -202,7 +204,7 @@ function TerminalWindow() {
                 initial={{ opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -8 }}
-                className="grid grid-cols-[4.5rem_minmax(0,1fr)_3.5rem_3.5rem] items-center gap-3"
+                className="grid grid-cols-[3rem_minmax(0,1fr)_2rem_2.75rem] items-center gap-2 sm:grid-cols-[4.5rem_minmax(0,1fr)_3.5rem_3.5rem] sm:gap-3"
               >
                 <span>{request[0]}</span>
                 <span className="truncate text-white/65">{request[1]}</span>

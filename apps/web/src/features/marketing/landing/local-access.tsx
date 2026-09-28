@@ -39,7 +39,7 @@ export function LocalAccessSection() {
             without moving the service out of your workflow.
           </p>
         </div>
-        <div className="mt-12 grid gap-10 lg:grid-cols-2">
+        <div className="mt-12 grid grid-cols-1 gap-10 lg:grid-cols-2">
           <div className="space-y-7">
             {features.map(({ title, text, icon: Icon, color }) => (
               <div key={title} className="flex items-start gap-4">
@@ -59,7 +59,7 @@ export function LocalAccessSection() {
               <span className="size-2.5 rounded-full bg-amber-300/80" />
               <span className="size-2.5 rounded-full bg-emerald-400/80" />
             </div>
-            <div className="space-y-4 p-6 font-mono text-sm">
+            <div className="space-y-4 p-4 font-mono text-xs [overflow-wrap:anywhere] sm:p-6 sm:text-sm">
               <p className="text-white/60">
                 <span className="text-emerald-300">$</span> outpipe 3000
                 --password
