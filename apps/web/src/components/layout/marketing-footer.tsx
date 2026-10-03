@@ -16,8 +16,8 @@ export function MarketingFooter() {
   return (
     <footer className="border-t border-white/10 bg-black py-14 text-white">
       <MarketingContainer>
-        <div className="grid gap-10 md:grid-cols-6">
-          <div className="md:col-span-2">
+        <div className="grid grid-cols-2 gap-10 md:grid-cols-6">
+          <div className="col-span-2">
             <Link to="/" className="flex items-center gap-3">
               <img src="/favicon.svg" alt="" className="size-9 rounded-xl" />
               <span className="font-semibold">Outpipe</span>
