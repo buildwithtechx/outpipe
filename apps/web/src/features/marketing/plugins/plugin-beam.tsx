@@ -19,6 +19,7 @@ export function PluginBeam() {
   const dust = useRef<THREE.Points>(null);
   const count = 170;
   const positions = useMemo(() => createParticles(count), []);
+  const timer = useMemo(() => new THREE.Timer(), []);
   const uniforms = useMemo(
     () => ({
       uTime: { value: 0 },
@@ -27,14 +28,16 @@ export function PluginBeam() {
     [],
   );
 
-  useFrame(({ clock }) => {
+  useFrame(() => {
+    timer.update();
+    const elapsedTime = timer.getElapsed();
     if (beam.current) {
       (beam.current.material as THREE.ShaderMaterial).uniforms.uTime.value =
-        clock.elapsedTime;
+        elapsedTime;
     }
     if (dust.current) {
-      dust.current.rotation.y = clock.elapsedTime * 0.03;
-      dust.current.position.y = 4 + Math.sin(clock.elapsedTime * 0.15) * 0.2;
+      dust.current.rotation.y = elapsedTime * 0.03;
+      dust.current.position.y = 4 + Math.sin(elapsedTime * 0.15) * 0.2;
     }
   });
 
