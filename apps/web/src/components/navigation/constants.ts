@@ -7,6 +7,7 @@ import {
   Key,
   Layers,
   LineChart,
+  Lock,
   Radio,
   ScrollText,
   Settings,
@@ -81,6 +82,12 @@ export function getWorkspaceNavItems(orgSlug: string): NavItem[] {
       to: `/${orgSlug}/api-keys`,
       icon: Key,
       desc: 'Service tokens for CLI & CI/CD workflows',
+    },
+    {
+      label: 'Secrets Vault',
+      to: `/${orgSlug}/secrets`,
+      icon: Lock,
+      desc: 'Encrypted environment variables & shares',
     },
     {
       label: 'Webhooks',

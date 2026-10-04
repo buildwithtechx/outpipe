@@ -23,6 +23,7 @@ import { Route as OrgSlugBillingRouteImport } from './routes/$orgSlug/billing'
 import { Route as OrgSlugDomainsRouteImport } from './routes/$orgSlug/domains'
 import { Route as OrgSlugMembersRouteImport } from './routes/$orgSlug/members'
 import { Route as OrgSlugRequestsRouteImport } from './routes/$orgSlug/requests'
+import { Route as OrgSlugSecretsRouteImport } from './routes/$orgSlug/secrets'
 import { Route as OrgSlugUsageRouteImport } from './routes/$orgSlug/usage'
 import { Route as OrgSlugWebhooksRouteImport } from './routes/$orgSlug/webhooks'
 import { Route as MarketingIndexRouteImport } from './routes/_marketing/index'
@@ -122,6 +123,11 @@ const OrgSlugMembersRoute = OrgSlugMembersRouteImport.update({
 const OrgSlugRequestsRoute = OrgSlugRequestsRouteImport.update({
   id: '/requests',
   path: '/requests',
+  getParentRoute: () => OrgSlugRoute,
+} as any)
+const OrgSlugSecretsRoute = OrgSlugSecretsRouteImport.update({
+  id: '/secrets',
+  path: '/secrets',
   getParentRoute: () => OrgSlugRoute,
 } as any)
 const OrgSlugUsageRoute = OrgSlugUsageRouteImport.update({
@@ -297,6 +303,7 @@ export interface FileRoutesByFullPath {
   '/$orgSlug/domains': typeof OrgSlugDomainsRoute
   '/$orgSlug/members': typeof OrgSlugMembersRoute
   '/$orgSlug/requests': typeof OrgSlugRequestsRoute
+  '/$orgSlug/secrets': typeof OrgSlugSecretsRoute
   '/$orgSlug/usage': typeof OrgSlugUsageRoute
   '/$orgSlug/webhooks': typeof OrgSlugWebhooksRoute
   '/changelog': typeof MarketingChangelogRoute
@@ -340,6 +347,7 @@ export interface FileRoutesByTo {
   '/$orgSlug/domains': typeof OrgSlugDomainsRoute
   '/$orgSlug/members': typeof OrgSlugMembersRoute
   '/$orgSlug/requests': typeof OrgSlugRequestsRoute
+  '/$orgSlug/secrets': typeof OrgSlugSecretsRoute
   '/$orgSlug/usage': typeof OrgSlugUsageRoute
   '/$orgSlug/webhooks': typeof OrgSlugWebhooksRoute
   '/changelog': typeof MarketingChangelogRoute
@@ -387,6 +395,7 @@ export interface FileRoutesById {
   '/$orgSlug/domains': typeof OrgSlugDomainsRoute
   '/$orgSlug/members': typeof OrgSlugMembersRoute
   '/$orgSlug/requests': typeof OrgSlugRequestsRoute
+  '/$orgSlug/secrets': typeof OrgSlugSecretsRoute
   '/$orgSlug/usage': typeof OrgSlugUsageRoute
   '/$orgSlug/webhooks': typeof OrgSlugWebhooksRoute
   '/_marketing/changelog': typeof MarketingChangelogRoute
@@ -436,6 +445,7 @@ export interface FileRouteTypes {
     | '/$orgSlug/domains'
     | '/$orgSlug/members'
     | '/$orgSlug/requests'
+    | '/$orgSlug/secrets'
     | '/$orgSlug/usage'
     | '/$orgSlug/webhooks'
     | '/changelog'
@@ -479,6 +489,7 @@ export interface FileRouteTypes {
     | '/$orgSlug/domains'
     | '/$orgSlug/members'
     | '/$orgSlug/requests'
+    | '/$orgSlug/secrets'
     | '/$orgSlug/usage'
     | '/$orgSlug/webhooks'
     | '/changelog'
@@ -525,6 +536,7 @@ export interface FileRouteTypes {
     | '/$orgSlug/domains'
     | '/$orgSlug/members'
     | '/$orgSlug/requests'
+    | '/$orgSlug/secrets'
     | '/$orgSlug/usage'
     | '/$orgSlug/webhooks'
     | '/_marketing/changelog'
@@ -669,6 +681,13 @@ declare module '@tanstack/react-router' {
       path: '/requests'
       fullPath: '/$orgSlug/requests'
       preLoaderRoute: typeof OrgSlugRequestsRouteImport
+      parentRoute: typeof OrgSlugRoute
+    }
+    '/$orgSlug/secrets': {
+      id: '/$orgSlug/secrets'
+      path: '/secrets'
+      fullPath: '/$orgSlug/secrets'
+      preLoaderRoute: typeof OrgSlugSecretsRouteImport
       parentRoute: typeof OrgSlugRoute
     }
     '/$orgSlug/usage': {
@@ -899,6 +918,7 @@ interface OrgSlugRouteChildren {
   OrgSlugDomainsRoute: typeof OrgSlugDomainsRoute
   OrgSlugMembersRoute: typeof OrgSlugMembersRoute
   OrgSlugRequestsRoute: typeof OrgSlugRequestsRoute
+  OrgSlugSecretsRoute: typeof OrgSlugSecretsRoute
   OrgSlugUsageRoute: typeof OrgSlugUsageRoute
   OrgSlugWebhooksRoute: typeof OrgSlugWebhooksRoute
   OrgSlugIndexRoute: typeof OrgSlugIndexRoute
@@ -917,6 +937,7 @@ const OrgSlugRouteChildren: OrgSlugRouteChildren = {
   OrgSlugDomainsRoute: OrgSlugDomainsRoute,
   OrgSlugMembersRoute: OrgSlugMembersRoute,
   OrgSlugRequestsRoute: OrgSlugRequestsRoute,
+  OrgSlugSecretsRoute: OrgSlugSecretsRoute,
   OrgSlugUsageRoute: OrgSlugUsageRoute,
   OrgSlugWebhooksRoute: OrgSlugWebhooksRoute,
   OrgSlugIndexRoute: OrgSlugIndexRoute,
@@ -1013,12 +1034,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { createStart } from '@tanstack/react-start'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-  }
-}
