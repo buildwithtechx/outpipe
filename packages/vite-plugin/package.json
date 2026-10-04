@@ -1,6 +1,6 @@
 {
   "name": "@outpipe/vite-plugin",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "publishConfig": {
     "access": "public"
   },
@@ -18,12 +18,14 @@
     "test": "vitest run --passWithNoTests"
   },
   "description": "Vite development tunnel integration for Outpipe",
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "engines": {
     "node": ">=18"
   },
   "dependencies": {
-    "@outpipe/sdk": "0.1.0"
+    "@outpipe/sdk": "0.1.1"
   },
   "peerDependencies": {
     "vite": ">=5"

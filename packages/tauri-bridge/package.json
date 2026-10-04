@@ -1,6 +1,6 @@
 {
   "name": "@outpipe/tauri-bridge",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "private": true,
   "type": "module",
   "scripts": {
@@ -11,9 +11,11 @@
     "test": "vitest run --passWithNoTests"
   },
   "description": "Tauri bridge for the Outpipe desktop client",
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "dependencies": {
-    "@outpipe/sdk": "0.1.0"
+    "@outpipe/sdk": "0.1.1"
   },
   "peerDependencies": {
     "@tauri-apps/api": ">=2"
