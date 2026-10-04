@@ -1,0 +1,35 @@
+{
+  "name": "@outpipe/share-crypto",
+  "version": "0.1.1",
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/buildwithtechx/outpipe",
+    "directory": "packages/share-crypto"
+  },
+  "type": "module",
+  "scripts": {
+    "build": "tsup && npm run build:types",
+    "build:types": "tsc --emitDeclarationOnly --noEmit false",
+    "dev": "tsup --watch",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run --passWithNoTests"
+  },
+  "description": "Zero-knowledge cryptographic utilities for Outpipe secret sharing",
+  "files": [
+    "dist"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  }
+}
