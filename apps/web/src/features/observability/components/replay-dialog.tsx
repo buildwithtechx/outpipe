@@ -1,9 +1,22 @@
 import { useState } from 'react';
 import { Button } from '#/components/ui/button';
-import type {
-  ReplayRequestInput,
-  ReplayResponseOutput,
-} from '../services/observability-service';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '#/components/ui/dialog';
+import { Input } from '#/components/ui/input';
+import { Label } from '#/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '#/components/ui/select';
+import { Textarea } from '#/components/ui/textarea';
+import type { ReplayRequestInput, ReplayResponseOutput } from '#/interfaces';
 
 interface ReplayDialogProps {
   isOpen: boolean;
@@ -30,8 +43,6 @@ export function ReplayDialog({
   const [result, setResult] = useState<ReplayResponseOutput | null>(null);
   const [errorMsg, setErrorMsg] = useState('');
 
-  if (!isOpen) return null;
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!url.trim()) return;
@@ -49,87 +60,72 @@ export function ReplayDialog({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4">
-      <div className="w-full max-w-xl rounded-2xl border border-white/10 bg-zinc-900 p-6 shadow-2xl text-white max-h-[90vh] flex flex-col">
-        <div className="flex items-center justify-between border-b border-white/10 pb-4 mb-4">
-          <h3 className="text-base font-semibold text-white">
+    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="max-w-xl border-white/10 bg-zinc-900 text-white max-h-[90vh] overflow-y-auto">
+        <DialogHeader className="border-b border-white/10 pb-4">
+          <DialogTitle className="text-base font-semibold text-white">
             Replay HTTP Request
-          </h3>
-          <button
-            type="button"
-            onClick={onClose}
-            className="text-white/50 hover:text-white text-lg"
-          >
-            &times;
-          </button>
-        </div>
+          </DialogTitle>
+        </DialogHeader>
 
-        <form
-          onSubmit={handleSubmit}
-          className="space-y-4 flex-1 overflow-y-auto pr-1"
-        >
+        <form onSubmit={handleSubmit} className="space-y-4 pt-2">
           <div className="flex gap-2">
-            <div className="w-28 shrink-0">
-              <label
-                htmlFor="replay-method-select"
-                className="block text-xs font-medium text-white/70 mb-1"
-              >
-                Method
-              </label>
-              <select
-                id="replay-method-select"
-                value={method}
-                onChange={(e) => setMethod(e.target.value)}
-                className="w-full rounded-lg border border-white/10 bg-zinc-800 px-3 py-2 text-xs font-mono text-white focus:border-indigo-500 focus:outline-hidden"
-              >
-                <option value="GET">GET</option>
-                <option value="POST">POST</option>
-                <option value="PUT">PUT</option>
-                <option value="PATCH">PATCH</option>
-                <option value="DELETE">DELETE</option>
-              </select>
+            <div className="w-32 shrink-0 space-y-1.5">
+              <Label className="text-xs text-white/70">Method</Label>
+              <Select value={method} onValueChange={setMethod}>
+                <SelectTrigger className="w-full border-white/10 bg-zinc-800 text-xs font-mono text-white">
+                  <SelectValue placeholder="Method" />
+                </SelectTrigger>
+                <SelectContent className="border-white/10 bg-zinc-900 text-white">
+                  <SelectItem value="GET">GET</SelectItem>
+                  <SelectItem value="POST">POST</SelectItem>
+                  <SelectItem value="PUT">PUT</SelectItem>
+                  <SelectItem value="PATCH">PATCH</SelectItem>
+                  <SelectItem value="DELETE">DELETE</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
-            <div className="flex-1">
-              <label
+            <div className="flex-1 space-y-1.5">
+              <Label
                 htmlFor="replay-url-input"
-                className="block text-xs font-medium text-white/70 mb-1"
+                className="text-xs text-white/70"
               >
                 Target URL
-              </label>
-              <input
+              </Label>
+              <Input
                 id="replay-url-input"
                 type="url"
                 required
                 value={url}
                 onChange={(e) => setUrl(e.target.value)}
-                className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-xs font-mono text-white placeholder-white/30 focus:border-indigo-500 focus:outline-hidden"
+                className="border-white/10 bg-white/5 text-xs font-mono text-white placeholder-white/30"
               />
             </div>
           </div>
 
-          <div>
-            <label
+          <div className="space-y-1.5">
+            <Label
               htmlFor="replay-body-input"
-              className="block text-xs font-medium text-white/70 mb-1"
+              className="text-xs text-white/70"
             >
               Request Body Payload
-            </label>
-            <textarea
+            </Label>
+            <Textarea
               id="replay-body-input"
               rows={4}
               value={body}
               onChange={(e) => setBody(e.target.value)}
-              className="w-full rounded-lg border border-white/10 bg-zinc-950 px-3 py-2 text-xs font-mono text-white placeholder-white/30 focus:border-indigo-500 focus:outline-hidden"
+              className="border-white/10 bg-zinc-950 text-xs font-mono text-white placeholder-white/30"
             />
           </div>
 
-          <div className="flex justify-end gap-2">
+          <div className="flex justify-end gap-2 pt-2">
             <Button
               type="button"
               variant="outline"
               size="sm"
               onClick={onClose}
-              className="text-xs border-white/10 bg-white/5 text-white/70"
+              className="text-xs border-white/10 bg-white/5 text-white/70 hover:text-white"
             >
               Cancel
             </Button>
@@ -137,7 +133,7 @@ export function ReplayDialog({
               type="submit"
               size="sm"
               disabled={isExecuting}
-              className="text-xs bg-indigo-600 hover:bg-indigo-500"
+              className="text-xs bg-indigo-600 hover:bg-indigo-500 text-white"
             >
               {isExecuting ? 'Sending...' : 'Send Request'}
             </Button>
@@ -175,7 +171,7 @@ export function ReplayDialog({
             </div>
           )}
         </form>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 }
