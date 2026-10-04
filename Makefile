@@ -1,4 +1,4 @@
-.PHONY: dev dev-api dev-tunnel dev-cron dev-check dev-cli dev-web dev-desktop build fmt format typecheck test clean build-binaries install-cli docker-build docker-images docker-api docker-tunnel docker-cron docker-check
+.PHONY: dev dev-api dev-tunnel dev-cron dev-check dev-cli dev-web dev-desktop build fmt format typecheck test clean build-binaries install-cli docker-build docker-images docker-api docker-tunnel docker-cron docker-check docker-compose-up docker-compose-down
 
 dev:
 	npm run dev
@@ -65,3 +65,10 @@ docker-cron:
 
 docker-check:
 	docker build -f docker/Dockerfile.check -t outpipe-check:dev .
+
+docker-compose-up:
+	docker compose -f docker/docker-compose.yml up
+
+docker-compose-down:
+	docker compose -f docker/docker-compose.yml down
+

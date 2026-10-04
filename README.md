@@ -90,7 +90,7 @@ Each independently deployed command has a focused environment example:
 
 See [docs/configuration.md](docs/configuration.md) for descriptions of every variable.
 
-For local development, use `docker compose up` with `docker-compose.yml`. That
+For local development, use `docker compose -f docker/docker-compose.yml up`. That
 file intentionally uses development credentials, localhost URLs, and a source
 mount. Production deployments should build and run each service from its own
 Dockerfile; provide `OUTPIPE_*` values through the deployment environment or a
