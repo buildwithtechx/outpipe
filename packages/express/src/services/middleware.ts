@@ -1,3 +1,7 @@
+import {
+  createNodeHttpPayloadCaptureMiddleware,
+  type HttpPayloadCaptureSetting,
+} from '@outpipe/sdk';
 import type { RequestHandler } from 'express';
 import type { ExpressTunnel } from '../interfaces/options';
 
@@ -15,4 +19,12 @@ export function tunnelLifecycle(tunnel: ExpressTunnel): RequestHandler {
       .then(() => next())
       .catch(next);
   };
+}
+
+export function tunnelPayloadCapture(
+  setting?: HttpPayloadCaptureSetting,
+): RequestHandler {
+  return createNodeHttpPayloadCaptureMiddleware(
+    setting,
+  ) as unknown as RequestHandler;
 }
