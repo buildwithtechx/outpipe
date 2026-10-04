@@ -92,6 +92,11 @@ func RegisterRoutes(app *fiber.App, handlers Handlers, options RouterOptions) er
 		app.Post("/api/v1/status/:slug/subscribe", handlers.Uptime.Subscribe)
 	}
 
+	if handlers.Observability != nil {
+		app.Post("/api/v1/ingest/otlp/v1/traces", handlers.Observability.IngestOTLPTraces)
+		app.Post("/api/v1/ingest/otlp/v1/logs", handlers.Observability.IngestOTLPLogs)
+	}
+
 	protected := app.Group("/api/v1", sessionRequired(handlers.authService, handlers.apiKeyService, options.CookieName), requestRateLimitDistributed(options.RateLimiter, 120, time.Minute, authenticatedRateLimitKey), auditRequest(handlers.auditService))
 	writeLimiter := requestRateLimitDistributed(options.RateLimiter, 30, time.Minute, authenticatedRateLimitKey)
 	organizationWriteLimiter := requestRateLimitDistributed(options.RateLimiter, 10, time.Minute, authenticatedRateLimitKey)
@@ -176,6 +181,16 @@ func RegisterRoutes(app *fiber.App, handlers Handlers, options RouterOptions) er
 
 		protected.Get("/organizations/:organizationID/uptime/status-page", organizationRoleRequired(handlers.organizationService, models.MemberRoleViewer), handlers.Uptime.GetStatusPage)
 		protected.Post("/organizations/:organizationID/uptime/status-page", organizationRoleRequired(handlers.organizationService, models.MemberRoleAdmin), handlers.Uptime.UpsertStatusPage)
+	}
+
+	if handlers.Observability != nil {
+		protected.Get("/organizations/:organizationID/observability/stats", organizationRoleRequired(handlers.organizationService, models.MemberRoleViewer), handlers.Observability.GetStats)
+		protected.Get("/organizations/:organizationID/observability/traces", organizationRoleRequired(handlers.organizationService, models.MemberRoleViewer), handlers.Observability.ListTraces)
+		protected.Get("/organizations/:organizationID/observability/traces/:traceId", organizationRoleRequired(handlers.organizationService, models.MemberRoleViewer), handlers.Observability.GetTraceWaterfall)
+		protected.Get("/organizations/:organizationID/observability/logs", organizationRoleRequired(handlers.organizationService, models.MemberRoleViewer), handlers.Observability.ListLogs)
+		protected.Get("/organizations/:organizationID/observability/captures", organizationRoleRequired(handlers.organizationService, models.MemberRoleViewer), handlers.Observability.ListCaptures)
+		protected.Get("/organizations/:organizationID/observability/captures/:captureId", organizationRoleRequired(handlers.organizationService, models.MemberRoleViewer), handlers.Observability.GetCapture)
+		protected.Post("/organizations/:organizationID/observability/replay", organizationRoleRequired(handlers.organizationService, models.MemberRoleAdmin), handlers.Observability.ReplayRequest)
 	}
 
 	admin := protected.Group("/admin", platformAdminRequired(handlers.authService))

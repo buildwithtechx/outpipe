@@ -131,6 +131,12 @@ func migrations() []migration {
 			&models.UptimeStatusPage{},
 			&models.UptimeSubscriber{},
 		)
+	}}, {version: 18, name: "observability_traces_logs_and_captures", up: func(db *gorm.DB) error {
+		return db.AutoMigrate(
+			&models.RequestCapture{},
+			&models.TelemetrySpan{},
+			&models.TelemetryLog{},
+		)
 	}}}
 }
 

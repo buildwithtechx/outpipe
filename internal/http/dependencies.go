@@ -30,6 +30,7 @@ type Dependencies struct {
 	Secrets       *services.SecretService
 	Shares        *services.ShareService
 	Uptime        *services.UptimeService
+	Observability *services.ObservabilityService
 	WelcomeMailer services.WelcomeMailer
 	Ready         func(context.Context) error
 	RateLimiter   *infraredis.Client
@@ -67,6 +68,7 @@ type Handlers struct {
 	Secrets             *handlers.SecretHandler
 	Shares              *handlers.ShareHandler
 	Uptime              *handlers.UptimeHandler
+	Observability       *handlers.ObservabilityHandler
 	auditService        *services.AuditService
 	authService         *services.AuthService
 	organizationService *services.OrganizationService
@@ -197,5 +199,10 @@ func buildHandlers(deps Dependencies, cookie handlers.SessionCookieConfig) (Hand
 		}
 	}
 
-	return Handlers{Health: handlers.NewHealthHandler(deps.Ready), Auth: authHandler, Organizations: organizationHandler, Invitations: invitationHandler, Tunnels: tunnelHandler, Agents: agentHandler, Domains: domainHandler, Usage: usageHandler, Billing: billingHandler, OAuth: oauthHandler, Account: accountHandler, Admin: adminHandler, APIKeys: apiKeyHandler, Webhooks: webhookHandler, Support: supportHandler, AuditLogs: auditLogHandler, Secrets: secretHandler, Shares: shareHandler, Uptime: uptimeHandler, authService: deps.Auth, organizationService: deps.Organizations, apiKeyService: deps.APIKeys, auditService: deps.Audit, agentService: deps.Agents}, nil
+	var observabilityHandler *handlers.ObservabilityHandler
+	if deps.Observability != nil {
+		observabilityHandler = handlers.NewObservabilityHandler(deps.Observability)
+	}
+
+	return Handlers{Health: handlers.NewHealthHandler(deps.Ready), Auth: authHandler, Organizations: organizationHandler, Invitations: invitationHandler, Tunnels: tunnelHandler, Agents: agentHandler, Domains: domainHandler, Usage: usageHandler, Billing: billingHandler, OAuth: oauthHandler, Account: accountHandler, Admin: adminHandler, APIKeys: apiKeyHandler, Webhooks: webhookHandler, Support: supportHandler, AuditLogs: auditLogHandler, Secrets: secretHandler, Shares: shareHandler, Uptime: uptimeHandler, Observability: observabilityHandler, authService: deps.Auth, organizationService: deps.Organizations, apiKeyService: deps.APIKeys, auditService: deps.Audit, agentService: deps.Agents}, nil
 }
