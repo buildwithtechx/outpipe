@@ -22,6 +22,7 @@ import { Route as OrgSlugAuditLogsRouteImport } from './routes/$orgSlug/audit-lo
 import { Route as OrgSlugBillingRouteImport } from './routes/$orgSlug/billing'
 import { Route as OrgSlugDomainsRouteImport } from './routes/$orgSlug/domains'
 import { Route as OrgSlugMembersRouteImport } from './routes/$orgSlug/members'
+import { Route as OrgSlugObservabilityRouteImport } from './routes/$orgSlug/observability'
 import { Route as OrgSlugRequestsRouteImport } from './routes/$orgSlug/requests'
 import { Route as OrgSlugSecretsRouteImport } from './routes/$orgSlug/secrets'
 import { Route as OrgSlugUptimeRouteImport } from './routes/$orgSlug/uptime'
@@ -119,6 +120,11 @@ const OrgSlugDomainsRoute = OrgSlugDomainsRouteImport.update({
 const OrgSlugMembersRoute = OrgSlugMembersRouteImport.update({
   id: '/members',
   path: '/members',
+  getParentRoute: () => OrgSlugRoute,
+} as any)
+const OrgSlugObservabilityRoute = OrgSlugObservabilityRouteImport.update({
+  id: '/observability',
+  path: '/observability',
   getParentRoute: () => OrgSlugRoute,
 } as any)
 const OrgSlugRequestsRoute = OrgSlugRequestsRouteImport.update({
@@ -308,6 +314,7 @@ export interface FileRoutesByFullPath {
   '/$orgSlug/billing': typeof OrgSlugBillingRoute
   '/$orgSlug/domains': typeof OrgSlugDomainsRoute
   '/$orgSlug/members': typeof OrgSlugMembersRoute
+  '/$orgSlug/observability': typeof OrgSlugObservabilityRoute
   '/$orgSlug/requests': typeof OrgSlugRequestsRoute
   '/$orgSlug/secrets': typeof OrgSlugSecretsRoute
   '/$orgSlug/uptime': typeof OrgSlugUptimeRoute
@@ -353,6 +360,7 @@ export interface FileRoutesByTo {
   '/$orgSlug/billing': typeof OrgSlugBillingRoute
   '/$orgSlug/domains': typeof OrgSlugDomainsRoute
   '/$orgSlug/members': typeof OrgSlugMembersRoute
+  '/$orgSlug/observability': typeof OrgSlugObservabilityRoute
   '/$orgSlug/requests': typeof OrgSlugRequestsRoute
   '/$orgSlug/secrets': typeof OrgSlugSecretsRoute
   '/$orgSlug/uptime': typeof OrgSlugUptimeRoute
@@ -402,6 +410,7 @@ export interface FileRoutesById {
   '/$orgSlug/billing': typeof OrgSlugBillingRoute
   '/$orgSlug/domains': typeof OrgSlugDomainsRoute
   '/$orgSlug/members': typeof OrgSlugMembersRoute
+  '/$orgSlug/observability': typeof OrgSlugObservabilityRoute
   '/$orgSlug/requests': typeof OrgSlugRequestsRoute
   '/$orgSlug/secrets': typeof OrgSlugSecretsRoute
   '/$orgSlug/uptime': typeof OrgSlugUptimeRoute
@@ -453,6 +462,7 @@ export interface FileRouteTypes {
     | '/$orgSlug/billing'
     | '/$orgSlug/domains'
     | '/$orgSlug/members'
+    | '/$orgSlug/observability'
     | '/$orgSlug/requests'
     | '/$orgSlug/secrets'
     | '/$orgSlug/uptime'
@@ -498,6 +508,7 @@ export interface FileRouteTypes {
     | '/$orgSlug/billing'
     | '/$orgSlug/domains'
     | '/$orgSlug/members'
+    | '/$orgSlug/observability'
     | '/$orgSlug/requests'
     | '/$orgSlug/secrets'
     | '/$orgSlug/uptime'
@@ -546,6 +557,7 @@ export interface FileRouteTypes {
     | '/$orgSlug/billing'
     | '/$orgSlug/domains'
     | '/$orgSlug/members'
+    | '/$orgSlug/observability'
     | '/$orgSlug/requests'
     | '/$orgSlug/secrets'
     | '/$orgSlug/uptime'
@@ -686,6 +698,13 @@ declare module '@tanstack/react-router' {
       path: '/members'
       fullPath: '/$orgSlug/members'
       preLoaderRoute: typeof OrgSlugMembersRouteImport
+      parentRoute: typeof OrgSlugRoute
+    }
+    '/$orgSlug/observability': {
+      id: '/$orgSlug/observability'
+      path: '/observability'
+      fullPath: '/$orgSlug/observability'
+      preLoaderRoute: typeof OrgSlugObservabilityRouteImport
       parentRoute: typeof OrgSlugRoute
     }
     '/$orgSlug/requests': {
@@ -936,6 +955,7 @@ interface OrgSlugRouteChildren {
   OrgSlugBillingRoute: typeof OrgSlugBillingRoute
   OrgSlugDomainsRoute: typeof OrgSlugDomainsRoute
   OrgSlugMembersRoute: typeof OrgSlugMembersRoute
+  OrgSlugObservabilityRoute: typeof OrgSlugObservabilityRoute
   OrgSlugRequestsRoute: typeof OrgSlugRequestsRoute
   OrgSlugSecretsRoute: typeof OrgSlugSecretsRoute
   OrgSlugUptimeRoute: typeof OrgSlugUptimeRoute
@@ -956,6 +976,7 @@ const OrgSlugRouteChildren: OrgSlugRouteChildren = {
   OrgSlugBillingRoute: OrgSlugBillingRoute,
   OrgSlugDomainsRoute: OrgSlugDomainsRoute,
   OrgSlugMembersRoute: OrgSlugMembersRoute,
+  OrgSlugObservabilityRoute: OrgSlugObservabilityRoute,
   OrgSlugRequestsRoute: OrgSlugRequestsRoute,
   OrgSlugSecretsRoute: OrgSlugSecretsRoute,
   OrgSlugUptimeRoute: OrgSlugUptimeRoute,

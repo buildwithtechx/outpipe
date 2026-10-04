@@ -96,6 +96,12 @@ export function getWorkspaceNavItems(orgSlug: string): NavItem[] {
       desc: 'Health probes, incidents & status page',
     },
     {
+      label: 'Observability',
+      to: `/${orgSlug}/observability`,
+      icon: Activity,
+      desc: 'Distributed traces, logs & request inspection',
+    },
+    {
       label: 'Webhooks',
       to: `/${orgSlug}/webhooks`,
       icon: Webhook,
