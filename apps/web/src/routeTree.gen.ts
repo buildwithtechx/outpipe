@@ -24,6 +24,7 @@ import { Route as OrgSlugDomainsRouteImport } from './routes/$orgSlug/domains'
 import { Route as OrgSlugMembersRouteImport } from './routes/$orgSlug/members'
 import { Route as OrgSlugRequestsRouteImport } from './routes/$orgSlug/requests'
 import { Route as OrgSlugSecretsRouteImport } from './routes/$orgSlug/secrets'
+import { Route as OrgSlugUptimeRouteImport } from './routes/$orgSlug/uptime'
 import { Route as OrgSlugUsageRouteImport } from './routes/$orgSlug/usage'
 import { Route as OrgSlugWebhooksRouteImport } from './routes/$orgSlug/webhooks'
 import { Route as MarketingIndexRouteImport } from './routes/_marketing/index'
@@ -128,6 +129,11 @@ const OrgSlugRequestsRoute = OrgSlugRequestsRouteImport.update({
 const OrgSlugSecretsRoute = OrgSlugSecretsRouteImport.update({
   id: '/secrets',
   path: '/secrets',
+  getParentRoute: () => OrgSlugRoute,
+} as any)
+const OrgSlugUptimeRoute = OrgSlugUptimeRouteImport.update({
+  id: '/uptime',
+  path: '/uptime',
   getParentRoute: () => OrgSlugRoute,
 } as any)
 const OrgSlugUsageRoute = OrgSlugUsageRouteImport.update({
@@ -304,6 +310,7 @@ export interface FileRoutesByFullPath {
   '/$orgSlug/members': typeof OrgSlugMembersRoute
   '/$orgSlug/requests': typeof OrgSlugRequestsRoute
   '/$orgSlug/secrets': typeof OrgSlugSecretsRoute
+  '/$orgSlug/uptime': typeof OrgSlugUptimeRoute
   '/$orgSlug/usage': typeof OrgSlugUsageRoute
   '/$orgSlug/webhooks': typeof OrgSlugWebhooksRoute
   '/changelog': typeof MarketingChangelogRoute
@@ -348,6 +355,7 @@ export interface FileRoutesByTo {
   '/$orgSlug/members': typeof OrgSlugMembersRoute
   '/$orgSlug/requests': typeof OrgSlugRequestsRoute
   '/$orgSlug/secrets': typeof OrgSlugSecretsRoute
+  '/$orgSlug/uptime': typeof OrgSlugUptimeRoute
   '/$orgSlug/usage': typeof OrgSlugUsageRoute
   '/$orgSlug/webhooks': typeof OrgSlugWebhooksRoute
   '/changelog': typeof MarketingChangelogRoute
@@ -396,6 +404,7 @@ export interface FileRoutesById {
   '/$orgSlug/members': typeof OrgSlugMembersRoute
   '/$orgSlug/requests': typeof OrgSlugRequestsRoute
   '/$orgSlug/secrets': typeof OrgSlugSecretsRoute
+  '/$orgSlug/uptime': typeof OrgSlugUptimeRoute
   '/$orgSlug/usage': typeof OrgSlugUsageRoute
   '/$orgSlug/webhooks': typeof OrgSlugWebhooksRoute
   '/_marketing/changelog': typeof MarketingChangelogRoute
@@ -446,6 +455,7 @@ export interface FileRouteTypes {
     | '/$orgSlug/members'
     | '/$orgSlug/requests'
     | '/$orgSlug/secrets'
+    | '/$orgSlug/uptime'
     | '/$orgSlug/usage'
     | '/$orgSlug/webhooks'
     | '/changelog'
@@ -490,6 +500,7 @@ export interface FileRouteTypes {
     | '/$orgSlug/members'
     | '/$orgSlug/requests'
     | '/$orgSlug/secrets'
+    | '/$orgSlug/uptime'
     | '/$orgSlug/usage'
     | '/$orgSlug/webhooks'
     | '/changelog'
@@ -537,6 +548,7 @@ export interface FileRouteTypes {
     | '/$orgSlug/members'
     | '/$orgSlug/requests'
     | '/$orgSlug/secrets'
+    | '/$orgSlug/uptime'
     | '/$orgSlug/usage'
     | '/$orgSlug/webhooks'
     | '/_marketing/changelog'
@@ -688,6 +700,13 @@ declare module '@tanstack/react-router' {
       path: '/secrets'
       fullPath: '/$orgSlug/secrets'
       preLoaderRoute: typeof OrgSlugSecretsRouteImport
+      parentRoute: typeof OrgSlugRoute
+    }
+    '/$orgSlug/uptime': {
+      id: '/$orgSlug/uptime'
+      path: '/uptime'
+      fullPath: '/$orgSlug/uptime'
+      preLoaderRoute: typeof OrgSlugUptimeRouteImport
       parentRoute: typeof OrgSlugRoute
     }
     '/$orgSlug/usage': {
@@ -919,6 +938,7 @@ interface OrgSlugRouteChildren {
   OrgSlugMembersRoute: typeof OrgSlugMembersRoute
   OrgSlugRequestsRoute: typeof OrgSlugRequestsRoute
   OrgSlugSecretsRoute: typeof OrgSlugSecretsRoute
+  OrgSlugUptimeRoute: typeof OrgSlugUptimeRoute
   OrgSlugUsageRoute: typeof OrgSlugUsageRoute
   OrgSlugWebhooksRoute: typeof OrgSlugWebhooksRoute
   OrgSlugIndexRoute: typeof OrgSlugIndexRoute
@@ -938,6 +958,7 @@ const OrgSlugRouteChildren: OrgSlugRouteChildren = {
   OrgSlugMembersRoute: OrgSlugMembersRoute,
   OrgSlugRequestsRoute: OrgSlugRequestsRoute,
   OrgSlugSecretsRoute: OrgSlugSecretsRoute,
+  OrgSlugUptimeRoute: OrgSlugUptimeRoute,
   OrgSlugUsageRoute: OrgSlugUsageRoute,
   OrgSlugWebhooksRoute: OrgSlugWebhooksRoute,
   OrgSlugIndexRoute: OrgSlugIndexRoute,

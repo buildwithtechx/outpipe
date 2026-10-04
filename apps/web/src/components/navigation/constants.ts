@@ -90,6 +90,12 @@ export function getWorkspaceNavItems(orgSlug: string): NavItem[] {
       desc: 'Encrypted environment variables & shares',
     },
     {
+      label: 'Uptime & Status',
+      to: `/${orgSlug}/uptime`,
+      icon: LineChart,
+      desc: 'Health probes, incidents & status page',
+    },
+    {
       label: 'Webhooks',
       to: `/${orgSlug}/webhooks`,
       icon: Webhook,
