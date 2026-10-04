@@ -112,6 +112,16 @@ func migrations() []migration {
 		return db.AutoMigrate(&models.WebhookSubscription{}, &models.WebhookDelivery{})
 	}}, {version: 15, name: "usage_event_pagination_index", up: func(db *gorm.DB) error {
 		return db.AutoMigrate(&models.UsageEvent{})
+	}}, {version: 16, name: "secrets_management_and_shares", up: func(db *gorm.DB) error {
+		return db.AutoMigrate(
+			&models.SecretProject{},
+			&models.SecretEnvironment{},
+			&models.SecretEntry{},
+			&models.SecretVersion{},
+			&models.SecretMachineToken{},
+			&models.SecretAuditEvent{},
+			&models.SecretShareLink{},
+		)
 	}}}
 }
 

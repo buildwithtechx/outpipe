@@ -27,6 +27,8 @@ type Dependencies struct {
 	APIKeys       *services.APIKeyService
 	Webhooks      *services.WebhookService
 	Support       *services.SupportService
+	Secrets       *services.SecretService
+	Shares        *services.ShareService
 	WelcomeMailer services.WelcomeMailer
 	Ready         func(context.Context) error
 	RateLimiter   *infraredis.Client
@@ -61,6 +63,8 @@ type Handlers struct {
 	Webhooks            *handlers.WebhookHandler
 	Support             *handlers.SupportHandler
 	AuditLogs           *handlers.AuditLogHandler
+	Secrets             *handlers.SecretHandler
+	Shares              *handlers.ShareHandler
 	auditService        *services.AuditService
 	authService         *services.AuthService
 	organizationService *services.OrganizationService
@@ -167,5 +171,21 @@ func buildHandlers(deps Dependencies, cookie handlers.SessionCookieConfig) (Hand
 		return Handlers{}, err
 	}
 
-	return Handlers{Health: handlers.NewHealthHandler(deps.Ready), Auth: authHandler, Organizations: organizationHandler, Invitations: invitationHandler, Tunnels: tunnelHandler, Agents: agentHandler, Domains: domainHandler, Usage: usageHandler, Billing: billingHandler, OAuth: oauthHandler, Account: accountHandler, Admin: adminHandler, APIKeys: apiKeyHandler, Webhooks: webhookHandler, Support: supportHandler, AuditLogs: auditLogHandler, authService: deps.Auth, organizationService: deps.Organizations, apiKeyService: deps.APIKeys, auditService: deps.Audit, agentService: deps.Agents}, nil
+	var secretHandler *handlers.SecretHandler
+	if deps.Secrets != nil {
+		secretHandler, err = handlers.NewSecretHandler(deps.Secrets)
+		if err != nil {
+			return Handlers{}, err
+		}
+	}
+
+	var shareHandler *handlers.ShareHandler
+	if deps.Shares != nil {
+		shareHandler, err = handlers.NewShareHandler(deps.Shares)
+		if err != nil {
+			return Handlers{}, err
+		}
+	}
+
+	return Handlers{Health: handlers.NewHealthHandler(deps.Ready), Auth: authHandler, Organizations: organizationHandler, Invitations: invitationHandler, Tunnels: tunnelHandler, Agents: agentHandler, Domains: domainHandler, Usage: usageHandler, Billing: billingHandler, OAuth: oauthHandler, Account: accountHandler, Admin: adminHandler, APIKeys: apiKeyHandler, Webhooks: webhookHandler, Support: supportHandler, AuditLogs: auditLogHandler, Secrets: secretHandler, Shares: shareHandler, authService: deps.Auth, organizationService: deps.Organizations, apiKeyService: deps.APIKeys, auditService: deps.Audit, agentService: deps.Agents}, nil
 }

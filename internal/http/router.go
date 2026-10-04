@@ -77,6 +77,16 @@ func RegisterRoutes(app *fiber.App, handlers Handlers, options RouterOptions) er
 	app.Post("/api/v1/auth/logout", handlers.Auth.Logout)
 	app.Post("/api/v1/agents/:agentID/heartbeat", agentTokenRequired(handlers.agentService, "agentID"), handlers.Agents.Heartbeat)
 
+	if handlers.Shares != nil {
+		app.Post("/api/v1/shares", handlers.Shares.Create)
+		app.Get("/api/v1/shares/:id", handlers.Shares.GetMeta)
+		app.Post("/api/v1/shares/:id/reveal", handlers.Shares.Reveal)
+	}
+
+	if handlers.Secrets != nil {
+		app.Get("/api/v1/cli/secrets", handlers.Secrets.CLIGetSecrets)
+	}
+
 	protected := app.Group("/api/v1", sessionRequired(handlers.authService, handlers.apiKeyService, options.CookieName), requestRateLimitDistributed(options.RateLimiter, 120, time.Minute, authenticatedRateLimitKey), auditRequest(handlers.auditService))
 	writeLimiter := requestRateLimitDistributed(options.RateLimiter, 30, time.Minute, authenticatedRateLimitKey)
 	organizationWriteLimiter := requestRateLimitDistributed(options.RateLimiter, 10, time.Minute, authenticatedRateLimitKey)
@@ -126,6 +136,27 @@ func RegisterRoutes(app *fiber.App, handlers Handlers, options RouterOptions) er
 	protected.Delete("/tunnels/:tunnelID", apiKeyResourceScopeRequired(handlers.organizationService, "tunnels:write", "tunnelID", handlers.Tunnels.OrganizationID), handlers.Tunnels.Revoke)
 	protected.Post("/domains/:domainID/verify", apiKeyResourceScopeRequired(handlers.organizationService, "domains:write", "domainID", handlers.Domains.OrganizationID), handlers.Domains.Verify)
 	protected.Delete("/agents/:agentID", apiKeyResourceScopeRequired(handlers.organizationService, "agents:write", "agentID", handlers.Agents.OrganizationID), handlers.Agents.Revoke)
+
+	if handlers.Shares != nil {
+		protected.Get("/organizations/:organizationID/secrets/shares", organizationRoleRequired(handlers.organizationService, models.MemberRoleViewer), handlers.Shares.ListOrgShares)
+		protected.Delete("/organizations/:organizationID/secrets/shares/:shareID", organizationRoleRequired(handlers.organizationService, models.MemberRoleAdmin), handlers.Shares.RevokeOrgShare)
+	}
+
+	if handlers.Secrets != nil {
+		protected.Get("/organizations/:organizationID/secrets/projects", organizationRoleRequired(handlers.organizationService, models.MemberRoleViewer), handlers.Secrets.ListProjects)
+		protected.Post("/organizations/:organizationID/secrets/projects", organizationRoleRequired(handlers.organizationService, models.MemberRoleAdmin), handlers.Secrets.CreateProject)
+		protected.Delete("/organizations/:organizationID/secrets/projects/:projectID", organizationRoleRequired(handlers.organizationService, models.MemberRoleAdmin), handlers.Secrets.DeleteProject)
+		protected.Get("/organizations/:organizationID/secrets/projects/:projectID/environments", organizationRoleRequired(handlers.organizationService, models.MemberRoleViewer), handlers.Secrets.ListEnvironments)
+		protected.Post("/organizations/:organizationID/secrets/projects/:projectID/environments", organizationRoleRequired(handlers.organizationService, models.MemberRoleAdmin), handlers.Secrets.CreateEnvironment)
+		protected.Get("/organizations/:organizationID/secrets/projects/:projectID/environments/:environmentID", organizationRoleRequired(handlers.organizationService, models.MemberRoleViewer), handlers.Secrets.ListSecrets)
+		protected.Post("/organizations/:organizationID/secrets/projects/:projectID/environments/:environmentID", organizationRoleRequired(handlers.organizationService, models.MemberRoleAdmin), handlers.Secrets.SetSecret)
+		protected.Delete("/organizations/:organizationID/secrets/:secretID", organizationRoleRequired(handlers.organizationService, models.MemberRoleAdmin), handlers.Secrets.DeleteSecret)
+		protected.Post("/organizations/:organizationID/secrets/:secretID/restore", organizationRoleRequired(handlers.organizationService, models.MemberRoleAdmin), handlers.Secrets.RestoreSecret)
+		protected.Get("/organizations/:organizationID/secrets/trash", organizationRoleRequired(handlers.organizationService, models.MemberRoleViewer), handlers.Secrets.ListTrash)
+		protected.Get("/organizations/:organizationID/secrets/tokens", organizationRoleRequired(handlers.organizationService, models.MemberRoleViewer), handlers.Secrets.ListMachineTokens)
+		protected.Post("/organizations/:organizationID/secrets/tokens", organizationRoleRequired(handlers.organizationService, models.MemberRoleAdmin), handlers.Secrets.CreateMachineToken)
+		protected.Delete("/organizations/:organizationID/secrets/tokens/:tokenID", organizationRoleRequired(handlers.organizationService, models.MemberRoleAdmin), handlers.Secrets.RevokeMachineToken)
+	}
 
 	admin := protected.Group("/admin", platformAdminRequired(handlers.authService))
 	admin.Get("/overview", handlers.Admin.Overview)
