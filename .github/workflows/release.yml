@@ -29,6 +29,8 @@ jobs:
           tools: composer
       - run: npm ci
       - run: npm run build:web
+      - run: npm run build:secrets-share
+      - run: npm run build:status
       - name: Build Go artifacts
         env:
           VERSION: ${{ github.ref_name }}
@@ -72,6 +74,9 @@ jobs:
           npm pack --dry-run --workspace packages/nest
           npm pack --dry-run --workspace packages/express
           npm pack --dry-run --workspace packages/angular
+          npm pack --dry-run --workspace packages/share-crypto
+          npm pack --dry-run --workspace packages/hono
+          npm pack --dry-run --workspace packages/tanstack-start
       - name: Generate release SBOM
         uses: anchore/sbom-action@v0.20.5
         with:

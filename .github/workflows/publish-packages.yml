@@ -38,6 +38,9 @@ jobs:
           npm pack --dry-run --workspace packages/nest
           npm pack --dry-run --workspace packages/express
           npm pack --dry-run --workspace packages/angular
+          npm pack --dry-run --workspace packages/share-crypto
+          npm pack --dry-run --workspace packages/hono
+          npm pack --dry-run --workspace packages/tanstack-start
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
@@ -87,3 +90,6 @@ jobs:
           npm publish --provenance --access public --workspace packages/nest
           npm publish --provenance --access public --workspace packages/express
           npm publish --provenance --access public --workspace packages/angular
+          npm publish --provenance --access public --workspace packages/share-crypto
+          npm publish --provenance --access public --workspace packages/hono
+          npm publish --provenance --access public --workspace packages/tanstack-start

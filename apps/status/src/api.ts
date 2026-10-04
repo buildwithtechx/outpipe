@@ -47,7 +47,7 @@ function generate90DayHistory(
   const now = new Date();
   for (let i = 89; i >= 0; i--) {
     const d = new Date(now.getTime() - i * 24 * 60 * 60 * 1000);
-    const dateStr = d.toISOString().split('T')[0];
+    const dateStr = d.toISOString().slice(0, 10);
     let barStatus: 'operational' | 'degraded' | 'outage' | 'empty' =
       'operational';
     let uptime = 100;
@@ -189,9 +189,12 @@ export async function fetchStatusData(
       type: m.type,
       target: m.target,
       status:
-        m.status === 'down'
-          ? 'outage'
-          : (m.status as StatusMonitor['status']) || 'operational',
+        m.status === 'down' ||
+        m.status === 'degraded' ||
+        m.status === 'maintenance' ||
+        m.status === 'paused'
+          ? m.status
+          : 'operational',
       uptime90Days: 99.9,
       currentLatencyMs: 25,
       history: generate90DayHistory(
