@@ -122,6 +122,15 @@ func migrations() []migration {
 			&models.SecretAuditEvent{},
 			&models.SecretShareLink{},
 		)
+	}}, {version: 17, name: "uptime_monitoring_and_status_pages", up: func(db *gorm.DB) error {
+		return db.AutoMigrate(
+			&models.UptimeMonitor{},
+			&models.UptimeCheck{},
+			&models.UptimeIncident{},
+			&models.UptimeIncidentUpdate{},
+			&models.UptimeStatusPage{},
+			&models.UptimeSubscriber{},
+		)
 	}}}
 }
 

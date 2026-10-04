@@ -87,6 +87,11 @@ func RegisterRoutes(app *fiber.App, handlers Handlers, options RouterOptions) er
 		app.Get("/api/v1/cli/secrets", handlers.Secrets.CLIGetSecrets)
 	}
 
+	if handlers.Uptime != nil {
+		app.Get("/api/v1/status/:slug", handlers.Uptime.GetPublicStatus)
+		app.Post("/api/v1/status/:slug/subscribe", handlers.Uptime.Subscribe)
+	}
+
 	protected := app.Group("/api/v1", sessionRequired(handlers.authService, handlers.apiKeyService, options.CookieName), requestRateLimitDistributed(options.RateLimiter, 120, time.Minute, authenticatedRateLimitKey), auditRequest(handlers.auditService))
 	writeLimiter := requestRateLimitDistributed(options.RateLimiter, 30, time.Minute, authenticatedRateLimitKey)
 	organizationWriteLimiter := requestRateLimitDistributed(options.RateLimiter, 10, time.Minute, authenticatedRateLimitKey)
@@ -156,6 +161,21 @@ func RegisterRoutes(app *fiber.App, handlers Handlers, options RouterOptions) er
 		protected.Get("/organizations/:organizationID/secrets/tokens", organizationRoleRequired(handlers.organizationService, models.MemberRoleViewer), handlers.Secrets.ListMachineTokens)
 		protected.Post("/organizations/:organizationID/secrets/tokens", organizationRoleRequired(handlers.organizationService, models.MemberRoleAdmin), handlers.Secrets.CreateMachineToken)
 		protected.Delete("/organizations/:organizationID/secrets/tokens/:tokenID", organizationRoleRequired(handlers.organizationService, models.MemberRoleAdmin), handlers.Secrets.RevokeMachineToken)
+	}
+
+	if handlers.Uptime != nil {
+		protected.Get("/organizations/:organizationID/uptime/monitors", organizationRoleRequired(handlers.organizationService, models.MemberRoleViewer), handlers.Uptime.ListMonitors)
+		protected.Post("/organizations/:organizationID/uptime/monitors", organizationRoleRequired(handlers.organizationService, models.MemberRoleAdmin), handlers.Uptime.CreateMonitor)
+		protected.Get("/organizations/:organizationID/uptime/monitors/:id", organizationRoleRequired(handlers.organizationService, models.MemberRoleViewer), handlers.Uptime.GetMonitor)
+		protected.Delete("/organizations/:organizationID/uptime/monitors/:id", organizationRoleRequired(handlers.organizationService, models.MemberRoleAdmin), handlers.Uptime.DeleteMonitor)
+		protected.Post("/organizations/:organizationID/uptime/monitors/:id/probe", organizationRoleRequired(handlers.organizationService, models.MemberRoleAdmin), handlers.Uptime.ProbeMonitor)
+
+		protected.Get("/organizations/:organizationID/uptime/incidents", organizationRoleRequired(handlers.organizationService, models.MemberRoleViewer), handlers.Uptime.ListIncidents)
+		protected.Post("/organizations/:organizationID/uptime/incidents", organizationRoleRequired(handlers.organizationService, models.MemberRoleAdmin), handlers.Uptime.CreateIncident)
+		protected.Post("/organizations/:organizationID/uptime/incidents/:id/updates", organizationRoleRequired(handlers.organizationService, models.MemberRoleAdmin), handlers.Uptime.AddIncidentUpdate)
+
+		protected.Get("/organizations/:organizationID/uptime/status-page", organizationRoleRequired(handlers.organizationService, models.MemberRoleViewer), handlers.Uptime.GetStatusPage)
+		protected.Post("/organizations/:organizationID/uptime/status-page", organizationRoleRequired(handlers.organizationService, models.MemberRoleAdmin), handlers.Uptime.UpsertStatusPage)
 	}
 
 	admin := protected.Group("/admin", platformAdminRequired(handlers.authService))
