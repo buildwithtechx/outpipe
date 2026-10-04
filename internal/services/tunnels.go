@@ -160,6 +160,21 @@ func (s *TunnelService) Create(ctx context.Context, organizationID, name string,
 	return tunnel, nil
 }
 
+func (s *TunnelService) CreateWithMachineOwner(ctx context.Context, organizationID, name string, protocol models.TunnelProtocol, targetHost string, targetPort int, publicHostname, password, metadata string, machineTokenID *string) (models.Tunnel, error) {
+	tunnel, err := s.Create(ctx, organizationID, name, protocol, targetHost, targetPort, publicHostname, password, metadata)
+	if err != nil {
+		return models.Tunnel{}, err
+	}
+	if machineTokenID != nil && *machineTokenID != "" {
+		tunnel.MachineOwned = true
+		tunnel.MachineTokenID = machineTokenID
+		if err := s.tunnels.Update(ctx, &tunnel); err != nil {
+			return models.Tunnel{}, fmt.Errorf("set machine owner on tunnel: %w", err)
+		}
+	}
+	return tunnel, nil
+}
+
 func hashTunnelPassword(password string) (string, error) {
 
 	if strings.TrimSpace(password) == "" {
