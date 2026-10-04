@@ -3,8 +3,8 @@ import { useState } from 'react';
 import { Button } from '#/components/ui/button';
 import { ReplayDialog, RequestInspectorModal } from '#/features/observability';
 import { useReplayMutation } from '#/features/observability/hooks/use-observability';
-import type { RequestCapture } from '#/features/observability/services/observability-service';
 import { useOrganization } from '#/features/organizations/hooks/use-organization';
+import type { RequestCapture } from '#/interfaces';
 import { useRequestEvents } from './hooks/use-request-events';
 
 export function RequestsPage({ orgSlug }: { orgSlug: string }) {

@@ -2,6 +2,7 @@ import { Activity, ArrowRightLeft, Eye, Layers } from 'lucide-react';
 import { useState } from 'react';
 import { Button } from '#/components/ui/button';
 import { useOrganization } from '#/features/organizations/hooks/use-organization';
+import type { RequestCapture } from '#/interfaces';
 import { LogStream } from './components/log-stream';
 import { ReplayDialog } from './components/replay-dialog';
 import { RequestInspectorModal } from './components/request-inspector-modal';
@@ -14,7 +15,6 @@ import {
   useTraces,
   useTraceWaterfall,
 } from './hooks/use-observability';
-import type { RequestCapture } from './services/observability-service';
 
 export function ObservabilityPage({ orgSlug }: { orgSlug: string }) {
   const { organization } = useOrganization(orgSlug);

@@ -1,46 +1,19 @@
+import type {
+  CreateSecretInput,
+  SecretEnvironment,
+  SecretItem,
+  SecretProject,
+  SecretShare,
+} from '#/interfaces';
 import { apiClient } from '#/lib/api-client';
 
-export interface SecretProject {
-  id: string;
-  organizationId: string;
-  slug: string;
-  name: string;
-  description: string;
-  createdById: string;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface SecretEnvironment {
-  id: string;
-  organizationId: string;
-  projectId: string;
-  slug: string;
-  name: string;
-  createdById: string;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface SecretItem {
-  id: string;
-  key: string;
-  value?: string;
-  comment: string;
-  version: number;
-  updatedAt: string;
-}
-
-export interface SecretShare {
-  id: string;
-  organizationId?: string;
-  contentFormat: string;
-  expiresAt: string;
-  maxViews: number;
-  views: number;
-  revokedAt?: string;
-  createdAt: string;
-}
+export type {
+  CreateSecretInput,
+  SecretEnvironment,
+  SecretItem,
+  SecretProject,
+  SecretShare,
+};
 
 export function getProjects(organizationId: string) {
   return apiClient.get<SecretProject[]>(
