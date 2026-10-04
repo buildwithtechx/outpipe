@@ -16,6 +16,9 @@ type Session struct {
 	TunnelID       string
 	PasswordHash   string
 	BandwidthLimit int64
+	CaptureEnabled bool
+	MachineOwned   bool
+	OwnerID        string
 	ConnectedAt    time.Time
 	LastActiveAt   time.Time
 	Send           func(context.Context, protocol.Envelope) error
@@ -100,6 +103,24 @@ func (r *SessionRegistry) Touch(tunnelID string) bool {
 
 	r.mu.Unlock()
 	return ok
+}
+
+func (r *SessionRegistry) SetCaptureEnabled(tunnelID string, enabled bool) bool {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	session, ok := r.sessions[tunnelID]
+	if ok {
+		session.CaptureEnabled = enabled
+		r.sessions[tunnelID] = session
+	}
+	return ok
+}
+
+func (r *SessionRegistry) IsCaptureEnabled(tunnelID string) bool {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+	session, ok := r.sessions[tunnelID]
+	return ok && session.CaptureEnabled
 }
 
 func (r *SessionRegistry) Remove(tunnelID string, sessionID string) bool {

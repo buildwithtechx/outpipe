@@ -158,6 +158,22 @@ func (r *RequestRouter) PasswordHash(tunnelID string) (string, bool) {
 	return session.PasswordHash, true
 }
 
+func (r *RequestRouter) SetCaptureEnabled(tunnelID string, enabled bool) bool {
+	resolved, ok := r.sessions.Resolve(tunnelID)
+	if !ok {
+		return false
+	}
+	return r.sessions.SetCaptureEnabled(resolved, enabled)
+}
+
+func (r *RequestRouter) IsCaptureEnabled(tunnelID string) bool {
+	resolved, ok := r.sessions.Resolve(tunnelID)
+	if !ok {
+		return false
+	}
+	return r.sessions.IsCaptureEnabled(resolved)
+}
+
 func (r *RequestRouter) remove(requestID string) {
 	r.mu.Lock()
 	delete(r.pending, requestID)
