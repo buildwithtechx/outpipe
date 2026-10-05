@@ -77,8 +77,29 @@ secrets in your ignored `.env`.
 ```sh
 go install github.com/air-verse/air@v1.67.4
 npm install
-npm run dev
 ```
+
+Add Air's installation directory to your terminal's PATH before starting the
+services. Use `go env GOBIN` when set; otherwise use `bin` inside `go env GOPATH`.
+These commands configure the current terminal session.
+
+PowerShell:
+
+```powershell
+$airBin = go env GOBIN
+if (-not $airBin) { $airBin = Join-Path (go env GOPATH) 'bin' }
+$env:PATH = "$airBin;$env:PATH"
+```
+
+macOS/Linux:
+
+```sh
+air_bin="$(go env GOBIN)"
+if [ -z "$air_bin" ]; then air_bin="$(go env GOPATH)/bin"; fi
+export PATH="$air_bin:$PATH"
+```
+
+Verify `air -v` reports 1.67.4, then run `npm run dev`.
 
 This starts the API on port 8080, tunnel relay on 8081, dashboard on 3000,
 secrets-share on 4321, and status app on 4322. Use `npm run dev:web`,

@@ -25,8 +25,14 @@ describe('publicSiteUrl', () => {
     'https://user:password@example.com',
     'https://example.com?token=secret',
     'https://example.com#fragment',
+    'https://example.com?',
+    'https://example.com#',
+    'outpipe.dev',
+    '//example.com',
     'invalid',
   ])('rejects unsafe or ambiguous configured links: %s', (url) => {
-    expect(() => publicSiteUrl(false, url)).toThrow();
+    expect(() => publicSiteUrl(false, url)).toThrow(
+      'Public site URL must be an HTTP(S) URL without credentials, query or fragment',
+    );
   });
 });
