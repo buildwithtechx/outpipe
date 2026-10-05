@@ -49,6 +49,10 @@ func loadCLISettings() (config.CLIConfig, error) {
 			cfg.AgentToken = stored.AgentToken
 		}
 	} else if !errors.Is(loadErr, os.ErrNotExist) {
+		var versionErr *config.CLIConfigVersionError
+		if errors.As(loadErr, &versionErr) {
+			return config.CLIConfig{}, fmt.Errorf("load saved CLI settings: %w", loadErr)
+		}
 		fmt.Fprintln(os.Stderr, "outpipe: saved CLI settings could not be loaded; using environment/default settings. Run outpipe login to save new credentials.")
 	}
 	return cfg, nil

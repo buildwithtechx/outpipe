@@ -137,7 +137,7 @@ func decodeCLIFile(data []byte) (CLIConfig, error) {
 	}
 
 	if cfg.Version > CurrentCLIConfigVersion {
-		return CLIConfig{}, fmt.Errorf("cli config version %d is newer than supported version %d", cfg.Version, CurrentCLIConfigVersion)
+		return CLIConfig{}, &CLIConfigVersionError{Version: cfg.Version}
 	}
 
 	if cfg.Version == 0 {

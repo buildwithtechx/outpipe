@@ -1,12 +1,37 @@
 package main
 
 import (
+	"bytes"
+	"encoding/json"
 	"os"
 	"path/filepath"
 	"testing"
 
 	"outpipe.dev/outpipe/internal/config"
 )
+
+func TestLoginPreservesUnsupportedConfigVersion(t *testing.T) {
+	t.Chdir(t.TempDir())
+	path := filepath.Join(t.TempDir(), "config.json")
+	t.Setenv("OUTPIPE_CONFIG_PATH", path)
+	data, err := json.Marshal(map[string]any{"version": config.CurrentCLIConfigVersion + 1, "futureSetting": "preserve"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(path, data, 0600); err != nil {
+		t.Fatal(err)
+	}
+	if err := run([]string{"login", "--agent-token", "new-agent", "--api-key", "new-key"}); err == nil {
+		t.Fatal("login accepted unsupported saved config version")
+	}
+	after, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !bytes.Equal(data, after) {
+		t.Fatal("login overwrote unsupported saved settings")
+	}
+}
 
 func TestLoginRepairsCorruptSavedSettings(t *testing.T) {
 	t.Chdir(t.TempDir())
