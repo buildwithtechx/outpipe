@@ -232,8 +232,12 @@ func validateAPIApp(cfg AppConfig) error {
 		return err
 	}
 	if cfg.ACMEEnabled {
-		if _, err := mail.ParseAddress(cfg.ACMEEmail); err != nil {
+		address, err := mail.ParseAddress(cfg.ACMEEmail)
+		if err != nil {
 			return fmt.Errorf("ACME requires a valid contact email: %w", err)
+		}
+		if address.Address != cfg.ACMEEmail {
+			return fmt.Errorf("ACME contact email must be a bare email address")
 		}
 	}
 	if !strings.EqualFold(cfg.Environment, "production") {

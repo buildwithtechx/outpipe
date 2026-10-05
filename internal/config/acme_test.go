@@ -15,4 +15,8 @@ func TestACMERequiresOptInAndContact(t *testing.T) {
 	if err := validateAPIApp(cfg); err != nil {
 		t.Fatal(err)
 	}
+	cfg.ACMEEmail = "Owner <owner@example.com>"
+	if err := validateAPIApp(cfg); err == nil {
+		t.Fatal("enabled ACME accepted a display-name contact")
+	}
 }

@@ -3,6 +3,7 @@ package http
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"strings"
 
 	"gorm.io/gorm"
@@ -19,6 +20,9 @@ func NewDatabaseDependencies(db *gorm.DB, cfg config.APIConfig) (Dependencies, e
 
 	if db == nil {
 		return Dependencies{}, fmt.Errorf("database is required")
+	}
+	if strings.EqualFold(cfg.App.Environment, "production") && !cfg.App.ACMEEnabled && (cfg.App.ACMEEmail != "" || cfg.App.ACMEDirectory != "") {
+		slog.Warn("ACME issuance is disabled; enable OUTPIPE_ACME_ENABLED to issue and renew managed certificates")
 	}
 
 	users, err := repositories.NewUserRepository(db)

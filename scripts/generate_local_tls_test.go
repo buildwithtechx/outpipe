@@ -17,6 +17,11 @@ func TestGenerateLocalTLSPreservesValidPair(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	certPath := filepath.Join("data", "tls", "localhost.crt")
+	certBefore, err := os.ReadFile(certPath)
+	if err != nil {
+		t.Fatal(err)
+	}
 	if err := generateLocalTLS(); err != nil {
 		t.Fatal(err)
 	}
@@ -26,6 +31,13 @@ func TestGenerateLocalTLSPreservesValidPair(t *testing.T) {
 	}
 	if !bytes.Equal(before, after) {
 		t.Fatal("existing key was replaced")
+	}
+	certAfter, err := os.ReadFile(certPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !bytes.Equal(certBefore, certAfter) {
+		t.Fatal("existing certificate was replaced")
 	}
 }
 
