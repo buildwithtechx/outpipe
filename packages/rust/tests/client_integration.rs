@@ -83,7 +83,8 @@ async fn completes_tunnel_lifecycle_against_local_http_server() {
         }
     });
 
-    let client = Client::builder(format!("http://{address}"))
+    let client = Client::builder()
+        .base_url(format!("http://{address}"))
         .api_key("integration-key")
         .build()
         .expect("build client");

@@ -37,7 +37,7 @@ func (e *APIError) Error() string {
 func New(cfg Config) (*Client, error) {
 	baseURL := strings.TrimRight(strings.TrimSpace(cfg.BaseURL), "/")
 	if baseURL == "" {
-		return nil, fmt.Errorf("base URL is required")
+		baseURL = "https://api.outpipe.dev"
 	}
 	prefix := strings.Trim(cfg.APIPrefix, "/")
 	if prefix == "" {

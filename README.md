@@ -40,6 +40,13 @@ Requirements:
 - Node.js 22 or newer
 - npm 10 or newer
 
+SDK clients default to `https://api.outpipe.dev`; only credentials are needed
+for the hosted service. Override `apiUrl` (TypeScript/Angular), `BaseURL`
+(Go), `baseUrl` (PHP), or `.base_url(...)` (Rust) for a self-hosted API.
+
+After updating Go dependencies, run `go mod vendor` if you have a local
+`vendor/` directory. Vendored dependencies are not tracked in this repository.
+
 ```sh
 npm install
 npm run dev

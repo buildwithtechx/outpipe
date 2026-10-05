@@ -1,5 +1,5 @@
 export type TunnelAPIClientOptions = {
-  apiUrl: string;
+  apiUrl?: string;
   apiKey?: string;
   fetch?: typeof globalThis.fetch;
   apiPrefix?: string;

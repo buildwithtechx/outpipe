@@ -24,7 +24,6 @@ bootstrapApplication(AppComponent, {
   providers: [
     provideHttpClient(),
     provideOutpipe({
-      apiUrl: 'https://api.outpipe.dev',
       apiKey: 'agent-or-user-key',
     }),
   ],

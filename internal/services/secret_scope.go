@@ -16,7 +16,7 @@ func resolveSecretScope(ctx context.Context, repo repositories.SecretRepository,
 	project, environment = strings.TrimSpace(project), strings.TrimSpace(environment)
 	if project == "" {
 		if environment != "" {
-			return "", "", fmt.Errorf("environment requires a project")
+			return "", "", SecretInputError("environment requires a project")
 		}
 		return "", "", nil
 	}

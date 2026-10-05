@@ -59,6 +59,18 @@ func TestSecretReadScopeAndTokenCreationScope(t *testing.T) {
 	if invalidResponse.StatusCode != 400 {
 		t.Fatalf("invalid slug returned %d", invalidResponse.StatusCode)
 	}
+
+	invalidScope := httptest.NewRequest("POST", "/organizations/"+stack.organizationID+"/tokens", strings.NewReader(`{"name":"scoped","environmentId":"staging","scopes":["secrets:read"]}`))
+	invalidScope.Header.Set("Content-Type", "application/json")
+	invalidScope.Header.Set("Authorization", "Bearer "+stack.apiKeys["star"])
+	invalidScopeResponse, err := app.Test(invalidScope)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer invalidScopeResponse.Body.Close()
+	if invalidScopeResponse.StatusCode != 400 {
+		t.Fatalf("environment without project returned %d", invalidScopeResponse.StatusCode)
+	}
 	request := httptest.NewRequest("POST", "/organizations/"+stack.organizationID+"/tokens", strings.NewReader(`{"name":"scoped","projectId":"backend","environmentId":"staging","scopes":["secrets:read"]}`))
 	request.Header.Set("Content-Type", "application/json")
 	request.Header.Set("Authorization", "Bearer "+stack.apiKeys["star"])

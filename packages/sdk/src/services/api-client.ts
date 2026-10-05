@@ -7,8 +7,11 @@ export class TunnelAPIClient {
   private readonly apiPrefix: string;
   private readonly request: typeof globalThis.fetch;
 
-  constructor(options: TunnelAPIClientOptions) {
-    this.apiUrl = options.apiUrl.replace(/\/$/, '');
+  constructor(options: TunnelAPIClientOptions = {}) {
+    this.apiUrl = (options.apiUrl ?? 'https://api.outpipe.dev').replace(
+      /\/$/,
+      '',
+    );
     this.apiKey = options.apiKey;
     this.apiPrefix = `/${(options.apiPrefix ?? 'api/v1').replace(/^\/+|\/+$/g, '')}`;
     this.request = options.fetch ?? globalThis.fetch;

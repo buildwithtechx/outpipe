@@ -21,6 +21,16 @@ type httpTunnelContract struct {
 	} `json:"routes"`
 }
 
+func TestHostedEndpointDefault(t *testing.T) {
+	client, err := New(Config{APIKey: "key"})
+	if err != nil {
+		t.Fatalf("create hosted client: %v", err)
+	}
+	if client.baseURL != "https://api.outpipe.dev" {
+		t.Fatalf("unexpected hosted endpoint: %s", client.baseURL)
+	}
+}
+
 func loadHTTPContract(t *testing.T) httpTunnelContract {
 	t.Helper()
 	data, err := os.ReadFile("../../../protocol/fixtures/http_tunnel_contract.json")

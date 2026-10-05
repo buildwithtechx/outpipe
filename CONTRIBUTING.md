@@ -13,7 +13,7 @@ Contributions are welcome for the standalone tunnel server, agent, CLI, dashboar
 
 Requirements:
 
-- Go 1.25 or newer.
+- Go 1.26.8 or newer.
 - Node.js 22 or newer.
 - npm 10 or newer.
 - Rust and Tauri prerequisites for desktop work.

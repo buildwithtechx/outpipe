@@ -18,7 +18,6 @@ discover the service provider automatically.
 use Outpipe\Client\OutpipeClient;
 
 $outpipe = new OutpipeClient(
-    baseUrl: 'https://api.outpipe.dev',
     apiKey: getenv('OUTPIPE_API_KEY'),
 );
 

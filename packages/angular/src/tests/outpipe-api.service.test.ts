@@ -25,7 +25,6 @@ describe('OutpipeApiService', () => {
         provideHttpClient(),
         provideHttpClientTesting(),
         provideOutpipe({
-          apiUrl: 'https://api.outpipe.dev/',
           apiKey: 'test-key',
         }),
       ],
