@@ -61,6 +61,10 @@ func RegisterRoutes(app *fiber.App, handlers Handlers, options RouterOptions) er
 		app.Post("/api/v1/support/bug-report", supportLimiter, handlers.Support.BugReport)
 	}
 	authLimiter := requestRateLimitDistributed(options.RateLimiter, 10, time.Minute, func(c *fiber.Ctx) string { return "auth:" + requestClientIP(c) })
+	if handlers.Tunnels != nil {
+		handlers.Tunnels.SetMachineSigningKey(options.InternalAPISecret)
+		app.Post("/api/v1/machines/tunnels", authLimiter, handlers.Tunnels.CreateMachine)
+	}
 	app.Post("/api/v1/auth/device/start", authLimiter, handlers.Auth.StartDeviceLogin)
 	app.Get("/api/v1/auth/device/poll", authLimiter, handlers.Auth.PollDeviceLogin)
 
@@ -93,8 +97,10 @@ func RegisterRoutes(app *fiber.App, handlers Handlers, options RouterOptions) er
 	}
 
 	if handlers.Observability != nil {
-		app.Post("/api/v1/ingest/otlp/v1/traces", handlers.Observability.IngestOTLPTraces)
-		app.Post("/api/v1/ingest/otlp/v1/logs", handlers.Observability.IngestOTLPLogs)
+		ingest := app.Group("/api/v1/ingest/otlp", ingestionRequired(handlers.apiKeyService, handlers.authService, handlers.organizationService), requestRateLimitDistributed(options.RateLimiter, 60, time.Minute, func(c *fiber.Ctx) string { return "ingestion:" + c.Locals("ingestionOrganizationID").(string) }))
+		ingest.Post("/v1/traces", handlers.Observability.IngestOTLPTraces)
+		ingest.Post("/v1/logs", handlers.Observability.IngestOTLPLogs)
+		ingest.Post("/v1/metrics", handlers.Observability.IngestOTLPMetrics)
 	}
 
 	protected := app.Group("/api/v1", sessionRequired(handlers.authService, handlers.apiKeyService, options.CookieName), requestRateLimitDistributed(options.RateLimiter, 120, time.Minute, authenticatedRateLimitKey), auditRequest(handlers.auditService))
@@ -141,6 +147,7 @@ func RegisterRoutes(app *fiber.App, handlers Handlers, options RouterOptions) er
 	protected.Post("/organizations/:organizationID/billing/cancel", organizationRoleRequired(handlers.organizationService, models.MemberRoleOwner), handlers.Billing.Cancel)
 	protected.Post("/organizations/:organizationID/billing/resume", organizationRoleRequired(handlers.organizationService, models.MemberRoleOwner), handlers.Billing.Resume)
 	protected.Patch("/tunnels/:tunnelID/status", apiKeyResourceScopeRequired(handlers.organizationService, "tunnels:write", "tunnelID", handlers.Tunnels.OrganizationID), handlers.Tunnels.SetStatus)
+	protected.Patch("/tunnels/:tunnelID/capture", apiKeyResourceScopeRequired(handlers.organizationService, "tunnels:write", "tunnelID", handlers.Tunnels.OrganizationID), handlers.Tunnels.SetCapture)
 	protected.Patch("/tunnels/:tunnelID/config", apiKeyResourceScopeRequired(handlers.organizationService, "tunnels:write", "tunnelID", handlers.Tunnels.OrganizationID), handlers.Tunnels.UpdateConfiguration)
 	protected.Get("/tunnels/:tunnelID", apiKeyResourceScopeRequired(handlers.organizationService, "tunnels:read", "tunnelID", handlers.Tunnels.OrganizationID), handlers.Tunnels.Inspect)
 	protected.Delete("/tunnels/:tunnelID", apiKeyResourceScopeRequired(handlers.organizationService, "tunnels:write", "tunnelID", handlers.Tunnels.OrganizationID), handlers.Tunnels.Revoke)
@@ -172,6 +179,7 @@ func RegisterRoutes(app *fiber.App, handlers Handlers, options RouterOptions) er
 		protected.Get("/organizations/:organizationID/uptime/monitors", organizationRoleRequired(handlers.organizationService, models.MemberRoleViewer), handlers.Uptime.ListMonitors)
 		protected.Post("/organizations/:organizationID/uptime/monitors", organizationRoleRequired(handlers.organizationService, models.MemberRoleAdmin), handlers.Uptime.CreateMonitor)
 		protected.Get("/organizations/:organizationID/uptime/monitors/:id", organizationRoleRequired(handlers.organizationService, models.MemberRoleViewer), handlers.Uptime.GetMonitor)
+		protected.Get("/organizations/:organizationID/uptime/monitors/:id/checks", organizationRoleRequired(handlers.organizationService, models.MemberRoleViewer), handlers.Uptime.MonitorChecks)
 		protected.Delete("/organizations/:organizationID/uptime/monitors/:id", organizationRoleRequired(handlers.organizationService, models.MemberRoleAdmin), handlers.Uptime.DeleteMonitor)
 		protected.Post("/organizations/:organizationID/uptime/monitors/:id/probe", organizationRoleRequired(handlers.organizationService, models.MemberRoleAdmin), handlers.Uptime.ProbeMonitor)
 
@@ -185,6 +193,8 @@ func RegisterRoutes(app *fiber.App, handlers Handlers, options RouterOptions) er
 
 	if handlers.Observability != nil {
 		protected.Get("/organizations/:organizationID/observability/stats", organizationRoleRequired(handlers.organizationService, models.MemberRoleViewer), handlers.Observability.GetStats)
+		protected.Get("/organizations/:organizationID/observability/metrics", organizationRoleRequired(handlers.organizationService, models.MemberRoleViewer), handlers.Observability.ListMetrics)
+		protected.Post("/organizations/:organizationID/observability/ingestion-keys", writeLimiter, organizationRoleRequired(handlers.organizationService, models.MemberRoleAdmin), handlers.APIKeys.CreateIngestionKey)
 		protected.Get("/organizations/:organizationID/observability/traces", organizationRoleRequired(handlers.organizationService, models.MemberRoleViewer), handlers.Observability.ListTraces)
 		protected.Get("/organizations/:organizationID/observability/traces/:traceId", organizationRoleRequired(handlers.organizationService, models.MemberRoleViewer), handlers.Observability.GetTraceWaterfall)
 		protected.Get("/organizations/:organizationID/observability/logs", organizationRoleRequired(handlers.organizationService, models.MemberRoleViewer), handlers.Observability.ListLogs)
@@ -227,6 +237,9 @@ func RegisterInternalRoutes(app *fiber.App, handlers Handlers, options RouterOpt
 		return "internal-password:" + requestClientIP(c) + ":" + c.Params("tunnelID")
 	}), handlers.Tunnels.VerifyPassword)
 	app.Post("/internal/usage", internalSecretRequired(options.InternalAPISecret), handlers.Usage.Ingest)
+	if handlers.Observability != nil {
+		app.Post("/internal/captures", internalSecretRequired(options.InternalAPISecret), handlers.Observability.IngestCapture)
+	}
 
 	return nil
 }

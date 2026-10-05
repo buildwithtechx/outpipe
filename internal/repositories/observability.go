@@ -11,6 +11,8 @@ import (
 )
 
 type ObservabilityRepository interface {
+	CreateMetrics(context.Context, []models.TelemetryMetric) error
+	ListMetrics(context.Context, string, string, int) ([]models.TelemetryMetric, error)
 	CreateRequestCapture(ctx context.Context, capture *models.RequestCapture) error
 	GetRequestCapture(ctx context.Context, orgID, captureID string) (*models.RequestCapture, error)
 	ListRequestCaptures(ctx context.Context, orgID, tunnelID string, limit int) ([]models.RequestCapture, error)

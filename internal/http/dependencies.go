@@ -101,6 +101,9 @@ func buildHandlers(deps Dependencies, cookie handlers.SessionCookieConfig) (Hand
 	}
 
 	tunnelHandler, err := handlers.NewTunnelHandler(deps.Tunnels)
+	if tunnelHandler != nil {
+		tunnelHandler.SetMachineService(deps.Secrets)
+	}
 
 	if err != nil {
 		return Handlers{}, err
@@ -202,6 +205,7 @@ func buildHandlers(deps Dependencies, cookie handlers.SessionCookieConfig) (Hand
 	var observabilityHandler *handlers.ObservabilityHandler
 	if deps.Observability != nil {
 		observabilityHandler = handlers.NewObservabilityHandler(deps.Observability)
+		observabilityHandler.SetTunnels(deps.Tunnels)
 	}
 
 	return Handlers{Health: handlers.NewHealthHandler(deps.Ready), Auth: authHandler, Organizations: organizationHandler, Invitations: invitationHandler, Tunnels: tunnelHandler, Agents: agentHandler, Domains: domainHandler, Usage: usageHandler, Billing: billingHandler, OAuth: oauthHandler, Account: accountHandler, Admin: adminHandler, APIKeys: apiKeyHandler, Webhooks: webhookHandler, Support: supportHandler, AuditLogs: auditLogHandler, Secrets: secretHandler, Shares: shareHandler, Uptime: uptimeHandler, Observability: observabilityHandler, authService: deps.Auth, organizationService: deps.Organizations, apiKeyService: deps.APIKeys, auditService: deps.Audit, agentService: deps.Agents}, nil

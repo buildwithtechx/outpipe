@@ -19,8 +19,9 @@ type RequestRouter struct {
 }
 
 type pendingRequest struct {
-	tunnelID string
-	response chan protocol.HTTPResponse
+	tunnelID  string
+	sessionID string
+	response  chan protocol.HTTPResponse
 }
 
 func NewRequestRouter(sessions *SessionRegistry, timeout time.Duration) (*RequestRouter, error) {
@@ -59,7 +60,7 @@ func (r *RequestRouter) ForwardHTTP(ctx context.Context, tunnelID string, reques
 
 	response := make(chan protocol.HTTPResponse, 1)
 	r.mu.Lock()
-	r.pending[requestID] = pendingRequest{tunnelID: tunnelID, response: response}
+	r.pending[requestID] = pendingRequest{tunnelID: tunnelID, sessionID: session.ID, response: response}
 	r.mu.Unlock()
 	message := protocol.Envelope{Version: protocol.Version, Type: protocol.MessageTypeHTTPRequest, RequestID: requestID, Payload: payload}
 
@@ -110,6 +111,27 @@ func (r *RequestRouter) Handle(message protocol.Envelope) bool {
 
 	pending.response <- response
 	return true
+}
+
+func (r *RequestRouter) HandleOwned(message protocol.Envelope, organizationID string, owned map[string]string) bool {
+	r.mu.Lock()
+	pending, ok := r.pending[message.RequestID]
+	r.mu.Unlock()
+	if !ok {
+		return false
+	}
+	session, ok := r.sessions.Get(pending.tunnelID)
+	if !ok || session.OrganizationID != organizationID || owned[pending.tunnelID] != pending.sessionID || session.ID != pending.sessionID {
+		return false
+	}
+	return r.Handle(message)
+}
+
+func (r *RequestRouter) PendingTunnel(requestID string) (string, bool) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	pending, ok := r.pending[requestID]
+	return pending.tunnelID, ok
 }
 
 func (r *RequestRouter) RemoveTunnel(tunnelID string) {

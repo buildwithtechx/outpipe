@@ -15,6 +15,9 @@ import (
 )
 
 type AgentIdentity struct {
+	TunnelID       string `json:"tunnelId,omitempty"`
+	MachineTokenID string `json:"machineTokenId,omitempty"`
+	ExpiresAt      int64  `json:"expiresAt,omitempty"`
 	AgentID        string
 	OrganizationID string
 	MaxTunnels     int
@@ -40,6 +43,11 @@ type ManagedTunnelPasswordVerifier interface {
 }
 
 type ManagedTunnelPolicy struct {
+	CaptureEnabled    bool    `json:"captureEnabled"`
+	MachineTokenID    *string `json:"machineTokenId,omitempty"`
+	TargetHost        string  `json:"targetHost"`
+	TargetPort        int     `json:"targetPort"`
+	Protocol          string  `json:"protocol"`
 	OrganizationID    string
 	PublicHostname    string
 	PasswordHash      string

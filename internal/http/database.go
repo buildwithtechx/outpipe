@@ -311,28 +311,10 @@ func NewDatabaseDependencies(db *gorm.DB, cfg config.APIConfig) (Dependencies, e
 	}
 
 	tunnelService.SetWebhooks(webhookService)
-	secretRepo, err := repositories.NewSecretRepository(db)
+	secretService, shareService, uptimeService, obsService, err := productServices(db, cfg)
 	if err != nil {
 		return Dependencies{}, err
 	}
-	secretService, err := services.NewSecretService(secretRepo, cfg.Auth.EncryptionKey)
-	if err != nil {
-		return Dependencies{}, err
-	}
-	shareService, err := services.NewShareService(secretRepo)
-	if err != nil {
-		return Dependencies{}, err
-	}
-	uptimeRepo, err := repositories.NewUptimeRepository(db)
-	if err != nil {
-		return Dependencies{}, err
-	}
-	uptimeService, err := services.NewUptimeService(uptimeRepo)
-	if err != nil {
-		return Dependencies{}, err
-	}
-	obsRepo := repositories.NewGormObservabilityRepository(db)
-	obsService := services.NewObservabilityService(obsRepo)
 
 	return Dependencies{Auth: authService, DeviceLogin: deviceService, Organizations: organizationService, Invitations: invitationService, Tunnels: tunnelService, Agents: agentService, Domains: domainService, Usage: usageService, Billing: billingService, Account: accountService, Admin: adminService, Audit: auditService, APIKeys: apiKeyService, Webhooks: webhookService, Support: supportService, Secrets: secretService, Shares: shareService, Uptime: uptimeService, Observability: obsService, WelcomeMailer: welcomeMailer, Ready: databaseReady(db), Metrics: metrics}, nil
 }

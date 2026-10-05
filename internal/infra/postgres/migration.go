@@ -137,6 +137,8 @@ func migrations() []migration {
 			&models.TelemetrySpan{},
 			&models.TelemetryLog{},
 		)
+	}}, {version: 19, name: "telemetry_metrics_uptime_assertions_and_capture", up: func(db *gorm.DB) error {
+		return db.AutoMigrate(&models.TelemetryMetric{}, &models.TelemetrySpan{}, &models.TelemetryLog{}, &models.UptimeMonitor{}, &models.Tunnel{})
 	}}}
 }
 

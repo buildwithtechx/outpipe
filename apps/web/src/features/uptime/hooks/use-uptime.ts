@@ -52,14 +52,8 @@ export function useUptimeMutations(organizationId: string) {
   const queryClient = useQueryClient();
 
   const addMonitor = useMutation({
-    mutationFn: (input: {
-      name: string;
-      type: 'http' | 'https' | 'tcp';
-      target: string;
-      interval_seconds?: number;
-      timeout_seconds?: number;
-      expected_status_code?: number;
-    }) => createMonitor(organizationId, input),
+    mutationFn: (input: Parameters<typeof createMonitor>[1]) =>
+      createMonitor(organizationId, input),
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: ['uptime-monitors', organizationId],

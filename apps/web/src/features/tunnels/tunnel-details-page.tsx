@@ -1,6 +1,7 @@
 import { Link } from '@tanstack/react-router';
 import { ArrowLeft, CircleAlert } from 'lucide-react';
 import { Button } from '#/components/ui/button';
+import { TunnelCaptureControl } from './components/tunnel-capture-control';
 import { TunnelConfigurationForm } from './components/tunnel-configuration-form';
 import { TunnelDetailActions } from './components/tunnel-detail-actions';
 import { TunnelDetailCard } from './components/tunnel-detail-card';
@@ -75,6 +76,7 @@ export function TunnelDetailsPage({
       <section className="pt-2" aria-label="Tunnel configuration">
         <TunnelDetailCard tunnel={tunnel} />
         <TunnelConfigurationForm tunnel={tunnel} />
+        <TunnelCaptureControl tunnel={tunnel} />
       </section>
     </div>
   );

@@ -96,7 +96,7 @@ func openTunnel(ctx context.Context, cfg config.CLIConfig, port int, protocolNam
 	delay := 2 * time.Second
 	resolvedHostname := ""
 
-	if tunnelID != "" {
+	if tunnelID != "" && (cfg.APIKey != "" || agentToken == "") {
 		resolvedSubdomain, err := resolveManagedTunnel(ctx, cfg, tunnelID, subdomain)
 
 		if err != nil {

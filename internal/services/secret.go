@@ -222,7 +222,10 @@ func (s *SecretService) CreateMachineToken(ctx context.Context, orgID, projectID
 	raw := prefix + "_" + hex.EncodeToString(entropy[4:])
 	tokenHash := security.SignHMACSHA256([]byte(raw), hex.EncodeToString(s.encryptionKey))
 
-	scopesJSON, _ := json.Marshal(scopes)
+	scopesJSON, err := json.Marshal(scopes)
+	if err != nil {
+		return CreatedMachineTokenDTO{}, fmt.Errorf("encode machine token scopes: %w", err)
+	}
 	token := models.SecretMachineToken{
 		OrganizationID: orgID,
 		Name:           name,
@@ -230,6 +233,7 @@ func (s *SecretService) CreateMachineToken(ctx context.Context, orgID, projectID
 		TokenHash:      tokenHash,
 		Scopes:         string(scopesJSON),
 		CreatedByID:    userID,
+		ExpiresAt:      func() *time.Time { value := time.Now().UTC().Add(24 * time.Hour); return &value }(),
 	}
 	if projectID != "" {
 		token.ProjectID = &projectID
@@ -245,7 +249,14 @@ func (s *SecretService) CreateMachineToken(ctx context.Context, orgID, projectID
 
 func (s *SecretService) VerifyMachineToken(ctx context.Context, raw string) (models.SecretMachineToken, error) {
 	tokenHash := security.SignHMACSHA256([]byte(raw), hex.EncodeToString(s.encryptionKey))
-	return s.repo.FindMachineTokenByHash(ctx, tokenHash)
+	token, err := s.repo.FindMachineTokenByHash(ctx, tokenHash)
+	if err != nil {
+		return models.SecretMachineToken{}, fmt.Errorf("find machine token: %w", err)
+	}
+	if token.RevokedAt != nil || token.ExpiresAt == nil || !token.ExpiresAt.After(time.Now()) || token.ExpiresAt.After(time.Now().Add(24*time.Hour)) {
+		return models.SecretMachineToken{}, fmt.Errorf("machine token is expired or lacks a short lifetime")
+	}
+	return token, nil
 }
 
 func (s *SecretService) ListMachineTokens(ctx context.Context, orgID string) ([]models.SecretMachineToken, error) {

@@ -8,7 +8,6 @@ import (
 	"github.com/gofiber/contrib/websocket"
 	"github.com/google/uuid"
 	"outpipe.dev/outpipe/internal/engine"
-	"outpipe.dev/outpipe/internal/models"
 	"outpipe.dev/outpipe/internal/security"
 	"outpipe.dev/outpipe/pkg/protocol"
 )
@@ -23,6 +22,9 @@ func (h *Handler) openTunnel(ctx context.Context, connection *websocket.Conn, id
 
 	if err != nil {
 		return err
+	}
+	if identity.TunnelID != "" && identity.TunnelID != open.TunnelID {
+		return fmt.Errorf("credential is scoped to another tunnel")
 	}
 
 	tunnelID := open.TunnelID
@@ -56,6 +58,8 @@ func (h *Handler) openTunnel(ctx context.Context, connection *websocket.Conn, id
 	}
 
 	session := h.newSession(connection, identity, tunnelID, passwordHash)
+	session.MachineOwned = identity.MachineTokenID != ""
+	session.OwnerID = identity.MachineTokenID
 
 	if err := h.sessions.ReserveWithDrain(session, exists, h.drainTimeout); err != nil {
 		return err
@@ -87,55 +91,6 @@ func (h *Handler) openTunnel(ctx context.Context, connection *websocket.Conn, id
 	}
 
 	return h.writeMessage(connection, websocket.TextMessage, payload)
-}
-
-func (h *Handler) resolveManagedPolicy(ctx context.Context, identity AgentIdentity, open *protocol.OpenTunnel) (string, error) {
-
-	if open.TunnelID != "" && h.managedTunnels != nil {
-		policy, err := h.managedTunnels.Resolve(ctx, open.TunnelID)
-
-		if err != nil {
-			return "", fmt.Errorf("resolve managed tunnel: %w", err)
-		}
-
-		if policy.OrganizationID != identity.OrganizationID || policy.Status == string(models.TunnelStatusRevoked) {
-			return "", fmt.Errorf("managed tunnel is not available")
-		}
-
-		if open.Subdomain == "" && open.CustomDomain == "" {
-
-			if suffix := "." + h.publicDomain; strings.HasSuffix(policy.PublicHostname, suffix) {
-				open.Subdomain = strings.TrimSuffix(policy.PublicHostname, suffix)
-			} else {
-				open.CustomDomain = policy.PublicHostname
-			}
-		}
-
-		if policy.PasswordProtected {
-
-			if verifier, ok := h.managedTunnels.(ManagedTunnelPasswordVerifier); ok {
-				valid, err := verifier.VerifyPassword(ctx, open.TunnelID, open.Password)
-
-				if err != nil {
-					return "", fmt.Errorf("verify managed tunnel password: %w", err)
-				}
-
-				if !valid {
-					return "", fmt.Errorf("invalid managed tunnel password")
-				}
-
-				return hashRelayPassword(open.Password)
-			}
-
-			if policy.PasswordHash == "" || !security.VerifyPassword(open.Password, policy.PasswordHash) {
-				return "", fmt.Errorf("invalid managed tunnel password")
-			}
-		}
-
-		return policy.PasswordHash, nil
-	}
-
-	return hashRelayPassword(open.Password)
 }
 
 func (h *Handler) checkTunnelCapacity(identity AgentIdentity, exists bool) error {
@@ -194,6 +149,9 @@ func (h *Handler) newSession(connection *websocket.Conn, identity AgentIdentity,
 	return engine.Session{ID: uuid.NewString(), OrganizationID: identity.OrganizationID, TunnelID: tunnelID, PasswordHash: passwordHash, Send: func(sendCtx context.Context, outgoing protocol.Envelope) error {
 
 		if err := sendCtx.Err(); err != nil {
+			return err
+		}
+		if err := h.authorizeMachine(sendCtx, identity, tunnelID); err != nil {
 			return err
 		}
 
@@ -321,7 +279,7 @@ func (h *Handler) closeTunnel(organizationID string, message protocol.Envelope, 
 
 	session, ok := h.sessions.Get(closeMessage.TunnelID)
 
-	if !ok || session.OrganizationID != organizationID || !h.sessions.Remove(closeMessage.TunnelID, session.ID) {
+	if !ok || session.OrganizationID != organizationID || owned[closeMessage.TunnelID] != session.ID || !h.sessions.Remove(closeMessage.TunnelID, session.ID) {
 		return fmt.Errorf("tunnel not found")
 	}
 

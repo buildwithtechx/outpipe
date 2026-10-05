@@ -19,6 +19,7 @@ type HTTPProxy struct {
 	router       *RequestRouter
 	maxBodyBytes int64
 	recorder     UsageRecorder
+	capture      CaptureRecorder
 }
 
 type UsageMeasurement struct {
@@ -77,6 +78,7 @@ func (p *HTTPProxy) ServeHTTP(response http.ResponseWriter, request *http.Reques
 		return
 	}
 
+	p.refreshCapture(request.Context(), route)
 	body, err := readBody(request.Body, p.maxBodyBytes)
 
 	if err != nil {
@@ -139,6 +141,9 @@ func (p *HTTPProxy) ServeHTTP(response http.ResponseWriter, request *http.Reques
 		})
 		p.recordRequest(request, route, http.StatusBadGateway, 0, started)
 		return
+	}
+	if err := p.captureRequest(request, route, body, forwarded, started); err != nil {
+		p.router.SetCaptureEnabled(route, false)
 	}
 
 	writeResponseHeaders(response.Header(), forwarded.Headers)

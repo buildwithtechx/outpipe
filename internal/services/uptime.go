@@ -11,6 +11,7 @@ import (
 
 	"outpipe.dev/outpipe/internal/models"
 	"outpipe.dev/outpipe/internal/repositories"
+	"outpipe.dev/outpipe/internal/validation"
 )
 
 type UptimeService struct {
@@ -22,25 +23,20 @@ func NewUptimeService(repo repositories.UptimeRepository) (*UptimeService, error
 	if repo == nil {
 		return nil, fmt.Errorf("uptime repository is required")
 	}
-	client := &http.Client{
-		Timeout: 15 * time.Second,
-		CheckRedirect: func(req *http.Request, via []*http.Request) error {
-			if len(via) >= 5 {
-				return fmt.Errorf("stopped after 5 redirects")
-			}
-			return nil
-		},
-	}
+	client := validation.NewSafeHTTPClient(60 * time.Second)
 	return &UptimeService{repo: repo, httpClient: client}, nil
 }
 
 type CreateMonitorInput struct {
-	Name            string `json:"name"`
-	URL             string `json:"url"`
-	Protocol        string `json:"protocol"`
-	Method          string `json:"method"`
-	IntervalSeconds int    `json:"intervalSeconds"`
-	TimeoutSeconds  int    `json:"timeoutSeconds"`
+	ExpectedStatusCode int    `json:"expectedStatusCode"`
+	BodyRegex          string `json:"bodyRegex"`
+	MaxLatencyMs       int64  `json:"maxLatencyMs"`
+	Name               string `json:"name"`
+	URL                string `json:"url"`
+	Protocol           string `json:"protocol"`
+	Method             string `json:"method"`
+	IntervalSeconds    int    `json:"intervalSeconds"`
+	TimeoutSeconds     int    `json:"timeoutSeconds"`
 }
 
 func (s *UptimeService) CreateMonitor(ctx context.Context, orgID string, input CreateMonitorInput) (models.UptimeMonitor, error) {
@@ -62,6 +58,10 @@ func (s *UptimeService) CreateMonitor(ctx context.Context, orgID string, input C
 	if input.TimeoutSeconds <= 0 {
 		input.TimeoutSeconds = 10
 	}
+	input.Protocol = strings.ToLower(input.Protocol)
+	if err := validateMonitorInput(ctx, input); err != nil {
+		return models.UptimeMonitor{}, fmt.Errorf("validate monitor: %w", err)
+	}
 
 	randomID := make([]byte, 16)
 	if _, err := rand.Read(randomID); err != nil {
@@ -70,6 +70,7 @@ func (s *UptimeService) CreateMonitor(ctx context.Context, orgID string, input C
 
 	now := time.Now().UTC()
 	monitor := models.UptimeMonitor{
+		ExpectedStatusCode: input.ExpectedStatusCode, BodyRegex: input.BodyRegex, MaxLatencyMs: input.MaxLatencyMs,
 		ID:              hex.EncodeToString(randomID),
 		OrganizationID:  orgID,
 		Name:            strings.TrimSpace(input.Name),

@@ -38,17 +38,19 @@ export function UptimePage({ orgSlug }: { orgSlug: string }) {
   const [showIncidentModal, setShowIncidentModal] = useState(false);
   const [showStatusModal, setShowStatusModal] = useState(false);
 
-  const healthyCount = monitors.filter((m) => m.status === 'active').length;
+  const healthyCount = monitors.filter((m) => m.status === 'up').length;
   const downCount = monitors.filter((m) => m.status === 'down').length;
   const activeIncidents = incidents.filter((i) => i.status !== 'resolved');
 
   const handleCreateMonitor = async (input: {
     name: string;
-    type: 'http' | 'https' | 'tcp';
+    type: 'http' | 'https' | 'tcp' | 'icmp';
     target: string;
     interval_seconds: number;
     timeout_seconds: number;
     expected_status_code?: number;
+    body_regex?: string;
+    max_latency_ms?: number;
   }) => {
     await mutations.addMonitor.mutateAsync(input);
     setShowAddMonitor(false);
@@ -197,7 +199,7 @@ export function UptimePage({ orgSlug }: { orgSlug: string }) {
                 </thead>
                 <tbody className="divide-y divide-white/5">
                   {monitors.map((m) => {
-                    const isActive = m.status === 'active';
+                    const isActive = m.status === 'up';
                     return (
                       <tr
                         key={m.id}
@@ -225,11 +227,11 @@ export function UptimePage({ orgSlug }: { orgSlug: string }) {
                             {m.name}
                           </span>
                           <span className="font-mono text-white/40">
-                            {m.target}
+                            {m.url}
                           </span>
                         </td>
                         <td className="px-4 py-3 uppercase font-mono">
-                          {m.type}
+                          {m.protocol}
                         </td>
                         <td className="px-4 py-3">{m.intervalSeconds}s</td>
                         <td className="px-4 py-3 text-right space-x-2">

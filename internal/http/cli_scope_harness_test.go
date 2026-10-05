@@ -11,6 +11,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
+	_ "modernc.org/sqlite"
 	"outpipe.dev/outpipe/internal/handlers"
 	"outpipe.dev/outpipe/internal/models"
 	"outpipe.dev/outpipe/internal/repositories"
@@ -24,6 +25,11 @@ func (fakePlatformAdminAuthorizer) IsPlatformAdmin(context.Context, string) (boo
 }
 
 type verificationStack struct {
+	db             *gorm.DB
+	keys           *services.APIKeyService
+	auth           *services.AuthService
+	organizations  *services.OrganizationService
+	userID         string
 	app            *fiber.App
 	organizationID string
 	tunnelID       string
@@ -33,7 +39,7 @@ type verificationStack struct {
 func newVerificationStack(t *testing.T) *verificationStack {
 	t.Helper()
 
-	db, err := gorm.Open(sqlite.Open(fmt.Sprintf("file:scope-%d?mode=memory&cache=shared", time.Now().UnixNano())), &gorm.Config{})
+	db, err := gorm.Open(sqlite.New(sqlite.Config{DriverName: "sqlite", DSN: fmt.Sprintf("file:scope-%d?mode=memory&cache=shared", time.Now().UnixNano())}), &gorm.Config{})
 
 	if err != nil {
 		t.Fatalf("open sqlite: %v", err)
@@ -205,7 +211,7 @@ func newVerificationStack(t *testing.T) *verificationStack {
 
 	t.Cleanup(func() { _ = app.Shutdown() })
 
-	return &verificationStack{app: app, organizationID: organization.ID, tunnelID: tunnel.ID, apiKeys: apiKeys}
+	return &verificationStack{db: db, keys: apiKeyService, auth: auth, organizations: organizationService, userID: user.ID, app: app, organizationID: organization.ID, tunnelID: tunnel.ID, apiKeys: apiKeys}
 }
 
 func (s *verificationStack) request(t *testing.T, method, path, withKey string) *http.Response {

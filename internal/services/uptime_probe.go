@@ -5,66 +5,38 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"fmt"
-	"net"
-	"net/http"
-	"strings"
 	"time"
 
 	"outpipe.dev/outpipe/internal/models"
 )
 
 func (s *UptimeService) Probe(ctx context.Context, monitor *models.UptimeMonitor) (models.UptimeCheck, error) {
-	start := time.Now()
-	var statusCode int
-	var success bool
-	var errorMsg string
-
+	if monitor == nil {
+		return models.UptimeCheck{}, fmt.Errorf("monitor is required")
+	}
 	timeout := time.Duration(monitor.TimeoutSeconds) * time.Second
-	if timeout <= 0 {
+	if timeout < time.Second || timeout > 60*time.Second {
 		timeout = 10 * time.Second
 	}
-
-	switch monitor.Protocol {
-	case "tcp":
-		conn, err := net.DialTimeout("tcp", monitor.URL, timeout)
-		if err != nil {
-			success = false
-			errorMsg = err.Error()
-		} else {
-			_ = conn.Close()
-			success = true
-			statusCode = 200
-		}
-	default:
-		reqURL := monitor.URL
-		if !strings.HasPrefix(reqURL, "http://") && !strings.HasPrefix(reqURL, "https://") {
-			reqURL = "https://" + reqURL
-		}
-		req, err := http.NewRequestWithContext(ctx, monitor.Method, reqURL, nil)
-		if err != nil {
-			success = false
-			errorMsg = err.Error()
-		} else {
-			req.Header.Set("User-Agent", "Outpipe-Uptime-Bot/1.0")
-			resp, err := s.httpClient.Do(req)
-			if err != nil {
-				success = false
-				errorMsg = err.Error()
-			} else {
-				_ = resp.Body.Close()
-				statusCode = resp.StatusCode
-				success = statusCode >= 200 && statusCode < 400
-				if !success {
-					errorMsg = fmt.Sprintf("HTTP status %d", statusCode)
-				}
-			}
-		}
+	probeCtx, cancel := context.WithTimeout(ctx, timeout)
+	defer cancel()
+	start := time.Now()
+	statusCode, probeErr := s.probeTarget(probeCtx, monitor)
+	success := probeErr == nil
+	errorMsg := ""
+	if probeErr != nil {
+		errorMsg = probeErr.Error()
 	}
-
 	latency := time.Since(start).Milliseconds()
 	checkID := make([]byte, 16)
-	_, _ = rand.Read(checkID)
+	if _, err := rand.Read(checkID); err != nil {
+		return models.UptimeCheck{}, fmt.Errorf("generate check id: %w", err)
+	}
 
+	if success && monitor.MaxLatencyMs > 0 && latency > monitor.MaxLatencyMs {
+		success = false
+		errorMsg = "latency assertion failed"
+	}
 	now := time.Now().UTC()
 	check := models.UptimeCheck{
 		ID:           hex.EncodeToString(checkID),
@@ -76,7 +48,9 @@ func (s *UptimeService) Probe(ctx context.Context, monitor *models.UptimeMonitor
 		CheckedAt:    now,
 	}
 
-	_ = s.repo.RecordCheck(ctx, &check)
+	if err := s.repo.RecordCheck(ctx, &check); err != nil {
+		return models.UptimeCheck{}, fmt.Errorf("persist uptime check: %w", err)
+	}
 
 	monitor.LastCheckAt = &now
 	monitor.LatencyMs = latency
@@ -87,7 +61,10 @@ func (s *UptimeService) Probe(ctx context.Context, monitor *models.UptimeMonitor
 	}
 
 	recent, err := s.repo.GetRecentChecks(ctx, monitor.ID, 30)
-	if err == nil && len(recent) > 0 {
+	if err != nil {
+		return models.UptimeCheck{}, fmt.Errorf("get recent uptime checks: %w", err)
+	}
+	if len(recent) > 0 {
 		successCount := 0
 		for _, c := range recent {
 			if c.Success {
@@ -97,7 +74,9 @@ func (s *UptimeService) Probe(ctx context.Context, monitor *models.UptimeMonitor
 		monitor.UptimeRatio = float64(successCount) / float64(len(recent)) * 100.0
 	}
 	monitor.UpdatedAt = now
-	_ = s.repo.UpdateMonitor(ctx, monitor)
+	if err := s.repo.UpdateMonitor(ctx, monitor); err != nil {
+		return models.UptimeCheck{}, fmt.Errorf("update probed monitor: %w", err)
+	}
 
 	return check, nil
 }

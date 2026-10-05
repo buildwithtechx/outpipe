@@ -22,6 +22,7 @@ export type Tunnel = Entity & {
   publicPort?: number;
   accessPolicy: string;
   machineOwned?: boolean;
+  captureEnabled?: boolean;
   machineTokenId?: string;
   expiresAt?: string;
   lastActiveAt?: string;

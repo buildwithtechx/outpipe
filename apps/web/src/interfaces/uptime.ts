@@ -2,12 +2,14 @@ export interface UptimeMonitor {
   id: string;
   organizationId: string;
   name: string;
-  type: 'http' | 'https' | 'tcp';
-  target: string;
+  protocol: 'http' | 'https' | 'tcp' | 'icmp';
+  url: string;
   intervalSeconds: number;
   timeoutSeconds: number;
   expectedStatusCode?: number;
-  status: 'active' | 'degraded' | 'down' | 'paused';
+  bodyRegex?: string;
+  maxLatencyMs?: number;
+  status: 'up' | 'degraded' | 'down' | 'paused';
   createdAt: string;
   updatedAt: string;
 }
@@ -15,7 +17,7 @@ export interface UptimeMonitor {
 export interface UptimeCheck {
   id: string;
   monitorId: string;
-  status: 'up' | 'down' | 'degraded';
+  success: boolean;
   statusCode: number;
   latencyMs: number;
   errorMessage?: string;

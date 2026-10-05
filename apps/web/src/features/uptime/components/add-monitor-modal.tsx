@@ -21,11 +21,13 @@ interface AddMonitorModalProps {
   onClose: () => void;
   onSave: (input: {
     name: string;
-    type: 'http' | 'https' | 'tcp';
+    type: 'http' | 'https' | 'tcp' | 'icmp';
     target: string;
     interval_seconds: number;
     timeout_seconds: number;
     expected_status_code?: number;
+    body_regex?: string;
+    max_latency_ms?: number;
   }) => Promise<void>;
   isSaving: boolean;
 }
@@ -37,11 +39,13 @@ export function AddMonitorModal({
   isSaving,
 }: AddMonitorModalProps) {
   const [name, setName] = useState('');
-  const [type, setType] = useState<'http' | 'https' | 'tcp'>('https');
+  const [type, setType] = useState<'http' | 'https' | 'tcp' | 'icmp'>('https');
   const [target, setTarget] = useState('');
   const [intervalSeconds, setIntervalSeconds] = useState(60);
   const [timeoutSeconds, setTimeoutSeconds] = useState(10);
   const [expectedCode, setExpectedCode] = useState(200);
+  const [bodyRegex, setBodyRegex] = useState('');
+  const [maxLatencyMs, setMaxLatencyMs] = useState(0);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -53,7 +57,11 @@ export function AddMonitorModal({
       interval_seconds: Number(intervalSeconds) || 60,
       timeout_seconds: Number(timeoutSeconds) || 10,
       expected_status_code:
-        type === 'tcp' ? undefined : Number(expectedCode) || 200,
+        type === 'tcp' || type === 'icmp'
+          ? undefined
+          : Number(expectedCode) || 200,
+      body_regex: type === 'http' || type === 'https' ? bodyRegex : undefined,
+      max_latency_ms: maxLatencyMs || undefined,
     });
     setName('');
     setTarget('');
@@ -92,7 +100,7 @@ export function AddMonitorModal({
               <Select
                 value={type}
                 onValueChange={(val) =>
-                  setType(val as 'http' | 'https' | 'tcp')
+                  setType(val as 'http' | 'https' | 'tcp' | 'icmp')
                 }
               >
                 <SelectTrigger className="w-full border-white/10 bg-zinc-800 text-xs text-white">
@@ -101,6 +109,7 @@ export function AddMonitorModal({
                 <SelectContent className="border-white/10 bg-zinc-900 text-white">
                   <SelectItem value="https">HTTPS</SelectItem>
                   <SelectItem value="http">HTTP</SelectItem>
+                  <SelectItem value="icmp">ICMP</SelectItem>
                   <SelectItem value="tcp">TCP Port</SelectItem>
                 </SelectContent>
               </Select>
@@ -146,7 +155,7 @@ export function AddMonitorModal({
             />
           </div>
 
-          {type !== 'tcp' && (
+          {(type === 'http' || type === 'https') && (
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
                 <Label
@@ -183,6 +192,46 @@ export function AddMonitorModal({
             </div>
           )}
 
+          {(type === 'http' || type === 'https') && (
+            <div className="space-y-1.5">
+              <Label htmlFor="monitor-body-regex">Body matches regex</Label>
+              <Input
+                id="monitor-body-regex"
+                value={bodyRegex}
+                maxLength={1024}
+                onChange={(event) => setBodyRegex(event.target.value)}
+                placeholder="Optional response assertion"
+              />
+            </div>
+          )}
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1.5">
+              <Label htmlFor="monitor-latency">Maximum latency (ms)</Label>
+              <Input
+                id="monitor-latency"
+                type="number"
+                min={0}
+                max={60000}
+                value={maxLatencyMs}
+                onChange={(event) =>
+                  setMaxLatencyMs(Number(event.target.value))
+                }
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="monitor-interval">Interval (sec)</Label>
+              <Input
+                id="monitor-interval"
+                type="number"
+                min={10}
+                max={86400}
+                value={intervalSeconds}
+                onChange={(event) =>
+                  setIntervalSeconds(Number(event.target.value))
+                }
+              />
+            </div>
+          </div>
           <div className="flex justify-end gap-2 pt-2">
             <Button
               type="button"

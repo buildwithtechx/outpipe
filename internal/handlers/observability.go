@@ -11,45 +11,12 @@ import (
 )
 
 type ObservabilityHandler struct {
-	svc *services.ObservabilityService
+	svc     *services.ObservabilityService
+	tunnels *services.TunnelService
 }
 
 func NewObservabilityHandler(svc *services.ObservabilityService) *ObservabilityHandler {
 	return &ObservabilityHandler{svc: svc}
-}
-
-func (h *ObservabilityHandler) IngestOTLPTraces(c *fiber.Ctx) error {
-	orgID := c.Get("X-Organization-Id")
-	if orgID == "" {
-		orgID = c.Query("org_id", "default")
-	}
-	count, err := h.svc.IngestOTLPTraces(c.Context(), orgID, c.Body())
-	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": fmt.Sprintf("ingest otlp traces: %v", err),
-		})
-	}
-	return c.Status(fiber.StatusOK).JSON(fiber.Map{
-		"status": "success",
-		"count":  count,
-	})
-}
-
-func (h *ObservabilityHandler) IngestOTLPLogs(c *fiber.Ctx) error {
-	orgID := c.Get("X-Organization-Id")
-	if orgID == "" {
-		orgID = c.Query("org_id", "default")
-	}
-	count, err := h.svc.IngestOTLPLogs(c.Context(), orgID, c.Body())
-	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": fmt.Sprintf("ingest otlp logs: %v", err),
-		})
-	}
-	return c.Status(fiber.StatusOK).JSON(fiber.Map{
-		"status": "success",
-		"count":  count,
-	})
 }
 
 func (h *ObservabilityHandler) GetStats(c *fiber.Ctx) error {

@@ -85,24 +85,24 @@ func TestObservabilityServiceLifecycle(t *testing.T) {
 			"scopeSpans": [{
 				"spans": [
 					{
-						"traceId": "trace-999",
-						"spanId": "span-root",
+						"traceId": "0123456789abcdef0123456789abcdef",
+						"spanId": "0123456789abcdef",
 						"parentSpanId": "",
 						"name": "HTTP GET /api/users",
-						"kind": "SERVER",
+						"kind": 2,
 						"startTimeUnixNano": "1600000000000000000",
 						"endTimeUnixNano": "1600000000050000000",
-						"status": {"code": "OK"}
+						"status": {"code": 1}
 					},
 					{
-						"traceId": "trace-999",
-						"spanId": "span-child",
-						"parentSpanId": "span-root",
+						"traceId": "0123456789abcdef0123456789abcdef",
+						"spanId": "fedcba9876543210",
+						"parentSpanId": "0123456789abcdef",
 						"name": "SELECT * FROM users",
-						"kind": "CLIENT",
+						"kind": 3,
 						"startTimeUnixNano": "1600000000010000000",
 						"endTimeUnixNano": "1600000000040000000",
-						"status": {"code": "OK"}
+						"status": {"code": 1}
 					}
 				]
 			}]
@@ -118,7 +118,7 @@ func TestObservabilityServiceLifecycle(t *testing.T) {
 		t.Fatalf("expected traces list, got: %v", err)
 	}
 
-	waterfall, err := svc.GetTraceWaterfall(ctx, orgID, "trace-999")
+	waterfall, err := svc.GetTraceWaterfall(ctx, orgID, "0123456789abcdef0123456789abcdef")
 	if err != nil || len(waterfall) != 2 {
 		t.Fatalf("expected 2 spans in waterfall, got: %d, err: %v", len(waterfall), err)
 	}
@@ -132,7 +132,7 @@ func TestObservabilityServiceLifecycle(t *testing.T) {
 						"timeUnixNano": "1600000000000000000",
 						"severityText": "INFO",
 						"body": {"stringValue": "Worker started successfully"},
-						"traceId": "trace-999"
+						"traceId": "0123456789abcdef0123456789abcdef"
 					},
 					{
 						"timeUnixNano": "1600000000001000000",
@@ -182,10 +182,7 @@ func TestObservabilityServiceLifecycle(t *testing.T) {
 		},
 		RequestBody: "payload-content",
 	})
-	if err != nil {
-		t.Fatalf("replay failed: %v", err)
-	}
-	if replayResp.StatusCode != 200 || replayResp.Body != "replayed-successfully" {
-		t.Errorf("unexpected replay output: %+v", replayResp)
+	if err == nil || replayResp != nil {
+		t.Fatal("replay to loopback must be rejected")
 	}
 }

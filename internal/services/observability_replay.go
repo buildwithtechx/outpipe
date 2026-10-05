@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"outpipe.dev/outpipe/internal/models"
+	"outpipe.dev/outpipe/internal/validation"
 )
 
 const (
@@ -19,6 +20,9 @@ const (
 )
 
 func (s *ObservabilityService) ReplayRequest(ctx context.Context, input models.ReplayRequestInput) (*models.ReplayResponseOutput, error) {
+	if err := validation.ValidateWebhookURL(input.URL); err != nil {
+		return nil, fmt.Errorf("validate replay target: %w", err)
+	}
 	if input.URL == "" {
 		return nil, fmt.Errorf("target URL is required")
 	}
@@ -61,9 +65,8 @@ func (s *ObservabilityService) ReplayRequest(ctx context.Context, input models.R
 		httpReq.Header.Set(k, v)
 	}
 
-	client := &http.Client{
-		Timeout: replayTimeout,
-	}
+	client := validation.NewSafeHTTPClient(replayTimeout)
+	defer client.CloseIdleConnections()
 
 	start := time.Now()
 	resp, err := client.Do(httpReq)

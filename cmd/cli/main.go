@@ -84,6 +84,7 @@ func newRootCommand(cfg config.CLIConfig) *cobra.Command {
 		newTunnelCommand(cfg, "stop", "stop a managed tunnel", cobra.ExactArgs(1)),
 		newTunnelCommand(cfg, "revoke", "revoke a managed tunnel", cobra.ExactArgs(1)),
 		newSecretsCommand(cfg),
+		newMachineTunnelCommand(cfg),
 	)
 
 	root.SetVersionTemplate("outpipe {{.Version}}\n")

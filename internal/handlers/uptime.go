@@ -44,7 +44,7 @@ func (h *UptimeHandler) CreateMonitor(c *fiber.Ctx) error {
 
 func (h *UptimeHandler) GetMonitor(c *fiber.Ctx) error {
 	id := strings.TrimSpace(c.Params("id"))
-	monitor, err := h.uptime.GetMonitor(c.UserContext(), id)
+	monitor, err := h.uptime.GetOwnedMonitor(c.UserContext(), c.Params("organizationID"), id)
 	if err != nil {
 		return writeError(c, fiber.StatusNotFound, err)
 	}
@@ -53,6 +53,9 @@ func (h *UptimeHandler) GetMonitor(c *fiber.Ctx) error {
 
 func (h *UptimeHandler) DeleteMonitor(c *fiber.Ctx) error {
 	id := strings.TrimSpace(c.Params("id"))
+	if _, err := h.uptime.GetOwnedMonitor(c.UserContext(), c.Params("organizationID"), id); err != nil {
+		return c.SendStatus(fiber.StatusNotFound)
+	}
 	if err := h.uptime.DeleteMonitor(c.UserContext(), id); err != nil {
 		return writeError(c, fiber.StatusInternalServerError, err)
 	}
@@ -61,7 +64,7 @@ func (h *UptimeHandler) DeleteMonitor(c *fiber.Ctx) error {
 
 func (h *UptimeHandler) ProbeMonitor(c *fiber.Ctx) error {
 	id := strings.TrimSpace(c.Params("id"))
-	monitor, err := h.uptime.GetMonitor(c.UserContext(), id)
+	monitor, err := h.uptime.GetOwnedMonitor(c.UserContext(), c.Params("organizationID"), id)
 	if err != nil {
 		return writeError(c, fiber.StatusNotFound, err)
 	}
@@ -101,6 +104,9 @@ type AddUpdateInput struct {
 
 func (h *UptimeHandler) AddIncidentUpdate(c *fiber.Ctx) error {
 	id := strings.TrimSpace(c.Params("id"))
+	if err := h.uptime.AuthorizeIncident(c.UserContext(), c.Params("organizationID"), id); err != nil {
+		return c.SendStatus(fiber.StatusNotFound)
+	}
 	var input AddUpdateInput
 	if err := c.BodyParser(&input); err != nil {
 		return writeError(c, fiber.StatusBadRequest, fmt.Errorf("decode request: %w", err))

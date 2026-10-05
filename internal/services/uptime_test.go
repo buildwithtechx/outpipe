@@ -3,9 +3,11 @@ package services
 import (
 	"context"
 	"database/sql"
+	"net"
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
@@ -53,14 +55,19 @@ func TestUptimeServiceLifecycle(t *testing.T) {
 
 	// 1. Create a monitor targeting a local test HTTP server
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		time.Sleep(20 * time.Millisecond)
 		w.WriteHeader(http.StatusOK)
 		_, _ = w.Write([]byte("OK"))
 	}))
 	defer server.Close()
+	service.httpClient = server.Client()
+	service.httpClient.Transport = &http.Transport{DialContext: func(ctx context.Context, network, _ string) (net.Conn, error) {
+		return (&net.Dialer{}).DialContext(ctx, network, server.Listener.Addr().String())
+	}}
 
 	monitor, err := service.CreateMonitor(ctx, orgID, CreateMonitorInput{
 		Name:            "API Gateway",
-		URL:             server.URL,
+		URL:             "http://example.com",
 		Protocol:        "http",
 		Method:          "GET",
 		IntervalSeconds: 30,
@@ -71,6 +78,9 @@ func TestUptimeServiceLifecycle(t *testing.T) {
 	}
 	if monitor.ID == "" || monitor.Name != "API Gateway" {
 		t.Fatalf("unexpected monitor: %+v", monitor)
+	}
+	if _, err := service.GetOwnedMonitor(ctx, "other-org", monitor.ID); err == nil {
+		t.Fatal("foreign organization accessed monitor")
 	}
 
 	// 2. Probe the monitor
@@ -134,5 +144,13 @@ func TestUptimeServiceLifecycle(t *testing.T) {
 	err = service.Subscribe(ctx, "techx-status", "admin@techx.com")
 	if err != nil {
 		t.Fatalf("subscribe: %v", err)
+	}
+	monitor.MaxLatencyMs = 1
+	check, err = service.Probe(ctx, &monitor)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if check.Success || check.ErrorMessage != "latency assertion failed" {
+		t.Fatal("latency assertion did not fail the check")
 	}
 }

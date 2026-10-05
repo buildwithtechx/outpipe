@@ -3,14 +3,15 @@ package config
 import "time"
 
 type APIConfig struct {
-	App      AppConfig      `envPrefix:"OUTPIPE_"`
-	Auth     AuthConfig     `envPrefix:"OUTPIPE_"`
-	Database DatabaseConfig `envPrefix:"OUTPIPE_"`
-	Redis    RedisConfig    `envPrefix:"OUTPIPE_"`
-	Mail     MailConfig     `envPrefix:"OUTPIPE_"`
-	Service  ServiceConfig  `envPrefix:"OUTPIPE_"`
-	Billing  BillingConfig  `envPrefix:"OUTPIPE_"`
-	Tunnel   TunnelConfig   `envPrefix:"OUTPIPE_"`
+	Analytics AnalyticsConfig `envPrefix:"OUTPIPE_" json:"analytics"`
+	App       AppConfig       `envPrefix:"OUTPIPE_"`
+	Auth      AuthConfig      `envPrefix:"OUTPIPE_"`
+	Database  DatabaseConfig  `envPrefix:"OUTPIPE_"`
+	Redis     RedisConfig     `envPrefix:"OUTPIPE_"`
+	Mail      MailConfig      `envPrefix:"OUTPIPE_"`
+	Service   ServiceConfig   `envPrefix:"OUTPIPE_"`
+	Billing   BillingConfig   `envPrefix:"OUTPIPE_"`
+	Tunnel    TunnelConfig    `envPrefix:"OUTPIPE_"`
 }
 
 type RelayConfig struct {

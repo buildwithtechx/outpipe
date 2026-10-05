@@ -31,20 +31,23 @@ const (
 )
 
 type UptimeMonitor struct {
-	ID              string        `gorm:"primaryKey;size:64" json:"id"`
-	OrganizationID  string        `gorm:"index;not null;size:64" json:"organizationId"`
-	Name            string        `gorm:"not null;size:255" json:"name"`
-	URL             string        `gorm:"not null;size:1024" json:"url"`
-	Protocol        string        `gorm:"not null;size:32;default:'https'" json:"protocol"`
-	Method          string        `gorm:"not null;size:16;default:'GET'" json:"method"`
-	IntervalSeconds int           `gorm:"not null;default:60" json:"intervalSeconds"`
-	TimeoutSeconds  int           `gorm:"not null;default:10" json:"timeoutSeconds"`
-	Status          MonitorStatus `gorm:"not null;size:32;default:'up'" json:"status"`
-	LatencyMs       int64         `gorm:"default:0" json:"latencyMs"`
-	UptimeRatio     float64       `gorm:"default:100.0" json:"uptimeRatio"`
-	LastCheckAt     *time.Time    `json:"lastCheckAt,omitempty"`
-	CreatedAt       time.Time     `gorm:"not null" json:"createdAt"`
-	UpdatedAt       time.Time     `gorm:"not null" json:"updatedAt"`
+	ExpectedStatusCode int           `gorm:"default:0" json:"expectedStatusCode"`
+	BodyRegex          string        `gorm:"size:1024" json:"bodyRegex"`
+	MaxLatencyMs       int64         `gorm:"default:0" json:"maxLatencyMs"`
+	ID                 string        `gorm:"primaryKey;size:64" json:"id"`
+	OrganizationID     string        `gorm:"index;not null;size:64" json:"organizationId"`
+	Name               string        `gorm:"not null;size:255" json:"name"`
+	URL                string        `gorm:"not null;size:1024" json:"url"`
+	Protocol           string        `gorm:"not null;size:32;default:'https'" json:"protocol"`
+	Method             string        `gorm:"not null;size:16;default:'GET'" json:"method"`
+	IntervalSeconds    int           `gorm:"not null;default:60" json:"intervalSeconds"`
+	TimeoutSeconds     int           `gorm:"not null;default:10" json:"timeoutSeconds"`
+	Status             MonitorStatus `gorm:"not null;size:32;default:'up'" json:"status"`
+	LatencyMs          int64         `gorm:"default:0" json:"latencyMs"`
+	UptimeRatio        float64       `gorm:"default:100.0" json:"uptimeRatio"`
+	LastCheckAt        *time.Time    `json:"lastCheckAt,omitempty"`
+	CreatedAt          time.Time     `gorm:"not null" json:"createdAt"`
+	UpdatedAt          time.Time     `gorm:"not null" json:"updatedAt"`
 }
 
 func (UptimeMonitor) TableName() string {

@@ -25,16 +25,27 @@ export function createMonitor(
   organizationId: string,
   input: {
     name: string;
-    type: 'http' | 'https' | 'tcp';
+    type: 'http' | 'https' | 'tcp' | 'icmp';
     target: string;
     interval_seconds?: number;
     timeout_seconds?: number;
     expected_status_code?: number;
+    body_regex?: string;
+    max_latency_ms?: number;
   },
 ) {
   return apiClient.post<UptimeMonitor>(
     `/api/v1/organizations/${organizationId}/uptime/monitors`,
-    input,
+    {
+      name: input.name,
+      protocol: input.type,
+      url: input.target,
+      intervalSeconds: input.interval_seconds,
+      timeoutSeconds: input.timeout_seconds,
+      expectedStatusCode: input.expected_status_code,
+      bodyRegex: input.body_regex,
+      maxLatencyMs: input.max_latency_ms,
+    },
   );
 }
 
@@ -43,7 +54,7 @@ export function updateMonitor(
   monitorId: string,
   input: Partial<{
     name: string;
-    type: 'http' | 'https' | 'tcp';
+    type: 'http' | 'https' | 'tcp' | 'icmp';
     target: string;
     interval_seconds: number;
     timeout_seconds: number;
@@ -65,7 +76,7 @@ export function deleteMonitor(organizationId: string, monitorId: string) {
 
 export function testMonitor(organizationId: string, monitorId: string) {
   return apiClient.post<UptimeCheck>(
-    `/api/v1/organizations/${organizationId}/uptime/monitors/${monitorId}/test`,
+    `/api/v1/organizations/${organizationId}/uptime/monitors/${monitorId}/probe`,
     {},
   );
 }
