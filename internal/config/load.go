@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"net/mail"
 	"net/url"
 	"os"
 	"path/filepath"
@@ -80,6 +81,13 @@ func LoadCLI() (CLIConfig, error) {
 	if cfg.APIURL == "" || cfg.RelayURL == "" {
 		return CLIConfig{}, fmt.Errorf("tunnel api and relay urls are required")
 	}
+	if cfg.ConfigPath == "" {
+		directory, err := os.UserConfigDir()
+		if err != nil {
+			return CLIConfig{}, fmt.Errorf("locate user configuration directory: %w", err)
+		}
+		cfg.ConfigPath = filepath.Join(directory, "outpipe", "config.json")
+	}
 
 	return cfg, nil
 }
@@ -129,7 +137,7 @@ func decodeCLIFile(data []byte) (CLIConfig, error) {
 	}
 
 	if cfg.Version > CurrentCLIConfigVersion {
-		return CLIConfig{}, fmt.Errorf("cli config version %d is newer than supported version %d", cfg.Version, CurrentCLIConfigVersion)
+		return CLIConfig{}, &CLIConfigVersionError{Version: cfg.Version}
 	}
 
 	if cfg.Version == 0 {
@@ -222,6 +230,15 @@ func validateApp(cfg AppConfig) error {
 func validateAPIApp(cfg AppConfig) error {
 	if err := validateApp(cfg); err != nil {
 		return err
+	}
+	if cfg.ACMEEnabled {
+		address, err := mail.ParseAddress(cfg.ACMEEmail)
+		if err != nil {
+			return fmt.Errorf("ACME requires a valid contact email: %w", err)
+		}
+		if address.Address != cfg.ACMEEmail {
+			return fmt.Errorf("ACME contact email must be a bare email address")
+		}
 	}
 	if !strings.EqualFold(cfg.Environment, "production") {
 		return nil

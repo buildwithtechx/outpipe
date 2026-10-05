@@ -28,23 +28,10 @@ func main() {
 }
 
 func run(args []string) error {
-	cfg, err := config.LoadCLI()
+	cfg, err := loadCLISettings()
 
 	if err != nil {
 		return err
-	}
-
-	if stored, loadErr := config.LoadCLIFile(cfg.ConfigPath); loadErr == nil {
-
-		if _, ok := os.LookupEnv("OUTPIPE_API_KEY"); !ok {
-			cfg.APIKey = stored.APIKey
-		}
-
-		if _, ok := os.LookupEnv("OUTPIPE_AGENT_TOKEN"); !ok {
-			cfg.AgentToken = stored.AgentToken
-		}
-	} else if !os.IsNotExist(errors.Unwrap(loadErr)) {
-		fmt.Fprintf(os.Stderr, "outpipe: warning: could not load config file %s: %v\n", cfg.ConfigPath, loadErr)
 	}
 
 	root := newRootCommand(cfg)

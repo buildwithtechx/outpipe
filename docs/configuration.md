@@ -57,12 +57,13 @@ protect it; a shared secret authenticates every caller.
 
 ### Automated certificates (ACME)
 
-When `OUTPIPE_ACME_EMAIL` is set, the domain service issues Let's Encrypt
+When `OUTPIPE_ACME_ENABLED=true` and a valid contact email is configured, the domain service issues Let's Encrypt
 certificates for verified custom domains with `autocert`.
 
 | Variable                        | Default      | Purpose                                                |
 | ------------------------------- | ------------ | ------------------------------------------------------ |
-| `OUTPIPE_ACME_EMAIL`            | empty        | Account email; empty disables ACME issuance.           |
+| `OUTPIPE_ACME_ENABLED`          | false        | Explicitly enables ACME issuance.                     |
+| `OUTPIPE_ACME_EMAIL`            | empty        | Account contact email, required when enabled.         |
 | `OUTPIPE_ACME_DIRECTORY`        | empty        | Custom ACME directory URL (test/LetsEncrypt staging).  |
 | `OUTPIPE_CERTIFICATE_CACHE_DIR` | `.data/acme` | Where issued certificates and account keys are cached. |
 
@@ -140,16 +141,17 @@ public data plane is entirely separate from the control-plane handlers.
 
 ## CLI (cmd/cli)
 
-| Variable              | Default                       | Purpose                                                           |
-| --------------------- | ----------------------------- | ----------------------------------------------------------------- |
-| `OUTPIPE_API_URL`     | `http://localhost:8080`       | Control-plane API base URL.                                       |
-| `OUTPIPE_RELAY_URL`   | `ws://localhost:8081`         | Relay WebSocket URL. May be `wss://` in production.               |
-| `OUTPIPE_DOMAIN`      | `outpipe.app`                 | Public tunnel domain, used to normalize managed-tunnel hostnames. |
-| `OUTPIPE_API_KEY`     | empty                         | API key for managed-tunnel and management commands.               |
-| `OUTPIPE_TOKEN`       | empty                         | Short-lived secrets machine token with `secrets:read`, required by `outpipe secrets run`. |
-| `OUTPIPE_AGENT_TOKEN` | empty                         | Agent token for ephemeral CI/CD tunnel opening.                   |
-| `OUTPIPE_PASSWORD`    | empty                         | Default tunnel access password.                                   |
-| `OUTPIPE_CONFIG_PATH` | `.config/outpipe/config.json` | Where `outpipe login` stores credentials (0600).                  |
+| Variable              | Default                                          | Purpose                                                                                   |
+| --------------------- | ------------------------------------------------ | ----------------------------------------------------------------------------------------- |
+| `OUTPIPE_API_URL`     | `https://api.outpipe.dev`                        | Hosted control-plane API; override for local development.                                 |
+| `OUTPIPE_RELAY_URL`   | `wss://relay.outpipe.app/v1/connect`             | Hosted relay; override for local development.                                             |
+| `OUTPIPE_DOMAIN`      | `outpipe.app`                                    | Public tunnel domain, used to normalize managed-tunnel hostnames.                         |
+| `OUTPIPE_API_KEY`     | empty                                            | API key for managed-tunnel and management commands.                                       |
+| `OUTPIPE_TOKEN`       | empty                                            | Short-lived machine token: `secrets:read` for secrets or `tunnels:write` for machine tunnels. |
+| `OUTPIPE_MACHINE_TOKEN` | empty                                          | Dedicated tunnel credential; overrides `OUTPIPE_TOKEN` for machine tunnels. |
+| `OUTPIPE_AGENT_TOKEN` | empty                                            | Agent token for ephemeral CI/CD tunnel opening.                                           |
+| `OUTPIPE_PASSWORD`    | empty                                            | Default tunnel access password.                                                           |
+| `OUTPIPE_CONFIG_PATH` | OS user config directory + `outpipe/config.json` | Where `outpipe login` stores credentials (0600), shared across projects.                  |
 
 ## Cron (cmd/cron)
 
