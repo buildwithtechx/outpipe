@@ -103,7 +103,8 @@ async function handleSubmit() {
               backgroundColor: subType === 'webhook' ? 'var(--border-primary)' : 'transparent',
               color: subType === 'webhook' ? '#fff' : 'var(--text-muted)'
             }"
-            @click="subType = 'webhook'"
+            disabled
+            title="Webhook subscriptions are not available"
           >
             Webhook
           </button>

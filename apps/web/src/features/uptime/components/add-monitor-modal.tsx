@@ -125,7 +125,7 @@ export function AddMonitorModal({
                 id="monitor-interval-input"
                 type="number"
                 min={10}
-                max={3600}
+                max={86400}
                 value={intervalSeconds}
                 onChange={(e) => setIntervalSeconds(Number(e.target.value))}
                 className="border-white/10 bg-white/5 text-xs text-white"
@@ -146,8 +146,10 @@ export function AddMonitorModal({
               required
               placeholder={
                 type === 'tcp'
-                  ? '127.0.0.1:8080'
-                  : 'https://api.example.com/health'
+                  ? 'example.com:443'
+                  : type === 'icmp'
+                    ? 'example.com'
+                    : `${type}://api.example.com/health`
               }
               value={target}
               onChange={(e) => setTarget(e.target.value)}
@@ -215,19 +217,6 @@ export function AddMonitorModal({
                 value={maxLatencyMs}
                 onChange={(event) =>
                   setMaxLatencyMs(Number(event.target.value))
-                }
-              />
-            </div>
-            <div className="space-y-1.5">
-              <Label htmlFor="monitor-interval">Interval (sec)</Label>
-              <Input
-                id="monitor-interval"
-                type="number"
-                min={10}
-                max={86400}
-                value={intervalSeconds}
-                onChange={(event) =>
-                  setIntervalSeconds(Number(event.target.value))
                 }
               />
             </div>

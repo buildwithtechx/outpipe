@@ -1,6 +1,10 @@
 package handlers
 
-import "github.com/gofiber/fiber/v2"
+import (
+	"errors"
+	"github.com/gofiber/fiber/v2"
+	"outpipe.dev/outpipe/internal/repositories"
+)
 
 func (h *TunnelHandler) SetCapture(c *fiber.Ctx) error {
 	var input struct {
@@ -11,7 +15,10 @@ func (h *TunnelHandler) SetCapture(c *fiber.Ctx) error {
 	}
 	tunnel, err := h.tunnels.SetCapture(c.UserContext(), c.Params("tunnelID"), *input.Enabled)
 	if err != nil {
-		return writeError(c, fiber.StatusBadRequest, err)
+		if errors.Is(err, repositories.ErrNotFound) {
+			return c.SendStatus(fiber.StatusNotFound)
+		}
+		return writeError(c, fiber.StatusInternalServerError, err)
 	}
 	return c.JSON(tunnel)
 }

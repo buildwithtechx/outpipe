@@ -7,6 +7,11 @@ import type {
   TelemetrySpan,
 } from '#/interfaces';
 import { apiClient } from '#/lib/api-client';
+import {
+  normalizeObservability,
+  normalizeObservabilityList,
+  type ObservabilityResponse,
+} from './observability-response';
 
 export type {
   ObservabilityStats,
@@ -18,21 +23,27 @@ export type {
 };
 
 export function getObservabilityStats(organizationId: string, range = '24h') {
-  return apiClient.get<ObservabilityStats>(
-    `/api/v1/organizations/${organizationId}/observability/stats?range=${range}`,
-  );
+  return apiClient
+    .get<ObservabilityResponse<ObservabilityStats>>(
+      `/api/v1/organizations/${organizationId}/observability/stats?range=${range}`,
+    )
+    .then(normalizeObservability<ObservabilityStats>);
 }
 
 export function getTraces(organizationId: string, limit = 50) {
-  return apiClient.get<TelemetrySpan[]>(
-    `/api/v1/organizations/${organizationId}/observability/traces?limit=${limit}`,
-  );
+  return apiClient
+    .get<ObservabilityResponse<TelemetrySpan>[]>(
+      `/api/v1/organizations/${organizationId}/observability/traces?limit=${limit}`,
+    )
+    .then(normalizeObservabilityList<TelemetrySpan>);
 }
 
 export function getTraceWaterfall(organizationId: string, traceId: string) {
-  return apiClient.get<TelemetrySpan[]>(
-    `/api/v1/organizations/${organizationId}/observability/traces/${traceId}`,
-  );
+  return apiClient
+    .get<ObservabilityResponse<TelemetrySpan>[]>(
+      `/api/v1/organizations/${organizationId}/observability/traces/${traceId}`,
+    )
+    .then(normalizeObservabilityList<TelemetrySpan>);
 }
 
 export function getLogs(
@@ -45,9 +56,11 @@ export function getLogs(
   if (search) params.set('search', search);
   if (severity) params.set('severity', severity);
   params.set('limit', String(limit));
-  return apiClient.get<TelemetryLog[]>(
-    `/api/v1/organizations/${organizationId}/observability/logs?${params.toString()}`,
-  );
+  return apiClient
+    .get<ObservabilityResponse<TelemetryLog>[]>(
+      `/api/v1/organizations/${organizationId}/observability/logs?${params.toString()}`,
+    )
+    .then(normalizeObservabilityList<TelemetryLog>);
 }
 
 export function getCaptures(
@@ -58,15 +71,19 @@ export function getCaptures(
   const params = new URLSearchParams();
   if (tunnelId) params.set('tunnel_id', tunnelId);
   params.set('limit', String(limit));
-  return apiClient.get<RequestCapture[]>(
-    `/api/v1/organizations/${organizationId}/observability/captures?${params.toString()}`,
-  );
+  return apiClient
+    .get<ObservabilityResponse<RequestCapture>[]>(
+      `/api/v1/organizations/${organizationId}/observability/captures?${params.toString()}`,
+    )
+    .then(normalizeObservabilityList<RequestCapture>);
 }
 
 export function getCapture(organizationId: string, captureId: string) {
-  return apiClient.get<RequestCapture>(
-    `/api/v1/organizations/${organizationId}/observability/captures/${captureId}`,
-  );
+  return apiClient
+    .get<ObservabilityResponse<RequestCapture>>(
+      `/api/v1/organizations/${organizationId}/observability/captures/${captureId}`,
+    )
+    .then(normalizeObservability<RequestCapture>);
 }
 
 export function executeReplay(

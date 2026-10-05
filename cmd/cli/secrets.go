@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"net/url"
 	"os"
 	"os/exec"
 	"strings"
@@ -32,12 +33,9 @@ func newSecretsRunCommand(cfg config.CLIConfig) *cobra.Command {
 		Short: "run a command with secrets injected into the environment",
 		Args:  cobra.MinimumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			token := cfg.APIKey
-			if envToken := os.Getenv("OUTPIPE_TOKEN"); envToken != "" {
-				token = envToken
-			}
+			token := os.Getenv("OUTPIPE_TOKEN")
 			if token == "" {
-				return fmt.Errorf("authentication required: set OUTPIPE_API_KEY, OUTPIPE_TOKEN or login")
+				return fmt.Errorf("set OUTPIPE_TOKEN to a secrets machine token with secrets:read scope")
 			}
 
 			apiURL := cfg.APIURL
@@ -46,15 +44,15 @@ func newSecretsRunCommand(cfg config.CLIConfig) *cobra.Command {
 			}
 
 			reqURL := fmt.Sprintf("%s/api/v1/cli/secrets", strings.TrimRight(apiURL, "/"))
-			queryParams := []string{}
+			queryParams := url.Values{}
 			if project != "" {
-				queryParams = append(queryParams, "project="+project)
+				queryParams.Set("project", project)
 			}
 			if environment != "" {
-				queryParams = append(queryParams, "environment="+environment)
+				queryParams.Set("environment", environment)
 			}
 			if len(queryParams) > 0 {
-				reqURL += "?" + strings.Join(queryParams, "&")
+				reqURL += "?" + queryParams.Encode()
 			}
 
 			req, err := http.NewRequestWithContext(cmd.Context(), http.MethodGet, reqURL, nil)
@@ -63,7 +61,7 @@ func newSecretsRunCommand(cfg config.CLIConfig) *cobra.Command {
 			}
 			req.Header.Set("Authorization", "Bearer "+token)
 
-			client := &http.Client{Timeout: 15 * time.Second}
+			client := &http.Client{Timeout: 15 * time.Second, CheckRedirect: func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse }}
 			resp, err := client.Do(req)
 			if err != nil {
 				return fmt.Errorf("fetch secrets: %w", err)

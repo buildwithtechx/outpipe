@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Button } from '#/components/ui/button';
 import {
   Dialog,
@@ -34,14 +34,25 @@ export function ReplayDialog({
   isExecuting,
 }: ReplayDialogProps) {
   const [method, setMethod] = useState(initialInput?.method || 'POST');
-  const [url, setUrl] = useState(
-    initialInput?.url || 'https://httpbin.org/post',
-  );
+  const [url, setUrl] = useState(initialInput?.url || '');
   const [body, setBody] = useState(
     initialInput?.request_body || '{\n  "test": true\n}',
   );
   const [result, setResult] = useState<ReplayResponseOutput | null>(null);
   const [errorMsg, setErrorMsg] = useState('');
+  useEffect(() => {
+    if (!isOpen) return;
+    setMethod(initialInput?.method || 'POST');
+    setUrl(initialInput?.url || '');
+    setBody(initialInput?.request_body || '');
+    setResult(null);
+    setErrorMsg('');
+  }, [
+    isOpen,
+    initialInput?.method,
+    initialInput?.url,
+    initialInput?.request_body,
+  ]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -90,12 +101,13 @@ export function ReplayDialog({
                 htmlFor="replay-url-input"
                 className="text-xs text-white/70"
               >
-                Target URL
+                Public target URL (include the request path)
               </Label>
               <Input
                 id="replay-url-input"
                 type="url"
                 required
+                placeholder="https://your-service.example/path"
                 value={url}
                 onChange={(e) => setUrl(e.target.value)}
                 className="border-white/10 bg-white/5 text-xs font-mono text-white placeholder-white/30"

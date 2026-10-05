@@ -78,7 +78,10 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	httpProxy.SetCaptureRecorder(&captureRecorder{resolver: managedTunnels, baseURL: cfg.Service.InternalAPIURL, secret: cfg.Service.InternalAPISecret, client: httpclient.New(5 * time.Second)})
+	captures := &captureRecorder{resolver: managedTunnels, baseURL: cfg.Service.InternalAPIURL, secret: cfg.Service.InternalAPISecret, client: httpclient.New(5 * time.Second)}
+	captures.start(ctx)
+	defer captures.wait.Wait()
+	httpProxy.SetCaptureRecorder(captures)
 
 	relayHandler, err := relay.NewHandlerWithOptions(authenticator, sessions, requestRouter, tcpManager, udpManager, relay.HandlerOptions{MaxConnections: cfg.Tunnel.MaxConnections, MaxTunnels: cfg.Tunnel.MaxTunnels, MaxBandwidth: cfg.Tunnel.MaxBandwidth, Heartbeat: cfg.Tunnel.Heartbeat, ReadTimeout: cfg.Tunnel.ReadTimeout, DrainTimeout: cfg.Tunnel.DrainTimeout, MaxFrameBytes: cfg.Tunnel.MaxFrameBytes, Logger: slog.Default(), Metrics: metrics, UsageRecorder: usage, Affinity: affinity, ManagedTunnels: managedTunnels, RelayID: cfg.RelayID, AffinityTTL: cfg.Tunnel.AgentInactivity, AllowedOrigins: cfg.App.AllowedOrigins, PublicDomain: cfg.Tunnel.Domain})
 

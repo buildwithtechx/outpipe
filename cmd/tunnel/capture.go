@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
+	"sync"
 	"time"
 
 	"outpipe.dev/outpipe/internal/engine"
@@ -14,13 +15,18 @@ import (
 )
 
 type captureRecorder struct {
-	resolver *relay.InternalTunnelResolver
-	baseURL  string
-	secret   string
-	client   *http.Client
+	resolver    *relay.InternalTunnelResolver
+	baseURL     string
+	secret      string
+	client      *http.Client
+	mu          sync.Mutex
+	policies    map[string]capturePolicy
+	policyQueue chan capturePolicyRequest
+	queue       chan engine.RequestCapture
+	wait        sync.WaitGroup
 }
 
-func (r *captureRecorder) Enabled(ctx context.Context, tunnelID, orgID string) (bool, error) {
+func (r *captureRecorder) enabledPolicy(ctx context.Context, tunnelID, orgID string) (bool, error) {
 	policy, err := r.resolver.Resolve(ctx, tunnelID)
 	if err != nil {
 		return false, fmt.Errorf("resolve capture policy: %w", err)
@@ -28,7 +34,7 @@ func (r *captureRecorder) Enabled(ctx context.Context, tunnelID, orgID string) (
 	return policy.OrganizationID == orgID && policy.Status != "revoked" && policy.CaptureEnabled, nil
 }
 
-func (r *captureRecorder) RecordCapture(ctx context.Context, capture engine.RequestCapture) error {
+func (r *captureRecorder) sendCapture(ctx context.Context, capture engine.RequestCapture) error {
 	body, err := json.Marshal(capture)
 	if err != nil {
 		return fmt.Errorf("encode capture: %w", err)
@@ -41,7 +47,9 @@ func (r *captureRecorder) RecordCapture(ctx context.Context, capture engine.Requ
 	}
 	request.Header.Set("Content-Type", "application/json")
 	request.Header.Set("X-Internal-Secret", r.secret)
-	response, err := r.client.Do(request)
+	client := *r.client
+	client.CheckRedirect = func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse }
+	response, err := client.Do(request)
 	if err != nil {
 		return fmt.Errorf("send capture: %w", err)
 	}

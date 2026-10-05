@@ -25,6 +25,9 @@ func NewSecretService(repo repositories.SecretRepository, encryptionKey string) 
 	if repo == nil {
 		return nil, fmt.Errorf("secret repository is required")
 	}
+	if strings.TrimSpace(encryptionKey) == "" {
+		return nil, fmt.Errorf("secret encryption key is required")
+	}
 	keyBytes := parseEncryptionKey(encryptionKey)
 	return &SecretService{
 		repo:          repo,
@@ -42,6 +45,9 @@ func parseEncryptionKey(raw string) []byte {
 }
 
 func (s *SecretService) CreateProject(ctx context.Context, orgID, slug, name, description, userID string) (models.SecretProject, error) {
+	if err := validateSecretSlug(slug, 120); err != nil {
+		return models.SecretProject{}, err
+	}
 	project := models.SecretProject{
 		OrganizationID: orgID,
 		Slug:           strings.ToLower(strings.TrimSpace(slug)),
@@ -68,6 +74,13 @@ func (s *SecretService) DeleteProject(ctx context.Context, orgID, projectID stri
 }
 
 func (s *SecretService) CreateEnvironment(ctx context.Context, orgID, projectID, slug, name, userID string) (models.SecretEnvironment, error) {
+	if err := validateSecretSlug(slug, 64); err != nil {
+		return models.SecretEnvironment{}, err
+	}
+	projectID, _, err := s.ResolveScope(ctx, orgID, projectID, "")
+	if err != nil {
+		return models.SecretEnvironment{}, err
+	}
 	env := models.SecretEnvironment{
 		OrganizationID: orgID,
 		ProjectID:      projectID,
@@ -82,6 +95,10 @@ func (s *SecretService) CreateEnvironment(ctx context.Context, orgID, projectID,
 }
 
 func (s *SecretService) ListEnvironments(ctx context.Context, orgID, projectID string) ([]models.SecretEnvironment, error) {
+	projectID, _, err := s.ResolveScope(ctx, orgID, projectID, "")
+	if err != nil {
+		return nil, err
+	}
 	return s.repo.ListEnvironments(ctx, orgID, projectID)
 }
 
@@ -95,6 +112,10 @@ type SecretItemDTO struct {
 }
 
 func (s *SecretService) SetSecret(ctx context.Context, orgID, projectID, envID, key, value, comment, userID string) (SecretItemDTO, error) {
+	projectID, envID, err := s.ResolveScope(ctx, orgID, projectID, envID)
+	if err != nil {
+		return SecretItemDTO{}, err
+	}
 	key = strings.TrimSpace(key)
 	ciphertext, iv, err := security.EncryptAESGCM([]byte(value), s.encryptionKey)
 	if err != nil {
@@ -138,7 +159,7 @@ func (s *SecretService) SetSecret(ctx context.Context, orgID, projectID, envID, 
 			Key:       entry.Key,
 			Value:     value,
 			Comment:   entry.Comment,
-			Version:   1,
+			Version:   ver.Version,
 			UpdatedAt: entry.UpdatedAt,
 		}, nil
 	}
@@ -163,6 +184,10 @@ func (s *SecretService) SetSecret(ctx context.Context, orgID, projectID, envID, 
 }
 
 func (s *SecretService) ListSecrets(ctx context.Context, orgID, projectID, envID string, reveal bool) ([]SecretItemDTO, error) {
+	projectID, envID, err := s.ResolveScope(ctx, orgID, projectID, envID)
+	if err != nil {
+		return nil, err
+	}
 	entries, err := s.repo.ListEntries(ctx, orgID, projectID, envID, false)
 	if err != nil {
 		return nil, fmt.Errorf("list entries: %w", err)
@@ -171,18 +196,23 @@ func (s *SecretService) ListSecrets(ctx context.Context, orgID, projectID, envID
 	for _, entry := range entries {
 		ver, err := s.repo.FindLatestVersion(ctx, orgID, entry.ID)
 		if err != nil {
-			continue
+			return nil, fmt.Errorf("read secret version: %w", err)
 		}
 		val := ""
 		if reveal {
-			rawCipher, err1 := base64.StdEncoding.DecodeString(ver.Ciphertext)
-			rawIV, err2 := base64.StdEncoding.DecodeString(ver.IV)
-			if err1 == nil && err2 == nil {
-				decrypted, err := security.DecryptAESGCM(rawCipher, rawIV, s.encryptionKey)
-				if err == nil {
-					val = string(decrypted)
-				}
+			rawCipher, err := base64.StdEncoding.DecodeString(ver.Ciphertext)
+			if err != nil {
+				return nil, fmt.Errorf("decode secret ciphertext: %w", err)
 			}
+			rawIV, err := base64.StdEncoding.DecodeString(ver.IV)
+			if err != nil {
+				return nil, fmt.Errorf("decode secret nonce: %w", err)
+			}
+			decrypted, err := security.DecryptAESGCM(rawCipher, rawIV, s.encryptionKey)
+			if err != nil {
+				return nil, fmt.Errorf("decrypt secret value: %w", err)
+			}
+			val = string(decrypted)
 		}
 		items = append(items, SecretItemDTO{
 			ID:        entry.ID,
@@ -205,6 +235,10 @@ func (s *SecretService) RestoreSecret(ctx context.Context, orgID, entryID string
 }
 
 func (s *SecretService) ListTrash(ctx context.Context, orgID, projectID, envID string) ([]models.SecretEntry, error) {
+	projectID, envID, err := s.ResolveScope(ctx, orgID, projectID, envID)
+	if err != nil {
+		return nil, err
+	}
 	return s.repo.ListEntries(ctx, orgID, projectID, envID, true)
 }
 
@@ -214,6 +248,10 @@ type CreatedMachineTokenDTO struct {
 }
 
 func (s *SecretService) CreateMachineToken(ctx context.Context, orgID, projectID, envID, name string, scopes []string, userID string) (CreatedMachineTokenDTO, error) {
+	projectID, envID, err := s.ResolveScope(ctx, orgID, projectID, envID)
+	if err != nil {
+		return CreatedMachineTokenDTO{}, err
+	}
 	entropy := make([]byte, 24)
 	if _, err := rand.Read(entropy); err != nil {
 		return CreatedMachineTokenDTO{}, fmt.Errorf("generate entropy: %w", err)

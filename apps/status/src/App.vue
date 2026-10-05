@@ -70,5 +70,6 @@ onUnmounted(() => {
         @close="isSubscribeOpen = false"
       />
     </div>
+    <div v-else style="padding: 4rem; text-align: center;">Status page unavailable.</div>
   </div>
 </template>

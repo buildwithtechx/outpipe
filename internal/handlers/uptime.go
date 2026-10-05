@@ -118,6 +118,7 @@ func (h *UptimeHandler) AddIncidentUpdate(c *fiber.Ctx) error {
 }
 
 type UpsertStatusPageInput struct {
+	Published    bool   `json:"published"`
 	Slug         string `json:"slug"`
 	Title        string `json:"title"`
 	Description  string `json:"description"`
@@ -139,7 +140,7 @@ func (h *UptimeHandler) UpsertStatusPage(c *fiber.Ctx) error {
 	if err := c.BodyParser(&input); err != nil {
 		return writeError(c, fiber.StatusBadRequest, fmt.Errorf("decode request: %w", err))
 	}
-	page, err := h.uptime.UpsertStatusPage(c.UserContext(), orgID, input.Slug, input.Title, input.Description, input.CustomDomain)
+	page, err := h.uptime.UpsertStatusPage(c.UserContext(), orgID, input.Slug, input.Title, input.Description, input.CustomDomain, input.Published)
 	if err != nil {
 		return writeError(c, fiber.StatusBadRequest, err)
 	}

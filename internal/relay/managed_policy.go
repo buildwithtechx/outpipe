@@ -10,6 +10,9 @@ import (
 )
 
 func (h *Handler) resolveManagedPolicy(ctx context.Context, identity AgentIdentity, open *protocol.OpenTunnel) (string, error) {
+	if open.Subdomain != "" && open.CustomDomain != "" {
+		return "", fmt.Errorf("choose either subdomain or custom domain")
+	}
 	if identity.MachineTokenID != "" && (open.TunnelID == "" || h.managedTunnels == nil) {
 		return "", fmt.Errorf("machine tunnels require managed authorization")
 	}

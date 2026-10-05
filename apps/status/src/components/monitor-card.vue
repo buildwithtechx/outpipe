@@ -13,8 +13,10 @@ function formatStatus(status: string): string {
     case 'operational': return 'Operational';
     case 'degraded': return 'Degraded';
     case 'outage': return 'Major Outage';
+    case 'down': return 'Down';
+    case 'paused': return 'Paused';
     case 'maintenance': return 'Maintenance';
-    default: return 'Active';
+    default: return 'Unknown';
   }
 }
 
@@ -23,6 +25,7 @@ function getStatusColor(status: string): string {
     case 'operational': return 'var(--status-operational)';
     case 'degraded': return 'var(--status-degraded)';
     case 'outage': return 'var(--status-outage)';
+    case 'down': return 'var(--status-outage)';
     default: return 'var(--status-unknown)';
   }
 }
@@ -32,7 +35,7 @@ function getStatusColor(status: string): string {
   <div class="monitors-card">
     <div class="monitors-header">
       <h2 class="monitors-title">Services & Relays</h2>
-      <span class="monitors-subtitle">Uptime over the past 90 days</span>
+      <span class="monitors-subtitle">Latest monitoring results</span>
     </div>
 
     <div v-for="monitor in monitors" :key="monitor.id" class="monitor-item">
@@ -42,7 +45,7 @@ function getStatusColor(status: string): string {
           <span class="monitor-protocol">{{ monitor.type }}</span>
         </div>
         <div class="monitor-status-badge" :style="{ color: getStatusColor(monitor.status) }">
-          <span class="status-dot" :class="monitor.status" style="width: 8px; height: 8px;" />
+          <span class="status-dot" :class="monitor.status === 'down' ? 'outage' : monitor.status" style="width: 8px; height: 8px;" />
           {{ formatStatus(monitor.status) }}
         </div>
       </div>
@@ -59,7 +62,7 @@ function getStatusColor(status: string): string {
       </div>
 
       <div class="uptime-footer">
-        <span>90 days ago</span>
+        <span>Recent checks</span>
         <span v-if="hoveredDay && hoveredDay.monitorId === monitor.id" style="color: var(--text-primary); font-weight: 500;">
           {{ hoveredDay.day.date }}: {{ hoveredDay.day.uptimePercentage }}% ({{ hoveredDay.day.avgLatencyMs }}ms)
         </span>

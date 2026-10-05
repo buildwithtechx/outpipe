@@ -5,6 +5,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"github.com/google/uuid"
 	"net/http"
 	"strings"
 	"time"
@@ -15,6 +16,7 @@ import (
 const MaxCaptureBytes = 64 * 1024
 
 type RequestCapture struct {
+	ID               string    `json:"id"`
 	OrganizationID   string    `json:"organization_id"`
 	TunnelID         string    `json:"tunnel_id"`
 	Timestamp        time.Time `json:"timestamp"`
@@ -88,6 +90,7 @@ func (p *HTTPProxy) captureRequest(request *http.Request, route, encodedBody str
 		return fmt.Errorf("decode capture response: %w", err)
 	}
 	capture := RequestCapture{OrganizationID: orgID, TunnelID: tunnelID, Timestamp: started.UTC(), Method: request.Method, Path: request.URL.Path, StatusCode: response.StatusCode, DurationMs: time.Since(started).Milliseconds(), RequestHeaders: string(reqHeaders), ResponseHeaders: string(respHeaders), RequestBody: sanitizedCaptureBody(body), ResponseBody: sanitizedCaptureBody(respBody), RequestBodySize: int64(len(body)), ResponseBodySize: int64(len(respBody))}
+	capture.ID = uuid.NewString()
 	if err := p.capture.RecordCapture(request.Context(), capture); err != nil {
 		return fmt.Errorf("record request capture: %w", err)
 	}

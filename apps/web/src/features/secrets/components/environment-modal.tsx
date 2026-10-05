@@ -24,6 +24,7 @@ export function EnvironmentModal({
 }: EnvironmentModalProps) {
   const [name, setName] = useState('');
   const [slug, setSlug] = useState('');
+  const [slugEdited, setSlugEdited] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -31,6 +32,7 @@ export function EnvironmentModal({
     await onCreate({ slug: slug.trim().toLowerCase(), name: name.trim() });
     setName('');
     setSlug('');
+    setSlugEdited(false);
   };
 
   return (
@@ -54,7 +56,7 @@ export function EnvironmentModal({
               value={name}
               onChange={(e) => {
                 setName(e.target.value);
-                if (!slug) {
+                if (!slugEdited) {
                   setSlug(
                     e.target.value
                       .toLowerCase()
@@ -76,7 +78,10 @@ export function EnvironmentModal({
               required
               placeholder="e.g. staging"
               value={slug}
-              onChange={(e) => setSlug(e.target.value)}
+              onChange={(e) => {
+                setSlugEdited(true);
+                setSlug(e.target.value);
+              }}
               className="border-white/10 bg-white/5 text-xs font-mono text-white placeholder-white/30"
             />
           </div>

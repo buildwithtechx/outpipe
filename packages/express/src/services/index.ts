@@ -1,2 +1,6 @@
-export { tunnelLifecycle, tunnelStatus } from './middleware';
+export {
+  tunnelLifecycle,
+  tunnelPayloadCapture,
+  tunnelStatus,
+} from './middleware';
 export { createExpressTunnel } from './tunnel';

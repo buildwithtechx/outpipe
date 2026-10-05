@@ -87,6 +87,7 @@ export function createHonoTunnel(options: HonoTunnelOptions): HonoTunnel {
       } catch (error) {
         closeError = error;
       } finally {
+        current = { status: 'closed' };
         connection.close();
       }
       if (closeError) {

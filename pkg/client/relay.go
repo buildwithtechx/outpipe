@@ -233,6 +233,8 @@ func (c *RelayConnection) SendHeartbeat() error {
 }
 
 func (c *RelayConnection) ServeLocal(ctx context.Context, targetURL string) error {
+	stopClose := context.AfterFunc(ctx, func() { _ = c.Close() })
+	defer stopClose()
 
 	for {
 		_, data, err := c.conn.ReadMessage()

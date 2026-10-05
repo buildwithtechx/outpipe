@@ -53,7 +53,8 @@ export function SecretsPage({ orgSlug }: { orgSlug: string }) {
     value: string;
     comment?: string;
   }) => {
-    if (!activeProjectId || !activeEnvId) return;
+    if (!activeProjectId || !activeEnvId)
+      throw new Error('Select an environment first');
     await mutations.saveSecret.mutateAsync({
       projectId: activeProjectId,
       environmentId: activeEnvId,
@@ -113,7 +114,7 @@ export function SecretsPage({ orgSlug }: { orgSlug: string }) {
             <FolderPlus className="size-3.5 mr-1.5" />
             New Project
           </Button>
-          {activeProjectId && (
+          {activeProjectId && activeEnvId && (
             <Button
               size="sm"
               onClick={() => setShowAddForm(true)}
@@ -219,7 +220,7 @@ export function SecretsPage({ orgSlug }: { orgSlug: string }) {
                   environments.find((e) => e.id === activeEnvId)?.slug ||
                   'production';
                 navigator.clipboard.writeText(
-                  `outpipe secrets run -p ${projSlug} -e ${envSlug} -- npm run dev`,
+                  `outpipe secrets run -p '${projSlug.replace(/'/g, "'\\''")}' -e '${envSlug.replace(/'/g, "'\\''")}' -- npm run dev`,
                 );
               }}
               className="size-7 p-0 ml-3 shrink-0 text-white/40 hover:text-white hover:bg-transparent"

@@ -300,7 +300,7 @@ export function ObservabilityPage({ orgSlug }: { orgSlug: string }) {
           replayInitial
             ? {
                 method: replayInitial.method,
-                url: `http://localhost:8080${replayInitial.path}`,
+                url: '',
                 request_body: replayInitial.requestBody,
               }
             : undefined

@@ -69,8 +69,12 @@ func (r *GormUptimeRepository) ListOrgMonitors(ctx context.Context, orgID string
 }
 
 func (r *GormUptimeRepository) UpdateMonitor(ctx context.Context, monitor *models.UptimeMonitor) error {
-	if err := r.db.WithContext(ctx).Save(monitor).Error; err != nil {
-		return fmt.Errorf("update monitor %q: %w", monitor.ID, err)
+	result := r.db.WithContext(ctx).Model(&models.UptimeMonitor{}).Where("id = ?", monitor.ID).Select("*").Updates(monitor)
+	if result.Error != nil {
+		return fmt.Errorf("update monitor %q: %w", monitor.ID, result.Error)
+	}
+	if result.RowsAffected != 1 {
+		return ErrNotFound
 	}
 	return nil
 }

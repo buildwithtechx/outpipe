@@ -97,7 +97,7 @@ func RegisterRoutes(app *fiber.App, handlers Handlers, options RouterOptions) er
 	}
 
 	if handlers.Observability != nil {
-		ingest := app.Group("/api/v1/ingest/otlp", ingestionRequired(handlers.apiKeyService, handlers.authService, handlers.organizationService), requestRateLimitDistributed(options.RateLimiter, 60, time.Minute, func(c *fiber.Ctx) string { return "ingestion:" + c.Locals("ingestionOrganizationID").(string) }))
+		ingest := app.Group("/api/v1/ingest/otlp", requestRateLimitDistributed(options.RateLimiter, 60, time.Minute, func(c *fiber.Ctx) string { return "ingestion-ip:" + requestClientIP(c) }), ingestionRequired(handlers.apiKeyService, handlers.authService, handlers.organizationService), requestRateLimitDistributed(options.RateLimiter, 60, time.Minute, func(c *fiber.Ctx) string { return "ingestion:" + c.Locals("ingestionOrganizationID").(string) }))
 		ingest.Post("/v1/traces", handlers.Observability.IngestOTLPTraces)
 		ingest.Post("/v1/logs", handlers.Observability.IngestOTLPLogs)
 		ingest.Post("/v1/metrics", handlers.Observability.IngestOTLPMetrics)
@@ -156,6 +156,7 @@ func RegisterRoutes(app *fiber.App, handlers Handlers, options RouterOptions) er
 
 	if handlers.Shares != nil {
 		protected.Get("/organizations/:organizationID/secrets/shares", organizationRoleRequired(handlers.organizationService, models.MemberRoleViewer), handlers.Shares.ListOrgShares)
+		protected.Post("/organizations/:organizationID/secrets/shares", organizationRoleRequired(handlers.organizationService, models.MemberRoleMember), handlers.Shares.CreateOrg)
 		protected.Delete("/organizations/:organizationID/secrets/shares/:shareID", organizationRoleRequired(handlers.organizationService, models.MemberRoleAdmin), handlers.Shares.RevokeOrgShare)
 	}
 

@@ -25,6 +25,9 @@ func decodeOTLP(raw []byte, contentType string, message proto.Message) error {
 		return fmt.Errorf("parse OTLP content type: %w", err)
 	}
 	if typeName == "application/x-protobuf" {
+		if err := preflightProtobuf(raw, message.ProtoReflect().Descriptor(), &otlpParseBudget{}, 0); err != nil {
+			return err
+		}
 		if err := (proto.UnmarshalOptions{RecursionLimit: 64}).Unmarshal(raw, message); err != nil {
 			return fmt.Errorf("decode OTLP protobuf: %w", err)
 		}
@@ -32,6 +35,9 @@ func decodeOTLP(raw []byte, contentType string, message proto.Message) error {
 	}
 	if typeName != "application/json" {
 		return fmt.Errorf("unsupported OTLP content type")
+	}
+	if err := preflightJSON(raw); err != nil {
+		return err
 	}
 	var value any
 	decoder := json.NewDecoder(bytes.NewReader(raw))

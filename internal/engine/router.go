@@ -114,17 +114,28 @@ func (r *RequestRouter) Handle(message protocol.Envelope) bool {
 }
 
 func (r *RequestRouter) HandleOwned(message protocol.Envelope, organizationID string, owned map[string]string) bool {
+	if message.Type != protocol.MessageTypeHTTPResponse {
+		return false
+	}
+	var response protocol.HTTPResponse
+	if err := protocol.DecodePayload(message, &response); err != nil {
+		return false
+	}
+	r.sessions.mu.RLock()
+	defer r.sessions.mu.RUnlock()
 	r.mu.Lock()
+	defer r.mu.Unlock()
 	pending, ok := r.pending[message.RequestID]
-	r.mu.Unlock()
 	if !ok {
 		return false
 	}
-	session, ok := r.sessions.Get(pending.tunnelID)
+	session, ok := r.sessions.sessions[pending.tunnelID]
 	if !ok || session.OrganizationID != organizationID || owned[pending.tunnelID] != pending.sessionID || session.ID != pending.sessionID {
 		return false
 	}
-	return r.Handle(message)
+	delete(r.pending, message.RequestID)
+	pending.response <- response
+	return true
 }
 
 func (r *RequestRouter) PendingTunnel(requestID string) (string, bool) {

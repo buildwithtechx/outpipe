@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Button } from '#/components/ui/button';
 import {
   Dialog,
@@ -41,6 +41,13 @@ export function StatusPageModal({
   const [title, setTitle] = useState(initialTitle);
   const [description, setDescription] = useState(initialDescription);
   const [isPublic, setIsPublic] = useState(initialIsPublic);
+  useEffect(() => {
+    if (!isOpen) return;
+    setSlug(initialSlug);
+    setTitle(initialTitle);
+    setDescription(initialDescription);
+    setIsPublic(initialIsPublic);
+  }, [isOpen, initialSlug, initialTitle, initialDescription, initialIsPublic]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

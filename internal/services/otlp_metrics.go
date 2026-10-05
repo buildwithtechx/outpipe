@@ -21,6 +21,7 @@ func (s *ObservabilityService) IngestMetrics(ctx context.Context, orgID string, 
 	}
 	var rows []models.TelemetryMetric
 	count := 0
+	expandedBytes := 0
 	for _, resource := range request.ResourceMetrics {
 		resourceJSON, err := marshalTelemetry(resource.Resource)
 		if err != nil {
@@ -32,6 +33,9 @@ func (s *ObservabilityService) IngestMetrics(ctx context.Context, orgID string, 
 				return 0, err
 			}
 			for _, metric := range scope.Metrics {
+				if len(metric.Name) > 255 || len(metric.Unit) > 64 {
+					return 0, fmt.Errorf("metric field exceeds limit")
+				}
 				kind, points := metricKind(metric)
 				if kind == "" || metric.Name == "" {
 					return 0, fmt.Errorf("metric name and supported data are required")
@@ -42,6 +46,9 @@ func (s *ObservabilityService) IngestMetrics(ctx context.Context, orgID string, 
 				}
 				data, err := marshalTelemetry(metric)
 				if err != nil {
+					return 0, err
+				}
+				if err := reserveTelemetryBytes(&expandedBytes, data, resourceJSON, scopeJSON, metric.Name, metric.Unit); err != nil {
 					return 0, err
 				}
 				rows = append(rows, models.TelemetryMetric{ID: uuid.NewString(), OrganizationID: orgID, Name: metric.Name, Unit: metric.Unit, Type: kind, Resource: resourceJSON, Scope: scopeJSON, Data: data, CreatedAt: time.Now().UTC()})

@@ -35,7 +35,7 @@ func (s *ObservabilityService) IngestCapture(ctx context.Context, capture *model
 	}
 	capture.CreatedAt = time.Now()
 	if err := s.repo.CreateRequestCapture(ctx, capture); err != nil {
-		return fmt.Errorf("ingest request capture: %w", err)
+		return &TelemetryUnavailableError{Cause: err}
 	}
 	return s.exportTelemetry(ctx, "captures", []models.RequestCapture{*capture})
 }

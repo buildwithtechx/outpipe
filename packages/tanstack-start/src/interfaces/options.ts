@@ -8,6 +8,7 @@ export type TanStackStartTunnelOptions = RelayConnectionOptions & {
 };
 
 export type TanStackStartTunnel = {
+  autoStart?: boolean;
   start: () => Promise<TanStackStartTunnelState>;
   stop: (reason?: string) => Promise<void>;
   state: () => TanStackStartTunnelState;

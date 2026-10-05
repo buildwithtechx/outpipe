@@ -161,6 +161,7 @@ func openTunnel(ctx context.Context, cfg config.CLIConfig, port int, protocolNam
 		}
 
 		ticker := time.NewTicker(20 * time.Second)
+		connectionCtx, cancelConnection := context.WithCancel(ctx)
 		done := make(chan struct{})
 		go func() {
 			defer close(done)
@@ -168,7 +169,7 @@ func openTunnel(ctx context.Context, cfg config.CLIConfig, port int, protocolNam
 			for {
 
 				select {
-				case <-ctx.Done():
+				case <-connectionCtx.Done():
 					return
 				case <-ticker.C:
 					if err := connection.SendHeartbeat(); err != nil {
@@ -179,6 +180,7 @@ func openTunnel(ctx context.Context, cfg config.CLIConfig, port int, protocolNam
 
 		}()
 		serveErr := connection.ServeLocal(ctx, target)
+		cancelConnection()
 		ticker.Stop()
 		connection.Close()
 		<-done

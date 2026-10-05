@@ -35,6 +35,6 @@ export async function tunnelLifecycle(
   tunnel: TanStackStartTunnel,
   next: () => Promise<Response> | Response,
 ): Promise<Response> {
-  await tunnel.start();
+  if (tunnel.autoStart !== false) await tunnel.start();
   return next();
 }

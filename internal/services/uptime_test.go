@@ -120,7 +120,7 @@ func TestUptimeServiceLifecycle(t *testing.T) {
 	}
 
 	// 5. Upsert status page
-	page, err := service.UpsertStatusPage(ctx, orgID, "techx-status", "TechX Status", "Public uptime tracker", "status.techx.com")
+	page, err := service.UpsertStatusPage(ctx, orgID, "techx-status", "TechX Status", "Public uptime tracker", "status.techx.com", true)
 	if err != nil {
 		t.Fatalf("upsert status page: %v", err)
 	}
@@ -152,5 +152,14 @@ func TestUptimeServiceLifecycle(t *testing.T) {
 	}
 	if check.Success || check.ErrorMessage != "latency assertion failed" {
 		t.Fatal("latency assertion did not fail the check")
+	}
+	if _, err := service.UpsertStatusPage(ctx, orgID, "techx-status", "TechX Status", "", "", false); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := service.GetPublicStatusData(ctx, "techx-status"); err == nil {
+		t.Fatal("private status page was public")
+	}
+	if err := service.Subscribe(ctx, "techx-status", "admin@techx.com"); err == nil {
+		t.Fatal("private status page accepted a subscriber")
 	}
 }

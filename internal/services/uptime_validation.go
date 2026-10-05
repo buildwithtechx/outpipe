@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net"
+	"net/url"
 	"regexp"
 	"strings"
 
@@ -27,6 +28,10 @@ func validateMonitorInput(ctx context.Context, input CreateMonitorInput) error {
 		target := input.URL
 		if !strings.Contains(target, "://") {
 			target = input.Protocol + "://" + target
+		}
+		parsed, err := url.Parse(target)
+		if err != nil || parsed.Scheme != input.Protocol {
+			return fmt.Errorf("target URL scheme must match monitor protocol")
 		}
 		if err := validation.ValidateWebhookURL(target); err != nil {
 			return fmt.Errorf("validate monitor URL: %w", err)

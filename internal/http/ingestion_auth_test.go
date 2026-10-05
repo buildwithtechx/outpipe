@@ -2,6 +2,7 @@ package http
 
 import (
 	"context"
+	"io"
 	"net/http/httptest"
 	"testing"
 	"time"
@@ -46,6 +47,15 @@ func TestIngestionRequiresScopedExpiringTenantCredential(t *testing.T) {
 			defer response.Body.Close()
 			if response.StatusCode != tc.expected {
 				t.Fatalf("expected %d, got %d", tc.expected, response.StatusCode)
+			}
+			if tc.expected == 200 {
+				body, err := io.ReadAll(response.Body)
+				if err != nil {
+					t.Fatal(err)
+				}
+				if string(body) != stack.organizationID {
+					t.Fatal("ingestion authenticated wrong tenant")
+				}
 			}
 		})
 	}

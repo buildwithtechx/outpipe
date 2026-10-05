@@ -41,7 +41,7 @@ func TestOTLPHTTPEncodingTenantAndLimits(t *testing.T) {
 	request := httptest.NewRequest("POST", "/metrics", &compressed)
 	request.Header.Set("Authorization", "Bearer "+raw)
 	request.Header.Set("Content-Type", "application/json")
-	request.Header.Set("Content-Encoding", "gzip")
+	request.Header.Set("Content-Encoding", "GZip")
 	response, err := app.Test(request)
 	if err != nil {
 		t.Fatal(err)

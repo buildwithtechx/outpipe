@@ -28,6 +28,7 @@ export function TunnelCaptureControl({ tunnel }: { tunnel: Tunnel }) {
         disabled={mutation.isPending || tunnel.status === 'revoked'}
         onClick={() => mutation.mutate()}
         aria-pressed={Boolean(tunnel.captureEnabled)}
+        aria-label="Request capture"
       >
         {mutation.isPending
           ? 'Updating…'

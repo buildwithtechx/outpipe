@@ -39,6 +39,25 @@ type CreateShareInput struct {
 }
 
 func (s *ShareService) CreateShare(ctx context.Context, input CreateShareInput) (models.SecretShareLink, error) {
+	if input.OrganizationID != nil {
+		project, environment := "", ""
+		if input.ProjectID != nil {
+			project = *input.ProjectID
+		}
+		if input.EnvironmentID != nil {
+			environment = *input.EnvironmentID
+		}
+		project, environment, err := resolveSecretScope(ctx, s.repo, *input.OrganizationID, project, environment)
+		if err != nil {
+			return models.SecretShareLink{}, fmt.Errorf("authorize share scope: %w", err)
+		}
+		if project != "" {
+			input.ProjectID = &project
+		}
+		if environment != "" {
+			input.EnvironmentID = &environment
+		}
+	}
 	if input.Ciphertext == "" || input.IV == "" || input.KeyVerifier == "" {
 		return models.SecretShareLink{}, fmt.Errorf("ciphertext, iv, and keyVerifier are required")
 	}
@@ -140,10 +159,42 @@ func (s *ShareService) RevealShare(ctx context.Context, id, keyVerifier string, 
 	}, nil
 }
 
-func (s *ShareService) ListOrgShares(ctx context.Context, orgID string) ([]models.SecretShareLink, error) {
-	return s.repo.ListOrgShares(ctx, orgID)
+type OrgShareDTO struct {
+	ID            string     `json:"id"`
+	ProjectID     *string    `json:"projectId,omitempty"`
+	EnvironmentID *string    `json:"environmentId,omitempty"`
+	CreatedByID   *string    `json:"createdById,omitempty"`
+	ContentFormat string     `json:"contentFormat"`
+	ExpiresAt     time.Time  `json:"expiresAt"`
+	MaxViews      int        `json:"maxViews"`
+	Views         int        `json:"views"`
+	RevokedAt     *time.Time `json:"revokedAt,omitempty"`
+	CreatedAt     time.Time  `json:"createdAt"`
+}
+
+func (s *ShareService) ListOrgShares(ctx context.Context, orgID string) ([]OrgShareDTO, error) {
+	links, err := s.repo.ListOrgShares(ctx, orgID)
+	if err != nil {
+		return nil, fmt.Errorf("list share metadata: %w", err)
+	}
+	items := make([]OrgShareDTO, 0, len(links))
+	for _, link := range links {
+		items = append(items, OrgShareDTO{ID: link.ID, ProjectID: link.ProjectID, EnvironmentID: link.EnvironmentID, CreatedByID: link.CreatedByID, ContentFormat: link.ContentFormat, ExpiresAt: link.ExpiresAt, MaxViews: link.MaxViews, Views: link.Views, RevokedAt: link.RevokedAt, CreatedAt: link.CreatedAt})
+	}
+	return items, nil
 }
 
 func (s *ShareService) RevokeShare(ctx context.Context, id string) error {
+	return s.repo.RevokeShareLink(ctx, id)
+}
+
+func (s *ShareService) RevokeOrgShare(ctx context.Context, orgID, id string) error {
+	link, err := s.repo.FindShareLink(ctx, id)
+	if err != nil {
+		return fmt.Errorf("find organization share: %w", err)
+	}
+	if link.OrganizationID == nil || *link.OrganizationID != orgID {
+		return repositories.ErrNotFound
+	}
 	return s.repo.RevokeShareLink(ctx, id)
 }

@@ -49,25 +49,6 @@ export function createMonitor(
   );
 }
 
-export function updateMonitor(
-  organizationId: string,
-  monitorId: string,
-  input: Partial<{
-    name: string;
-    type: 'http' | 'https' | 'tcp' | 'icmp';
-    target: string;
-    interval_seconds: number;
-    timeout_seconds: number;
-    expected_status_code: number;
-    status: 'active' | 'degraded' | 'down' | 'paused';
-  }>,
-) {
-  return apiClient.put<UptimeMonitor>(
-    `/api/v1/organizations/${organizationId}/uptime/monitors/${monitorId}`,
-    input,
-  );
-}
-
 export function deleteMonitor(organizationId: string, monitorId: string) {
   return apiClient.delete<void>(
     `/api/v1/organizations/${organizationId}/uptime/monitors/${monitorId}`,
@@ -126,9 +107,11 @@ export function updateIncident(
 }
 
 export function getStatusPageConfig(organizationId: string) {
-  return apiClient.get<UptimeStatusPage>(
-    `/api/v1/organizations/${organizationId}/uptime/status-page`,
-  );
+  return apiClient
+    .get<Omit<UptimeStatusPage, 'isPublic'> & { published: boolean }>(
+      `/api/v1/organizations/${organizationId}/uptime/status-page`,
+    )
+    .then((page) => ({ ...page, isPublic: page.published }));
 }
 
 export function updateStatusPageConfig(
@@ -140,8 +123,15 @@ export function updateStatusPageConfig(
     is_public: boolean;
   },
 ) {
-  return apiClient.put<UptimeStatusPage>(
-    `/api/v1/organizations/${organizationId}/uptime/status-page`,
-    input,
-  );
+  return apiClient
+    .post<Omit<UptimeStatusPage, 'isPublic'> & { published: boolean }>(
+      `/api/v1/organizations/${organizationId}/uptime/status-page`,
+      {
+        slug: input.slug,
+        title: input.title,
+        description: input.description,
+        published: input.is_public,
+      },
+    )
+    .then((page) => ({ ...page, isPublic: page.published }));
 }

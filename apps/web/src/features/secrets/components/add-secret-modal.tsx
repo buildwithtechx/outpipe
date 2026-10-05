@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Button } from '#/components/ui/button';
 import {
   Dialog,
@@ -28,12 +28,20 @@ export function AddSecretModal({
   const [newValue, setNewValue] = useState('');
   const [newComment, setNewComment] = useState('');
 
+  useEffect(() => {
+    if (!isOpen) {
+      setNewKey('');
+      setNewValue('');
+      setNewComment('');
+    }
+  }, [isOpen]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newKey.trim() || !newValue.trim()) return;
     await onSave({
       key: newKey.trim(),
-      value: newValue.trim(),
+      value: newValue,
       comment: newComment.trim() || undefined,
     });
     setNewKey('');

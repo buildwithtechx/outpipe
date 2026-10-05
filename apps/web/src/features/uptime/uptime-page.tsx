@@ -16,6 +16,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '#/components/ui/tabs';
 import { useOrganization } from '#/features/organizations/hooks/use-organization';
 import { AddMonitorModal } from './components/add-monitor-modal';
 import { IncidentModal } from './components/incident-modal';
+import { MonitorStatusBadge } from './components/monitor-status-badge';
 import { StatusPageModal } from './components/status-page-modal';
 import {
   useIncidents,
@@ -199,28 +200,13 @@ export function UptimePage({ orgSlug }: { orgSlug: string }) {
                 </thead>
                 <tbody className="divide-y divide-white/5">
                   {monitors.map((m) => {
-                    const isActive = m.status === 'up';
                     return (
                       <tr
                         key={m.id}
                         className="hover:bg-white/5 transition-colors"
                       >
                         <td className="px-4 py-3">
-                          <Badge
-                            variant={isActive ? 'default' : 'destructive'}
-                            className={`text-[11px] font-medium gap-1.5 ${
-                              isActive
-                                ? 'bg-emerald-500/15 text-emerald-400 hover:bg-emerald-500/20'
-                                : 'bg-rose-500/15 text-rose-400 hover:bg-rose-500/20'
-                            }`}
-                          >
-                            <span
-                              className={`size-1.5 rounded-full ${
-                                isActive ? 'bg-emerald-400' : 'bg-rose-400'
-                              }`}
-                            />
-                            {m.status}
-                          </Badge>
+                          <MonitorStatusBadge status={m.status} />
                         </td>
                         <td className="px-4 py-3">
                           <span className="font-semibold text-white block">
@@ -297,7 +283,7 @@ export function UptimePage({ orgSlug }: { orgSlug: string }) {
                   </span>
                 </div>
                 <div className="space-y-1.5 pl-3 border-l-2 border-white/10 text-xs">
-                  {inc.updates.map((u) => (
+                  {(inc.updates ?? []).map((u) => (
                     <div key={u.id}>
                       <span className="font-semibold capitalize text-emerald-400">
                         {u.status}:{' '}

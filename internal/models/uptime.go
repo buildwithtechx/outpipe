@@ -31,6 +31,7 @@ const (
 )
 
 type UptimeMonitor struct {
+	NextProbeAt        *time.Time    `gorm:"index" json:"-"`
 	ExpectedStatusCode int           `gorm:"default:0" json:"expectedStatusCode"`
 	BodyRegex          string        `gorm:"size:1024" json:"bodyRegex"`
 	MaxLatencyMs       int64         `gorm:"default:0" json:"maxLatencyMs"`
@@ -105,7 +106,7 @@ type UptimeStatusPage struct {
 	Title          string    `gorm:"not null;size:255" json:"title"`
 	Description    string    `gorm:"size:1024" json:"description,omitempty"`
 	CustomDomain   string    `gorm:"index;size:255" json:"customDomain,omitempty"`
-	Published      bool      `gorm:"not null;default:true" json:"published"`
+	Published      bool      `gorm:"not null" json:"published"`
 	CreatedAt      time.Time `gorm:"not null" json:"createdAt"`
 	UpdatedAt      time.Time `gorm:"not null" json:"updatedAt"`
 }

@@ -21,6 +21,7 @@ type RequestCapture struct {
 }
 
 type TelemetrySpan struct {
+	Payload        string    `gorm:"type:text" json:"payload"`
 	Resource       string    `gorm:"type:text" json:"resource"`
 	Scope          string    `gorm:"type:text" json:"scope"`
 	ID             string    `gorm:"primaryKey;size:64" json:"id"`
@@ -41,6 +42,7 @@ type TelemetrySpan struct {
 }
 
 type TelemetryLog struct {
+	Payload        string    `gorm:"type:text" json:"payload"`
 	Resource       string    `gorm:"type:text" json:"resource"`
 	Scope          string    `gorm:"type:text" json:"scope"`
 	ID             string    `gorm:"primaryKey;size:64" json:"id"`

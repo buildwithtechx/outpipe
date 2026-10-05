@@ -4,9 +4,11 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"golang.org/x/sync/singleflight"
 	"net/http"
 	"net/url"
 	"strings"
+	"sync"
 
 	"outpipe.dev/outpipe/internal/auth"
 	"outpipe.dev/outpipe/internal/infra/httpclient"
@@ -19,9 +21,12 @@ type InternalAgentAuthenticator struct {
 }
 
 type InternalTunnelResolver struct {
-	baseURL string
-	secret  string
-	client  *http.Client
+	baseURL  string
+	secret   string
+	client   *http.Client
+	mu       sync.Mutex
+	policies map[string]cachedTunnelPolicy
+	requests singleflight.Group
 }
 
 func NewInternalAgentAuthenticator(baseURL, secret string, client *http.Client) (*InternalAgentAuthenticator, error) {
@@ -101,10 +106,14 @@ func NewInternalTunnelResolver(baseURL, secret string, client *http.Client) (*In
 		client = httpclient.New(0)
 	}
 
-	return &InternalTunnelResolver{baseURL: strings.TrimRight(baseURL, "/"), secret: secret, client: client}, nil
+	return &InternalTunnelResolver{baseURL: strings.TrimRight(baseURL, "/"), secret: secret, client: client, policies: make(map[string]cachedTunnelPolicy)}, nil
 }
 
 func (r *InternalTunnelResolver) Resolve(ctx context.Context, tunnelID string) (ManagedTunnelPolicy, error) {
+	return r.cachedPolicy(ctx, tunnelID)
+}
+
+func (r *InternalTunnelResolver) resolve(ctx context.Context, tunnelID string) (ManagedTunnelPolicy, error) {
 	request, err := http.NewRequestWithContext(ctx, http.MethodGet, r.baseURL+"/internal/tunnels/"+url.PathEscape(tunnelID)+"/policy", nil)
 
 	if err != nil {

@@ -139,7 +139,9 @@ func migrations() []migration {
 		)
 	}}, {version: 19, name: "telemetry_metrics_uptime_assertions_and_capture", up: func(db *gorm.DB) error {
 		return db.AutoMigrate(&models.TelemetryMetric{}, &models.TelemetrySpan{}, &models.TelemetryLog{}, &models.UptimeMonitor{}, &models.Tunnel{})
-	}}}
+	}}, {version: 20, name: "scheduled_uptime_and_status_privacy", up: func(db *gorm.DB) error {
+		return db.AutoMigrate(&models.UptimeMonitor{}, &models.UptimeStatusPage{}, &models.TelemetrySpan{}, &models.TelemetryLog{})
+	}}, {version: 21, name: "unique_active_secrets_and_versions", up: migrateSecretUniqueness}}
 }
 
 func seedDefaultBillingPlans(db *gorm.DB) error {

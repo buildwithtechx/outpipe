@@ -27,13 +27,14 @@ func (s *UptimeService) Probe(ctx context.Context, monitor *models.UptimeMonitor
 	if probeErr != nil {
 		errorMsg = probeErr.Error()
 	}
-	latency := time.Since(start).Milliseconds()
+	elapsed := time.Since(start)
+	latency := elapsed.Milliseconds()
 	checkID := make([]byte, 16)
 	if _, err := rand.Read(checkID); err != nil {
 		return models.UptimeCheck{}, fmt.Errorf("generate check id: %w", err)
 	}
 
-	if success && monitor.MaxLatencyMs > 0 && latency > monitor.MaxLatencyMs {
+	if success && monitor.MaxLatencyMs > 0 && elapsed > time.Duration(monitor.MaxLatencyMs)*time.Millisecond {
 		success = false
 		errorMsg = "latency assertion failed"
 	}
@@ -53,6 +54,8 @@ func (s *UptimeService) Probe(ctx context.Context, monitor *models.UptimeMonitor
 	}
 
 	monitor.LastCheckAt = &now
+	nextProbe := now.Add(time.Duration(monitor.IntervalSeconds) * time.Second)
+	monitor.NextProbeAt = &nextProbe
 	monitor.LatencyMs = latency
 	if success {
 		monitor.Status = models.MonitorStatusUp
@@ -61,10 +64,8 @@ func (s *UptimeService) Probe(ctx context.Context, monitor *models.UptimeMonitor
 	}
 
 	recent, err := s.repo.GetRecentChecks(ctx, monitor.ID, 30)
-	if err != nil {
-		return models.UptimeCheck{}, fmt.Errorf("get recent uptime checks: %w", err)
-	}
-	if len(recent) > 0 {
+	historyErr := err
+	if historyErr == nil && len(recent) > 0 {
 		successCount := 0
 		for _, c := range recent {
 			if c.Success {
@@ -76,6 +77,9 @@ func (s *UptimeService) Probe(ctx context.Context, monitor *models.UptimeMonitor
 	monitor.UpdatedAt = now
 	if err := s.repo.UpdateMonitor(ctx, monitor); err != nil {
 		return models.UptimeCheck{}, fmt.Errorf("update probed monitor: %w", err)
+	}
+	if historyErr != nil {
+		return check, fmt.Errorf("get recent uptime checks: %w", historyErr)
 	}
 
 	return check, nil

@@ -5,6 +5,8 @@ import type {
 } from 'node:http';
 
 const REDACTED = '[REDACTED]';
+const normalizeSensitiveKey = (key: string): string =>
+  key.toLowerCase().replace(/[-_]/g, '');
 export const DEFAULT_MAX_BODY_BYTES = 16 * 1024;
 export const HARD_MAX_BODY_BYTES = 64 * 1024;
 export const DEFAULT_MAX_HEADER_BYTES = 8 * 1024;
@@ -84,13 +86,13 @@ export function redactHeaders(
   additionalSensitive?: readonly string[],
 ): Record<string, string> {
   const sensitive = new Set<string>([
-    ...DEFAULT_SENSITIVE_HEADERS,
-    ...(additionalSensitive || []).map((h) => h.toLowerCase()),
+    ...DEFAULT_SENSITIVE_HEADERS.map(normalizeSensitiveKey),
+    ...(additionalSensitive || []).map(normalizeSensitiveKey),
   ]);
 
   const result: Record<string, string> = {};
   for (const [key, value] of Object.entries(headers)) {
-    const lowerKey = key.toLowerCase();
+    const lowerKey = normalizeSensitiveKey(key);
     if (sensitive.has(lowerKey)) {
       result[key] = REDACTED;
     } else if (Array.isArray(value)) {
@@ -107,13 +109,14 @@ export function redactJsonValue(
   additionalSensitive?: readonly string[],
   depth = 0,
 ): unknown {
-  if (depth > 8 || value === null || typeof value !== 'object') {
+  if (depth > 8) return REDACTED;
+  if (value === null || typeof value !== 'object') {
     return value;
   }
 
   const sensitive = new Set<string>([
-    ...DEFAULT_SENSITIVE_FIELDS,
-    ...(additionalSensitive || []).map((f) => f.toLowerCase()),
+    ...DEFAULT_SENSITIVE_FIELDS.map(normalizeSensitiveKey),
+    ...(additionalSensitive || []).map(normalizeSensitiveKey),
   ]);
 
   if (Array.isArray(value)) {
@@ -126,7 +129,7 @@ export function redactJsonValue(
   const output: Record<string, unknown> = {};
 
   for (const [k, v] of Object.entries(record)) {
-    if (sensitive.has(k.toLowerCase())) {
+    if (sensitive.has(normalizeSensitiveKey(k))) {
       output[k] = REDACTED;
     } else {
       output[k] = redactJsonValue(v, additionalSensitive, depth + 1);
@@ -227,7 +230,7 @@ export function createNodeHttpPayloadCaptureMiddleware(
               const redacted = redactJsonValue(parsed, options.redactedFields);
               payloads.responseBody = JSON.stringify(redacted);
             } catch {
-              payloads.responseBody = raw.slice(0, maxBodyBytes);
+              payloads.responseBody = REDACTED;
             }
           } catch {
             // Ignored

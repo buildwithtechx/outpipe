@@ -20,11 +20,11 @@ const (
 )
 
 func (s *ObservabilityService) ReplayRequest(ctx context.Context, input models.ReplayRequestInput) (*models.ReplayResponseOutput, error) {
-	if err := validation.ValidateWebhookURL(input.URL); err != nil {
-		return nil, fmt.Errorf("validate replay target: %w", err)
-	}
 	if input.URL == "" {
 		return nil, fmt.Errorf("target URL is required")
+	}
+	if err := validation.ValidateWebhookURL(input.URL); err != nil {
+		return nil, fmt.Errorf("validate replay target: %w", err)
 	}
 	if input.Method == "" {
 		input.Method = http.MethodGet

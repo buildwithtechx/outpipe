@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 	"outpipe.dev/outpipe/internal/models"
 )
 
@@ -77,7 +78,23 @@ func (r *GormSecretRepository) ListProjects(ctx context.Context, orgID string) (
 }
 
 func (r *GormSecretRepository) DeleteProject(ctx context.Context, orgID, projectID string) error {
-	return wrap(r.db.WithContext(ctx).Where("organization_id = ? AND id = ?", orgID, projectID).Delete(&models.SecretProject{}).Error, "delete secret project")
+	return wrap(r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		entries := tx.Model(&models.SecretEntry{}).Select("id").Where("organization_id = ? AND project_id = ?", orgID, projectID)
+		if err := tx.Where("organization_id = ? AND entry_id IN (?)", orgID, entries).Delete(&models.SecretVersion{}).Error; err != nil {
+			return fmt.Errorf("delete project secret versions: %w", err)
+		}
+		for _, model := range []any{&models.SecretEntry{}, &models.SecretEnvironment{}} {
+			if err := tx.Where("organization_id = ? AND project_id = ?", orgID, projectID).Delete(model).Error; err != nil {
+				return fmt.Errorf("delete project secret data: %w", err)
+			}
+		}
+		for _, model := range []any{&models.SecretMachineToken{}, &models.SecretShareLink{}} {
+			if err := tx.Model(model).Where("organization_id = ? AND project_id = ?", orgID, projectID).Update("revoked_at", time.Now().UTC()).Error; err != nil {
+				return fmt.Errorf("revoke project credentials: %w", err)
+			}
+		}
+		return wrap(tx.Where("organization_id = ? AND id = ?", orgID, projectID).Delete(&models.SecretProject{}).Error, "delete project")
+	}), "delete secret project")
 }
 
 func (r *GormSecretRepository) CreateEnvironment(ctx context.Context, env *models.SecretEnvironment) error {
@@ -104,39 +121,36 @@ func (r *GormSecretRepository) ListEnvironments(ctx context.Context, orgID, proj
 
 func (r *GormSecretRepository) CreateEntryWithVersion(ctx context.Context, entry *models.SecretEntry, version *models.SecretVersion) error {
 	return r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
-		if err := tx.Create(entry).Error; err != nil {
-			return fmt.Errorf("create secret entry: %w", err)
+		result := tx.Clauses(clause.OnConflict{DoNothing: true}).Create(entry)
+		if result.Error != nil {
+			return fmt.Errorf("create secret entry: %w", result.Error)
 		}
-		version.EntryID = entry.ID
-		version.OrganizationID = entry.OrganizationID
-		version.Version = 1
-		if err := tx.Create(version).Error; err != nil {
-			return fmt.Errorf("create secret version: %w", err)
+		if result.RowsAffected == 0 {
+			var existing models.SecretEntry
+			if err := tx.Where("organization_id = ? AND project_id = ? AND environment_id = ? AND key = ? AND deleted_at IS NULL", entry.OrganizationID, entry.ProjectID, entry.EnvironmentID, entry.Key).First(&existing).Error; err != nil {
+				return fmt.Errorf("find concurrent secret entry: %w", err)
+			}
+			*entry = existing
 		}
-		return nil
+		return appendSecretVersion(tx, entry.OrganizationID, entry.ID, version)
 	})
 }
 
 func (r *GormSecretRepository) UpdateEntryVersion(ctx context.Context, orgID, entryID string, version *models.SecretVersion) error {
 	return r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
-		var lastVersion int
-		row := tx.Model(&models.SecretVersion{}).Where("organization_id = ? AND entry_id = ?", orgID, entryID).Select("COALESCE(MAX(version), 0)").Row()
-		if err := row.Scan(&lastVersion); err != nil {
-			return fmt.Errorf("query max version: %w", err)
-		}
-		version.EntryID = entryID
-		version.OrganizationID = orgID
-		version.Version = lastVersion + 1
-		if err := tx.Create(version).Error; err != nil {
-			return fmt.Errorf("insert secret version: %w", err)
-		}
-		return tx.Model(&models.SecretEntry{}).Where("organization_id = ? AND id = ?", orgID, entryID).Update("updated_at", time.Now().UTC()).Error
+		return appendSecretVersion(tx, orgID, entryID, version)
 	})
 }
 
 func (r *GormSecretRepository) ListEntries(ctx context.Context, orgID, projectID, envID string, includeDeleted bool) ([]models.SecretEntry, error) {
 	var entries []models.SecretEntry
-	q := r.db.WithContext(ctx).Where("organization_id = ? AND project_id = ? AND environment_id = ?", orgID, projectID, envID)
+	q := r.db.WithContext(ctx).Where("organization_id = ?", orgID)
+	if projectID != "" {
+		q = q.Where("project_id = ?", projectID)
+	}
+	if envID != "" {
+		q = q.Where("environment_id = ?", envID)
+	}
 	if !includeDeleted {
 		q = q.Where("deleted_at IS NULL")
 	} else {
@@ -247,18 +261,19 @@ func (r *GormSecretRepository) FindShareLink(ctx context.Context, id string) (mo
 func (r *GormSecretRepository) RevealShareLink(ctx context.Context, id string, now time.Time) (models.SecretShareLink, error) {
 	var link models.SecretShareLink
 	err := r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		result := tx.Model(&models.SecretShareLink{}).Where("id = ? AND revoked_at IS NULL AND expires_at > ? AND views < max_views", id, now).Updates(map[string]any{
+			"views": gorm.Expr("views + 1"), "last_revealed_at": now,
+		})
+		if result.Error != nil {
+			return fmt.Errorf("consume share view: %w", result.Error)
+		}
+		if result.RowsAffected != 1 {
+			return ErrNotFound
+		}
 		if err := tx.Where("id = ? AND revoked_at IS NULL AND expires_at > ?", id, now).First(&link).Error; err != nil {
 			return err
 		}
-		if link.Views >= link.MaxViews {
-			return ErrNotFound
-		}
-		link.Views++
-		link.LastRevealedAt = &now
-		return tx.Model(&models.SecretShareLink{}).Where("id = ?", id).Updates(map[string]any{
-			"views":            link.Views,
-			"last_revealed_at": link.LastRevealedAt,
-		}).Error
+		return nil
 	})
 	if err != nil {
 		return models.SecretShareLink{}, mapError(err)

@@ -65,8 +65,16 @@ func TestAnalyticsExporterRejectsSQLInjectionAndRedirects(t *testing.T) {
 	if _, err := services.NewHTTPAnalyticsExporter(config.AnalyticsConfig{ClickHouseTable: "events; DROP TABLE users"}); err == nil {
 		t.Fatal("unsafe table accepted")
 	}
+	var redirected atomic.Int32
+	target := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		redirected.Add(1)
+		if _, err := w.Write([]byte(`{"successful_rows":1,"quarantined_rows":0}`)); err != nil {
+			t.Error(err)
+		}
+	}))
+	defer target.Close()
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		http.Redirect(w, r, "http://127.0.0.1:1/credentials", http.StatusTemporaryRedirect)
+		http.Redirect(w, r, target.URL+"/credentials", http.StatusTemporaryRedirect)
 	}))
 	defer server.Close()
 	exporter, err := services.NewHTTPAnalyticsExporter(config.AnalyticsConfig{TinybirdURL: server.URL, TinybirdToken: "test-token"})
@@ -75,5 +83,8 @@ func TestAnalyticsExporterRejectsSQLInjectionAndRedirects(t *testing.T) {
 	}
 	if err := exporter.Export(context.Background(), "logs", []models.TelemetryLog{{ID: "a", OrganizationID: "org-a"}}); err == nil {
 		t.Fatal("analytics redirect accepted")
+	}
+	if redirected.Load() != 0 {
+		t.Fatal("analytics followed redirect")
 	}
 }

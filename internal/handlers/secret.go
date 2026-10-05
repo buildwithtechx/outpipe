@@ -1,7 +1,9 @@
 package handlers
 
 import (
+	"encoding/json"
 	"fmt"
+	"slices"
 	"strings"
 
 	"github.com/gofiber/fiber/v2"
@@ -38,8 +40,10 @@ type SetSecretRequest struct {
 }
 
 type CreateMachineTokenRequest struct {
-	Name   string   `json:"name" validate:"required,max=120"`
-	Scopes []string `json:"scopes"`
+	ProjectID     string   `json:"projectId"`
+	EnvironmentID string   `json:"environmentId"`
+	Name          string   `json:"name" validate:"required,max=120"`
+	Scopes        []string `json:"scopes"`
 }
 
 func (h *SecretHandler) ListProjects(c *fiber.Ctx) error {
@@ -185,8 +189,6 @@ func (h *SecretHandler) ListMachineTokens(c *fiber.Ctx) error {
 
 func (h *SecretHandler) CreateMachineToken(c *fiber.Ctx) error {
 	orgID := strings.TrimSpace(c.Params("organizationID"))
-	projectID := strings.TrimSpace(c.Params("projectID"))
-	envID := strings.TrimSpace(c.Params("environmentID"))
 	userID, err := sessionUserID(c)
 	if err != nil {
 		return writeError(c, fiber.StatusUnauthorized, err)
@@ -198,7 +200,7 @@ func (h *SecretHandler) CreateMachineToken(c *fiber.Ctx) error {
 	if err := validation.Struct(input); err != nil {
 		return writeError(c, fiber.StatusBadRequest, err)
 	}
-	token, err := h.secrets.CreateMachineToken(c.UserContext(), orgID, projectID, envID, input.Name, input.Scopes, userID)
+	token, err := h.secrets.CreateMachineToken(c.UserContext(), orgID, input.ProjectID, input.EnvironmentID, input.Name, input.Scopes, userID)
 	if err != nil {
 		return writeError(c, fiber.StatusInternalServerError, err)
 	}
@@ -222,6 +224,10 @@ func (h *SecretHandler) CLIGetSecrets(c *fiber.Ctx) error {
 	token, err := h.secrets.VerifyMachineToken(c.UserContext(), rawToken)
 	if err != nil {
 		return writeError(c, fiber.StatusUnauthorized, fmt.Errorf("invalid token"))
+	}
+	var scopes []string
+	if err := json.Unmarshal([]byte(token.Scopes), &scopes); err != nil || !slices.Contains(scopes, "secrets:read") {
+		return writeError(c, fiber.StatusForbidden, fmt.Errorf("secrets:read scope is required"))
 	}
 
 	projectID := c.Query("project")

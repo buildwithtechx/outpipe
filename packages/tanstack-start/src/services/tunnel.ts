@@ -36,10 +36,8 @@ export function createTanStackStartTunnel(
   });
 
   return {
+    autoStart: options.autoStart,
     start: async () => {
-      if (options.autoStart === false) {
-        return current;
-      }
       if (current.status === 'active') {
         return current;
       }
@@ -89,6 +87,7 @@ export function createTanStackStartTunnel(
       } catch (error) {
         closeError = error;
       } finally {
+        current = { status: 'closed' };
         connection.close();
       }
       if (closeError) {

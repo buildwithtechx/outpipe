@@ -2,6 +2,7 @@ package engine
 
 import (
 	"context"
+	"encoding/base64"
 	"encoding/json"
 	"net/http/httptest"
 	"strings"
@@ -31,7 +32,7 @@ func TestCaptureToggleAppliesToConnectedTunnel(t *testing.T) {
 		t.Fatal(err)
 	}
 	if err := sessions.Reserve(Session{ID: "session", OrganizationID: "org", TunnelID: "tunnel", Send: func(_ context.Context, request protocol.Envelope) error {
-		payload, err := json.Marshal(protocol.HTTPResponse{StatusCode: 200, Headers: map[string][]string{"Set-Cookie": {"secret"}}, Body: ""})
+		payload, err := json.Marshal(protocol.HTTPResponse{StatusCode: 200, Headers: map[string][]string{"Set-Cookie": {"secret"}}, Body: base64.StdEncoding.EncodeToString([]byte(`{"password":"private","value":"safe"}`))})
 		if err != nil {
 			return err
 		}
@@ -69,7 +70,7 @@ func TestCaptureToggleAppliesToConnectedTunnel(t *testing.T) {
 	if capture.OrganizationID != "org" || capture.TunnelID != "tunnel" || capture.Path != "/example" {
 		t.Fatalf("unexpected capture metadata: %+v", capture)
 	}
-	if strings.Contains(capture.RequestHeaders+capture.ResponseHeaders+capture.RequestBody, "private") || strings.Contains(capture.ResponseHeaders, "secret") {
+	if strings.Contains(capture.RequestHeaders+capture.ResponseHeaders+capture.RequestBody+capture.ResponseBody, "private") || strings.Contains(capture.ResponseHeaders, "secret") || !strings.Contains(capture.ResponseBody, "safe") {
 		t.Fatal("credentials persisted in capture")
 	}
 }

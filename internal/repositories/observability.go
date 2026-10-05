@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 	"outpipe.dev/outpipe/internal/models"
 )
 
@@ -39,9 +40,14 @@ func (r *GormObservabilityRepository) CreateRequestCapture(ctx context.Context, 
 	if capture == nil {
 		return fmt.Errorf("capture is nil")
 	}
-	if err := r.db.WithContext(ctx).Create(capture).Error; err != nil {
+	if err := r.db.WithContext(ctx).Clauses(clause.OnConflict{DoNothing: true}).Create(capture).Error; err != nil {
 		return fmt.Errorf("create request capture: %w", err)
 	}
+	var stored models.RequestCapture
+	if err := r.db.WithContext(ctx).Where("id = ? AND organization_id = ? AND tunnel_id = ?", capture.ID, capture.OrganizationID, capture.TunnelID).First(&stored).Error; err != nil {
+		return fmt.Errorf("read persisted capture: %w", err)
+	}
+	*capture = stored
 	return nil
 }
 
@@ -168,9 +174,11 @@ func (r *GormObservabilityRepository) GetStats(ctx context.Context, orgID string
 	}
 
 	var spans []models.TelemetrySpan
-	_ = r.db.WithContext(ctx).
+	if err := r.db.WithContext(ctx).
 		Where("organization_id = ? AND start_time >= ?", orgID, since).
-		Find(&spans).Error
+		Find(&spans).Error; err != nil {
+		return nil, fmt.Errorf("query spans for stats: %w", err)
+	}
 
 	totalRequests := int64(len(captures) + len(spans))
 	var totalBytes int64

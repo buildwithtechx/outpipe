@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"outpipe.dev/outpipe/internal/models"
+	"outpipe.dev/outpipe/internal/repositories"
 )
 
 func (s *UptimeService) GetOwnedMonitor(ctx context.Context, orgID, id string) (*models.UptimeMonitor, error) {
@@ -12,18 +13,24 @@ func (s *UptimeService) GetOwnedMonitor(ctx context.Context, orgID, id string) (
 		return nil, fmt.Errorf("find organization monitor: %w", err)
 	}
 	if monitor.OrganizationID != orgID {
-		return nil, fmt.Errorf("monitor not found")
+		return nil, repositories.ErrNotFound
 	}
 	return monitor, nil
 }
 
 func (s *UptimeService) AuthorizeIncident(ctx context.Context, orgID, id string) error {
-	incident, err := s.repo.GetIncident(ctx, id)
+	repo, ok := s.repo.(interface {
+		IncidentOrganization(context.Context, string) (string, error)
+	})
+	if !ok {
+		return fmt.Errorf("repository does not support incident authorization")
+	}
+	organizationID, err := repo.IncidentOrganization(ctx, id)
 	if err != nil {
 		return fmt.Errorf("find incident: %w", err)
 	}
-	if incident.OrganizationID != orgID {
-		return fmt.Errorf("incident not found")
+	if organizationID != orgID {
+		return repositories.ErrNotFound
 	}
 	return nil
 }

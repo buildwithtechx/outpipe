@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"github.com/gofiber/fiber/v2"
+	"github.com/google/uuid"
 	"outpipe.dev/outpipe/internal/models"
 	"outpipe.dev/outpipe/internal/services"
 )
@@ -23,9 +24,16 @@ func (h *ObservabilityHandler) IngestCapture(c *fiber.Ctx) error {
 	if err != nil || tunnel.OrganizationID != capture.OrganizationID || !tunnel.CaptureEnabled || tunnel.Status == models.TunnelStatusRevoked {
 		return c.SendStatus(fiber.StatusForbidden)
 	}
-	capture.ID = ""
+	if capture.ID != "" {
+		if _, err := uuid.Parse(capture.ID); err != nil {
+			return c.SendStatus(fiber.StatusBadRequest)
+		}
+	}
+	if len(capture.Path) > 2048 || len(capture.Method) > 16 || len(capture.OrganizationID) > 64 || len(capture.TunnelID) > 64 {
+		return c.SendStatus(fiber.StatusBadRequest)
+	}
 	if err := h.svc.IngestCapture(c.UserContext(), &capture); err != nil {
-		return c.SendStatus(fiber.StatusInternalServerError)
+		return writeOTLPError(c, err)
 	}
 	return c.SendStatus(fiber.StatusCreated)
 }

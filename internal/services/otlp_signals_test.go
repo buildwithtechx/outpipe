@@ -37,7 +37,11 @@ func TestOTLPProtobufTracesAndLogs(t *testing.T) {
 	if count, err := svc.IngestLogs(context.Background(), "org-a", wire, "application/x-protobuf"); err != nil || count != 1 {
 		t.Fatalf("log count=%d: %v", count, err)
 	}
-	rows, err := svc.ListLogs(context.Background(), "org-b", "", "", 100)
+	rows, err := svc.ListLogs(context.Background(), "org-a", "", "", 100)
+	if err != nil || len(rows) != 1 {
+		t.Fatalf("own tenant did not receive log: %v", err)
+	}
+	rows, err = svc.ListLogs(context.Background(), "org-b", "", "", 100)
 	if err != nil || len(rows) != 0 {
 		t.Fatalf("foreign tenant read logs: %v", err)
 	}

@@ -32,6 +32,14 @@ describe('TanStack Start tunnel integration', () => {
     expect(next).toHaveBeenCalledOnce();
     expect(await response.text()).toBe('ok');
   });
+
+  it('skips automatic startup when autoStart is disabled', async () => {
+    const tunnel = createTunnel();
+    tunnel.autoStart = false;
+    tunnel.start = vi.fn();
+    await tunnelLifecycle(tunnel, () => new Response('ok'));
+    expect(tunnel.start).not.toHaveBeenCalled();
+  });
 });
 
 function createTunnel(): TanStackStartTunnel {

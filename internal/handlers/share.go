@@ -26,12 +26,30 @@ type RevealShareRequest struct {
 }
 
 func (h *ShareHandler) Create(c *fiber.Ctx) error {
+	return h.create(c, false)
+}
+
+func (h *ShareHandler) CreateOrg(c *fiber.Ctx) error {
+	return h.create(c, true)
+}
+
+func (h *ShareHandler) create(c *fiber.Ctx, organizationBound bool) error {
 	var input services.CreateShareInput
 	if err := c.BodyParser(&input); err != nil {
 		return writeError(c, fiber.StatusBadRequest, fmt.Errorf("decode share request: %w", err))
 	}
 	if input.Ciphertext == "" || input.IV == "" || input.KeyVerifier == "" {
 		return writeError(c, fiber.StatusBadRequest, fmt.Errorf("ciphertext, iv, and keyVerifier are required"))
+	}
+	if organizationBound {
+		userID, err := sessionUserID(c)
+		if err != nil {
+			return writeError(c, fiber.StatusUnauthorized, err)
+		}
+		orgID := c.Params("organizationID")
+		input.OrganizationID, input.CreatedByID = &orgID, &userID
+	} else if input.OrganizationID != nil || input.CreatedByID != nil || input.ProjectID != nil || input.EnvironmentID != nil {
+		return writeError(c, fiber.StatusForbidden, fmt.Errorf("organization shares require the authenticated organization endpoint"))
 	}
 	link, err := h.shares.CreateShare(c.UserContext(), input)
 	if err != nil {
@@ -80,7 +98,7 @@ func (h *ShareHandler) ListOrgShares(c *fiber.Ctx) error {
 
 func (h *ShareHandler) RevokeOrgShare(c *fiber.Ctx) error {
 	id := strings.TrimSpace(c.Params("shareID"))
-	if err := h.shares.RevokeShare(c.UserContext(), id); err != nil {
+	if err := h.shares.RevokeOrgShare(c.UserContext(), c.Params("organizationID"), id); err != nil {
 		return writeError(c, fiber.StatusInternalServerError, err)
 	}
 	return c.SendStatus(fiber.StatusNoContent)

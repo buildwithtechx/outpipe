@@ -28,7 +28,7 @@ export function ShareComposer() {
       setError(null);
       const encrypted = await encryptShare(
         { type: 'text', text: content },
-        password.trim() ? password.trim() : undefined,
+        password.length > 0 ? password : undefined,
       );
 
       const response = await createShareApi({

@@ -9,7 +9,6 @@ import {
   getStatusPageConfig,
   testMonitor,
   updateIncident,
-  updateMonitor,
   updateStatusPageConfig,
 } from '../services/uptime-service';
 
@@ -54,21 +53,6 @@ export function useUptimeMutations(organizationId: string) {
   const addMonitor = useMutation({
     mutationFn: (input: Parameters<typeof createMonitor>[1]) =>
       createMonitor(organizationId, input),
-    onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: ['uptime-monitors', organizationId],
-      });
-    },
-  });
-
-  const editMonitor = useMutation({
-    mutationFn: ({
-      monitorId,
-      input,
-    }: {
-      monitorId: string;
-      input: Parameters<typeof updateMonitor>[2];
-    }) => updateMonitor(organizationId, monitorId, input),
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: ['uptime-monitors', organizationId],
@@ -144,7 +128,6 @@ export function useUptimeMutations(organizationId: string) {
 
   return {
     addMonitor,
-    editMonitor,
     removeMonitor,
     probeMonitor,
     addIncident,

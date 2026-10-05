@@ -6,7 +6,7 @@ CREATE TABLE IF NOT EXISTS default.outpipe_telemetry
     payload String,
     timestamp DateTime64(9, 'UTC')
 )
-ENGINE = MergeTree
+ENGINE = ReplacingMergeTree(timestamp)
 PARTITION BY toYYYYMM(timestamp)
 ORDER BY (organization_id, signal, timestamp, id)
-TTL timestamp + INTERVAL 30 DAY;
+TTL toDateTime(timestamp) + INTERVAL 30 DAY;

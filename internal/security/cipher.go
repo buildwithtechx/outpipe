@@ -34,6 +34,9 @@ func DecryptAESGCM(ciphertext []byte, nonce []byte, key []byte) ([]byte, error) 
 	if err != nil {
 		return nil, fmt.Errorf("create gcm: %w", err)
 	}
+	if len(nonce) != gcm.NonceSize() {
+		return nil, fmt.Errorf("invalid ciphertext nonce length")
+	}
 	plaintext, err := gcm.Open(nil, nonce, ciphertext, nil)
 	if err != nil {
 		return nil, fmt.Errorf("decrypt ciphertext: %w", err)

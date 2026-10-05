@@ -22,10 +22,10 @@ type SecretEnvironment struct {
 
 type SecretEntry struct {
 	Base
-	OrganizationID  string     `json:"organizationId" gorm:"type:uuid;not null;index"`
-	ProjectID       string     `json:"projectId" gorm:"type:uuid;not null;index"`
-	EnvironmentID   string     `json:"environmentId" gorm:"type:uuid;not null;index"`
-	Key             string     `json:"key" gorm:"size:256;not null;index"`
+	OrganizationID  string     `json:"organizationId" gorm:"type:uuid;not null;index;uniqueIndex:idx_secret_active_key,where:deleted_at IS NULL"`
+	ProjectID       string     `json:"projectId" gorm:"type:uuid;not null;index;uniqueIndex:idx_secret_active_key,where:deleted_at IS NULL"`
+	EnvironmentID   string     `json:"environmentId" gorm:"type:uuid;not null;index;uniqueIndex:idx_secret_active_key,where:deleted_at IS NULL"`
+	Key             string     `json:"key" gorm:"size:256;not null;index;uniqueIndex:idx_secret_active_key,where:deleted_at IS NULL"`
 	Comment         string     `json:"comment" gorm:"type:text"`
 	DeletedAt       *time.Time `json:"deletedAt,omitempty" gorm:"index"`
 	DeletionBatchID *string    `json:"deletionBatchId,omitempty" gorm:"type:uuid"`
@@ -34,8 +34,8 @@ type SecretEntry struct {
 type SecretVersion struct {
 	Base
 	OrganizationID string `json:"organizationId" gorm:"type:uuid;not null;index"`
-	EntryID        string `json:"entryId" gorm:"type:uuid;not null;index"`
-	Version        int    `json:"version" gorm:"not null"`
+	EntryID        string `json:"entryId" gorm:"type:uuid;not null;index;uniqueIndex:idx_secret_entry_version"`
+	Version        int    `json:"version" gorm:"not null;uniqueIndex:idx_secret_entry_version"`
 	Ciphertext     string `json:"ciphertext" gorm:"type:text;not null"`
 	IV             string `json:"iv" gorm:"type:text;not null"`
 	KeyVersion     int    `json:"keyVersion" gorm:"not null;default:1"`

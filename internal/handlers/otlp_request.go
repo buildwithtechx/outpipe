@@ -6,6 +6,7 @@ import (
 	"errors"
 	"io"
 	"mime"
+	"strings"
 
 	"github.com/gofiber/fiber/v2"
 	"outpipe.dev/outpipe/internal/services"
@@ -19,7 +20,7 @@ func otlpBody(c *fiber.Ctx) ([]byte, error) {
 	if c.Get("Content-Encoding") == "" {
 		return c.Request().Body(), nil
 	}
-	if c.Get("Content-Encoding") != "gzip" {
+	if !strings.EqualFold(c.Get("Content-Encoding"), "gzip") {
 		return nil, fiber.NewError(fiber.StatusUnsupportedMediaType, "unsupported content encoding")
 	}
 	reader, err := gzip.NewReader(bytes.NewReader(c.Request().Body()))
