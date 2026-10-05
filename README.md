@@ -78,6 +78,10 @@ npm install
 npm run dev
 ```
 
+This starts the API on port 8080, tunnel relay on 8081, dashboard on 3000,
+secrets-share on 4321, and status app on 4322. Use `npm run dev:web`,
+`npm run dev:status`, or `npm run dev:secrets-share` to run an individual app.
+
 ## Common commands
 
 ```sh

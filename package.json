@@ -9,9 +9,9 @@
     "packages/*"
   ],
   "scripts": {
-    "dev": "concurrently -k -n api,tunnel,web -c blue,cyan,magenta \"npm run dev:api\" \"npm run dev:tunnel\" \"npm run dev --workspace apps/web\"",
-    "dev:api": "OUTPIPE_PORT=8080 air -c .air/server.toml",
-    "dev:tunnel": "OUTPIPE_PORT=8081 air -c .air/tunnel.toml",
+    "dev": "concurrently -k -n api,tunnel,web,status,secrets-share -c blue,cyan,magenta,green,yellow \"npm run dev:api\" \"npm run dev:tunnel\" \"npm run dev:web\" \"npm run dev:status\" \"npm run dev:secrets-share\"",
+    "dev:api": "cross-env OUTPIPE_PORT=8080 air -c .air/server.toml",
+    "dev:tunnel": "cross-env OUTPIPE_PORT=8081 air -c .air/tunnel.toml",
     "dev:cron": "air -c .air/cron.toml",
     "dev:check": "air -c .air/check.toml",
     "dev:cli": "air -c .air/cli.toml",
@@ -50,6 +50,7 @@
     "@biomejs/biome": "^2.5.15",
     "@types/node": "^26.6.4",
     "concurrently": "^10.0.5",
+    "cross-env": "7.0.3",
     "tsup": "^8.5.1",
     "typescript": "^7.0.2",
     "vitest": "^5.0.3"
