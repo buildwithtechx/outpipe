@@ -6,6 +6,6 @@
     "declaration": true,
     "declarationMap": true
   },
-  "include": ["index.ts", "crypto.ts"],
+  "include": ["*.ts"],
   "exclude": ["dist", "node_modules"]
 }

@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "build": "tsup index.ts crypto.ts --format esm --clean && npm run build:types",
-    "build:types": "tsc --emitDeclarationOnly --noEmit false",
+    "build:types": "tsc -p tsconfig.build.json --emitDeclarationOnly --noEmit false",
     "typecheck": "tsc --noEmit",
     "test": "vitest run"
   },
