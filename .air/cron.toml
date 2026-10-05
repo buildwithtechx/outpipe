@@ -2,9 +2,8 @@ root = "."
 tmp_dir = "tmp/air-cron"
 
 [build]
-  cmd = "go build -o ./tmp/air-cron/tunnel-cron ./cmd/cron"
-  bin = "./tmp/air-cron/tunnel-cron"
-  full_bin = ""
+  cmd = "go build -o ./tmp/air-cron/tunnel-cron.exe ./cmd/cron"
+  entrypoint = ["./tmp/air-cron/tunnel-cron.exe"]
   include_ext = ["go", "tpl", "tmpl", "html"]
   exclude_dir = ["apps", "docs", "data", "tmp", "node_modules", "target", "dist", "packages", "bin", ".air"]
   exclude_file = []

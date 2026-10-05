@@ -1,24 +1,27 @@
+@import "@outpipe/shared/brand.css";
+@import "./panels.css";
+
 :root {
-  --bg-primary: #080c14;
-  --bg-card: #0d1527;
-  --bg-card-hover: #121d36;
-  --bg-input: #090f1d;
-  --border-primary: #1e293b;
-  --border-subtle: #172033;
-  --border-focus: #3b82f6;
-  --text-primary: #f8fafc;
-  --text-secondary: #94a3b8;
-  --text-muted: #64748b;
+  --bg-primary: var(--brand-background);
+  --bg-card: var(--brand-surface);
+  --bg-card-hover: var(--brand-raised);
+  --bg-input: var(--brand-surface);
+  --border-primary: var(--brand-border);
+  --border-subtle: var(--brand-border);
+  --border-focus: var(--brand-accent);
+  --text-primary: var(--brand-text);
+  --text-secondary: var(--brand-secondary);
+  --text-muted: var(--brand-muted);
   --status-operational: #10b981;
   --status-degraded: #f59e0b;
   --status-outage: #ef4444;
   --status-maintenance: #6366f1;
   --status-unknown: #475569;
-  --accent-blue: #3b82f6;
+  --accent-blue: var(--brand-accent);
   --radius-sm: 6px;
   --radius-md: 10px;
   --radius-lg: 14px;
-  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --font-sans: var(--brand-font);
   --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
 }
 
@@ -51,6 +54,28 @@ a {
   padding: 0 1.25rem;
 }
 
+.status-main {
+  padding-top: 4rem;
+  padding-bottom: 4rem;
+  flex: 1;
+}
+
+#app, .status-app {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.status-empty {
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-lg);
+  background: var(--bg-card);
+  padding: clamp(1.5rem, 5vw, 3rem);
+}
+
+.status-empty h2 { margin-bottom: 0.75rem; font-size: 1.5rem; }
+.status-empty p { margin-bottom: 1.5rem; color: var(--text-secondary); }
+
 .status-header {
   padding: 2.5rem 0 1.5rem;
   border-bottom: 1px solid var(--border-subtle);
@@ -73,12 +98,11 @@ a {
 .brand-logo {
   width: 32px;
   height: 32px;
-  background: linear-gradient(135deg, #10b981, #06b6d4);
+  background: var(--bg-card);
   border-radius: var(--radius-sm);
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 0 16px rgba(16, 185, 129, 0.3);
 }
 
 .brand-title {
@@ -99,17 +123,16 @@ a {
   padding: 0.5rem 1rem;
   font-size: 0.875rem;
   font-weight: 600;
-  color: #fff;
-  background-color: #1e293b;
+  color: var(--brand-primary-text);
+  background-color: var(--brand-primary);
   border: 1px solid var(--border-primary);
-  border-radius: var(--radius-md);
+  border-radius: 9999px;
   cursor: pointer;
   transition: all 0.15s ease;
 }
 
 .btn-subscribe:hover {
-  background-color: #334155;
-  border-color: #475569;
+  opacity: 0.9;
 }
 
 .status-banner {
@@ -176,196 +199,6 @@ a {
   color: var(--text-muted);
 }
 
-.monitors-card {
-  background-color: var(--bg-card);
-  border: 1px solid var(--border-primary);
-  border-radius: var(--radius-lg);
-  padding: 1.5rem;
-  margin-bottom: 2rem;
-}
-
-.monitors-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 1.25rem;
-  padding-bottom: 0.75rem;
-  border-bottom: 1px solid var(--border-subtle);
-}
-
-.monitors-title {
-  font-size: 1.125rem;
-  font-weight: 600;
-}
-
-.monitors-subtitle {
-  font-size: 0.8125rem;
-  color: var(--text-secondary);
-}
-
-.monitor-item {
-  padding: 1.25rem 0;
-  border-bottom: 1px solid var(--border-subtle);
-}
-
-.monitor-item:last-child {
-  border-bottom: none;
-  padding-bottom: 0;
-}
-
-.monitor-top {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 0.75rem;
-}
-
-.monitor-meta {
-  display: flex;
-  align-items: center;
-  gap: 0.625rem;
-}
-
-.monitor-name {
-  font-weight: 600;
-  font-size: 0.9375rem;
-}
-
-.monitor-protocol {
-  font-size: 0.6875rem;
-  font-weight: 600;
-  padding: 0.15rem 0.4rem;
-  border-radius: 4px;
-  background-color: rgba(255, 255, 255, 0.06);
-  color: var(--text-secondary);
-  text-transform: uppercase;
-}
-
-.monitor-status-badge {
-  font-size: 0.8125rem;
-  font-weight: 600;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.375rem;
-}
-
-.uptime-bars-wrapper {
-  display: flex;
-  align-items: center;
-  gap: 2px;
-  height: 28px;
-  margin-bottom: 0.5rem;
-}
-
-.uptime-bar {
-  flex: 1;
-  height: 100%;
-  border-radius: 2px;
-  background-color: var(--status-operational);
-  transition: opacity 0.15s ease, transform 0.15s ease;
-  cursor: pointer;
-  position: relative;
-}
-
-.uptime-bar:hover {
-  opacity: 0.8;
-  transform: scaleY(1.15);
-}
-
-.uptime-bar.operational { background-color: var(--status-operational); }
-.uptime-bar.degraded { background-color: var(--status-degraded); }
-.uptime-bar.outage { background-color: var(--status-outage); }
-.uptime-bar.empty { background-color: rgba(255, 255, 255, 0.08); }
-
-.uptime-footer {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  font-size: 0.75rem;
-  color: var(--text-muted);
-}
-
-.incidents-card {
-  background-color: var(--bg-card);
-  border: 1px solid var(--border-primary);
-  border-radius: var(--radius-lg);
-  padding: 1.5rem;
-  margin-bottom: 2rem;
-}
-
-.incident-entry {
-  padding: 1.25rem 0;
-  border-bottom: 1px solid var(--border-subtle);
-}
-
-.incident-entry:last-child {
-  border-bottom: none;
-  padding-bottom: 0;
-}
-
-.incident-title-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 0.5rem;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-}
-
-.incident-title {
-  font-weight: 600;
-  font-size: 1rem;
-}
-
-.incident-badge {
-  font-size: 0.75rem;
-  font-weight: 600;
-  padding: 0.2rem 0.6rem;
-  border-radius: 9999px;
-  text-transform: capitalize;
-}
-
-.incident-timeline {
-  margin-top: 1rem;
-  padding-left: 1rem;
-  border-left: 2px solid var(--border-primary);
-  display: flex;
-  flex-direction: column;
-  gap: 0.875rem;
-}
-
-.timeline-step {
-  position: relative;
-}
-
-.timeline-step::before {
-  content: "";
-  position: absolute;
-  left: calc(-1rem - 5px);
-  top: 4px;
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background-color: var(--accent-blue);
-}
-
-.timeline-status {
-  font-weight: 600;
-  font-size: 0.8125rem;
-  text-transform: capitalize;
-  margin-bottom: 0.2rem;
-}
-
-.timeline-time {
-  font-size: 0.75rem;
-  color: var(--text-muted);
-  margin-bottom: 0.25rem;
-}
-
-.timeline-message {
-  font-size: 0.875rem;
-  color: var(--text-secondary);
-}
 
 .modal-backdrop {
   position: fixed;

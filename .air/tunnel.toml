@@ -3,8 +3,7 @@ tmp_dir = "tmp/air-tunnel"
 
 [build]
   cmd = "go build -o ./tmp/air-tunnel/outpipe-server.exe ./cmd/tunnel"
-  bin = "./tmp/air-tunnel/outpipe-server.exe"
-  full_bin = ""
+  entrypoint = ["./tmp/air-tunnel/outpipe-server.exe"]
   include_ext = ["go", "tpl", "tmpl", "html"]
   exclude_dir = ["apps", "docs", "data", "tmp", "node_modules", "vendor", "target", "dist", "packages", "bin", ".air"]
   exclude_file = []

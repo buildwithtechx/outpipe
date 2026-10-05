@@ -1,11 +1,14 @@
 package handlers
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 
 	"github.com/gofiber/fiber/v2"
+	"gorm.io/gorm"
 	"outpipe.dev/outpipe/internal/models"
+	"outpipe.dev/outpipe/internal/repositories"
 	"outpipe.dev/outpipe/internal/services"
 )
 
@@ -151,7 +154,10 @@ func (h *UptimeHandler) GetPublicStatus(c *fiber.Ctx) error {
 	slug := strings.TrimSpace(c.Params("slug"))
 	data, err := h.uptime.GetPublicStatusData(c.UserContext(), slug)
 	if err != nil {
-		return writeError(c, fiber.StatusNotFound, err)
+		if errors.Is(err, gorm.ErrRecordNotFound) || errors.Is(err, repositories.ErrNotFound) {
+			return writeError(c, fiber.StatusNotFound, err)
+		}
+		return c.Status(fiber.StatusInternalServerError).JSON(ErrorResponse{Error: "Status is temporarily unavailable"})
 	}
 	return c.JSON(data)
 }

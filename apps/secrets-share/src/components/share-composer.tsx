@@ -140,7 +140,7 @@ export function ShareComposer() {
 
   return (
     <div className="card">
-      <h1 className="card-title">Share a Secret</h1>
+      <h2 className="card-title">Create a secret link</h2>
       <p className="card-subtitle">
         Encrypt sensitive information in your browser before sending. Only the
         link recipient can decrypt it.

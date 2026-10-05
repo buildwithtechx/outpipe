@@ -2,9 +2,8 @@ root = "."
 tmp_dir = "tmp/air-check"
 
 [build]
-  cmd = "go build -o ./tmp/air-check/tunnel-check ./cmd/check"
-  bin = "./tmp/air-check/tunnel-check"
-  full_bin = ""
+  cmd = "go build -o ./tmp/air-check/tunnel-check.exe ./cmd/check"
+  entrypoint = ["./tmp/air-check/tunnel-check.exe"]
   include_ext = ["go", "tpl", "tmpl", "html"]
   exclude_dir = ["apps", "docs", "data", "tmp", "node_modules", "target", "dist", "packages", "bin", ".air"]
   exclude_file = []

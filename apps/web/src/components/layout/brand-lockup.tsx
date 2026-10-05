@@ -1,3 +1,4 @@
+import outpipeMark from '@outpipe/shared/outpipe.svg?url';
 import { Link } from '@tanstack/react-router';
 
 type BrandLockupProps = {
@@ -19,7 +20,7 @@ export function BrandLockup({
       className={`inline-flex items-center gap-3 ${className}`}
       onClick={onClick}
     >
-      <img src="/favicon.svg" alt="" className={iconClassName} />
+      <img src={outpipeMark} alt="" className={iconClassName} />
       <span className={nameClassName}>Outpipe</span>
     </Link>
   );

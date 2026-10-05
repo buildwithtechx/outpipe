@@ -1,0 +1,11 @@
+{
+  "name": "@outpipe/shared",
+  "version": "0.1.1",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./index.ts",
+    "./brand.css": "./theme.css",
+    "./outpipe.svg": "./outpipe.svg"
+  }
+}
