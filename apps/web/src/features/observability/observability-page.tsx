@@ -1,6 +1,15 @@
 import { Activity, ArrowRightLeft, Eye, Layers } from 'lucide-react';
 import { useState } from 'react';
 import { Button } from '#/components/ui/button';
+import { Card } from '#/components/ui/card';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '#/components/ui/select';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '#/components/ui/tabs';
 import { useOrganization } from '#/features/organizations/hooks/use-organization';
 import type { RequestCapture } from '#/interfaces';
 import { LogStream } from './components/log-stream';
@@ -21,9 +30,6 @@ export function ObservabilityPage({ orgSlug }: { orgSlug: string }) {
   const orgId = organization?.id;
 
   const [timeRange, setTimeRange] = useState('24h');
-  const [activeTab, setActiveTab] = useState<'traces' | 'logs' | 'captures'>(
-    'traces',
-  );
   const [selectedTraceId, setSelectedTraceId] = useState<string | null>(null);
   const [inspectedCapture, setInspectedCapture] =
     useState<RequestCapture | null>(null);
@@ -64,23 +70,24 @@ export function ObservabilityPage({ orgSlug }: { orgSlug: string }) {
           </p>
         </div>
         <div className="flex items-center gap-3">
-          <select
-            value={timeRange}
-            onChange={(e) => setTimeRange(e.target.value)}
-            className="rounded-lg border border-white/10 bg-zinc-800 px-3 py-1.5 text-xs text-white focus:outline-hidden"
-          >
-            <option value="1h">Past Hour</option>
-            <option value="24h">Past 24 Hours</option>
-            <option value="7d">Past 7 Days</option>
-            <option value="30d">Past 30 Days</option>
-          </select>
+          <Select value={timeRange} onValueChange={setTimeRange}>
+            <SelectTrigger className="w-36 border-white/10 bg-zinc-800 text-xs text-white">
+              <SelectValue placeholder="Time range" />
+            </SelectTrigger>
+            <SelectContent className="border-white/10 bg-zinc-900 text-white">
+              <SelectItem value="1h">Past Hour</SelectItem>
+              <SelectItem value="24h">Past 24 Hours</SelectItem>
+              <SelectItem value="7d">Past 7 Days</SelectItem>
+              <SelectItem value="30d">Past 30 Days</SelectItem>
+            </SelectContent>
+          </Select>
           <Button
             size="sm"
             onClick={() => {
               setReplayInitial(null);
               setShowReplay(true);
             }}
-            className="bg-indigo-600 hover:bg-indigo-500 text-xs"
+            className="bg-indigo-600 hover:bg-indigo-500 text-xs text-white"
           >
             <ArrowRightLeft className="mr-1.5 size-3.5" />
             Replay Request
@@ -89,30 +96,30 @@ export function ObservabilityPage({ orgSlug }: { orgSlug: string }) {
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="rounded-xl border border-white/10 bg-white/5 p-4">
+        <Card className="border-white/10 bg-white/5 p-4 text-white">
           <span className="text-xs text-white/50">Total Requests</span>
           <p className="text-2xl font-semibold mt-1">
             {stats?.totalRequests || 0}
           </p>
-        </div>
-        <div className="rounded-xl border border-white/10 bg-white/5 p-4">
+        </Card>
+        <Card className="border-white/10 bg-white/5 p-4 text-white">
           <span className="text-xs text-emerald-400/80">P50 Latency</span>
           <p className="text-2xl font-semibold text-emerald-400 mt-1">
             {stats?.p50LatencyMs || 0}ms
           </p>
-        </div>
-        <div className="rounded-xl border border-white/10 bg-white/5 p-4">
+        </Card>
+        <Card className="border-white/10 bg-white/5 p-4 text-white">
           <span className="text-xs text-amber-400/80">P95 / P99 Latency</span>
           <p className="text-2xl font-semibold text-amber-400 mt-1">
             {stats?.p95LatencyMs || 0} / {stats?.p99LatencyMs || 0}ms
           </p>
-        </div>
-        <div className="rounded-xl border border-white/10 bg-white/5 p-4">
+        </Card>
+        <Card className="border-white/10 bg-white/5 p-4 text-white">
           <span className="text-xs text-cyan-400/80">Data Transferred</span>
           <p className="text-2xl font-semibold text-cyan-400 mt-1">
             {((stats?.totalBytes || 0) / (1024 * 1024)).toFixed(1)} MB
           </p>
-        </div>
+        </Card>
       </div>
 
       {selectedTraceId && (
@@ -123,172 +130,162 @@ export function ObservabilityPage({ orgSlug }: { orgSlug: string }) {
         />
       )}
 
-      <div className="flex items-center gap-4 border-b border-white/10">
-        <button
-          type="button"
-          onClick={() => setActiveTab('traces')}
-          className={`pb-3 text-sm font-medium border-b-2 transition-colors ${
-            activeTab === 'traces'
-              ? 'border-indigo-500 text-white'
-              : 'border-transparent text-white/50 hover:text-white/80'
-          }`}
-        >
-          Traces ({traces.length})
-        </button>
-        <button
-          type="button"
-          onClick={() => setActiveTab('logs')}
-          className={`pb-3 text-sm font-medium border-b-2 transition-colors ${
-            activeTab === 'logs'
-              ? 'border-indigo-500 text-white'
-              : 'border-transparent text-white/50 hover:text-white/80'
-          }`}
-        >
-          Logs ({logs.length})
-        </button>
-        <button
-          type="button"
-          onClick={() => setActiveTab('captures')}
-          className={`pb-3 text-sm font-medium border-b-2 transition-colors ${
-            activeTab === 'captures'
-              ? 'border-indigo-500 text-white'
-              : 'border-transparent text-white/50 hover:text-white/80'
-          }`}
-        >
-          Tunnel Request Captures ({captures.length})
-        </button>
-      </div>
+      <Tabs defaultValue="traces" className="space-y-4">
+        <TabsList className="bg-white/5 border border-white/10 p-1">
+          <TabsTrigger value="traces" className="text-xs">
+            Traces ({traces.length})
+          </TabsTrigger>
+          <TabsTrigger value="logs" className="text-xs">
+            Logs ({logs.length})
+          </TabsTrigger>
+          <TabsTrigger value="captures" className="text-xs">
+            Tunnel Request Captures ({captures.length})
+          </TabsTrigger>
+        </TabsList>
 
-      {activeTab === 'traces' && (
-        <div className="rounded-xl border border-white/10 bg-white/5 overflow-hidden">
-          {traces.length === 0 ? (
-            <div className="p-12 text-center text-white/40 text-xs">
-              No distributed traces received yet. Configure your app with
-              OpenTelemetry OTLP endpoint:
-              <br />
-              <code className="text-indigo-400 mt-2 inline-block font-mono bg-white/5 px-2 py-1 rounded">
-                POST /api/v1/ingest/otlp/v1/traces
-              </code>
-            </div>
-          ) : (
-            <table className="w-full text-left text-xs text-white/70">
-              <thead className="bg-white/5 text-white/50 border-b border-white/10">
-                <tr>
-                  <th className="px-4 py-3 font-medium">Trace Root</th>
-                  <th className="px-4 py-3 font-medium">Trace ID</th>
-                  <th className="px-4 py-3 font-medium">Duration</th>
-                  <th className="px-4 py-3 font-medium">Timestamp</th>
-                  <th className="px-4 py-3 font-medium text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-white/5">
-                {traces.map((t) => (
-                  <tr key={t.id} className="hover:bg-white/5 transition-colors">
-                    <td className="px-4 py-3 font-semibold text-white">
-                      {t.name}
-                    </td>
-                    <td className="px-4 py-3 font-mono text-white/50 text-[11px]">
-                      {t.traceId}
-                    </td>
-                    <td className="px-4 py-3 font-mono text-emerald-400 font-semibold">
-                      {t.durationMs}ms
-                    </td>
-                    <td className="px-4 py-3 text-white/40">
-                      {new Date(t.startTime).toLocaleTimeString()}
-                    </td>
-                    <td className="px-4 py-3 text-right">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setSelectedTraceId(t.traceId)}
-                        className="h-7 text-xs border-white/10 bg-white/5 text-white/80"
-                      >
-                        <Layers className="size-3 mr-1" />
-                        Waterfall
-                      </Button>
-                    </td>
+        <TabsContent value="traces" className="mt-0">
+          <div className="rounded-xl border border-white/10 bg-white/5 overflow-hidden">
+            {traces.length === 0 ? (
+              <div className="p-12 text-center text-white/40 text-xs">
+                No distributed traces received yet. Configure your app with
+                OpenTelemetry OTLP endpoint:
+                <br />
+                <code className="text-indigo-400 mt-2 inline-block font-mono bg-white/5 px-2 py-1 rounded">
+                  POST /api/v1/ingest/otlp/v1/traces
+                </code>
+              </div>
+            ) : (
+              <table className="w-full text-left text-xs text-white/70">
+                <thead className="bg-white/5 text-white/50 border-b border-white/10">
+                  <tr>
+                    <th className="px-4 py-3 font-medium">Trace Root</th>
+                    <th className="px-4 py-3 font-medium">Trace ID</th>
+                    <th className="px-4 py-3 font-medium">Duration</th>
+                    <th className="px-4 py-3 font-medium">Timestamp</th>
+                    <th className="px-4 py-3 font-medium text-right">
+                      Actions
+                    </th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
-        </div>
-      )}
+                </thead>
+                <tbody className="divide-y divide-white/5">
+                  {traces.map((t) => (
+                    <tr
+                      key={t.id}
+                      className="hover:bg-white/5 transition-colors"
+                    >
+                      <td className="px-4 py-3 font-semibold text-white">
+                        {t.name}
+                      </td>
+                      <td className="px-4 py-3 font-mono text-white/50 text-[11px]">
+                        {t.traceId}
+                      </td>
+                      <td className="px-4 py-3 font-mono text-emerald-400 font-semibold">
+                        {t.durationMs}ms
+                      </td>
+                      <td className="px-4 py-3 text-white/40">
+                        {new Date(t.startTime).toLocaleTimeString()}
+                      </td>
+                      <td className="px-4 py-3 text-right">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setSelectedTraceId(t.traceId)}
+                          className="h-7 text-xs border-white/10 bg-white/5 text-white/80"
+                        >
+                          <Layers className="size-3 mr-1" />
+                          Waterfall
+                        </Button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+          </div>
+        </TabsContent>
 
-      {activeTab === 'logs' && (
-        <LogStream logs={logs} onSelectTrace={setSelectedTraceId} />
-      )}
+        <TabsContent value="logs" className="mt-0">
+          <LogStream logs={logs} onSelectTrace={setSelectedTraceId} />
+        </TabsContent>
 
-      {activeTab === 'captures' && (
-        <div className="rounded-xl border border-white/10 bg-white/5 overflow-hidden">
-          {captures.length === 0 ? (
-            <div className="p-12 text-center text-white/40 text-xs">
-              No tunnel requests captured yet.
-            </div>
-          ) : (
-            <table className="w-full text-left text-xs text-white/70">
-              <thead className="bg-white/5 text-white/50 border-b border-white/10">
-                <tr>
-                  <th className="px-4 py-3 font-medium">Status</th>
-                  <th className="px-4 py-3 font-medium">Method & Path</th>
-                  <th className="px-4 py-3 font-medium">Duration</th>
-                  <th className="px-4 py-3 font-medium">Payload Size</th>
-                  <th className="px-4 py-3 font-medium">Time</th>
-                  <th className="px-4 py-3 font-medium text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-white/5">
-                {captures.map((c) => (
-                  <tr key={c.id} className="hover:bg-white/5 transition-colors">
-                    <td className="px-4 py-3">
-                      <span
-                        className={`px-2 py-0.5 rounded text-[11px] font-bold font-mono ${
-                          c.statusCode < 400
-                            ? 'bg-emerald-500/15 text-emerald-400'
-                            : 'bg-rose-500/15 text-rose-400'
-                        }`}
-                      >
-                        {c.statusCode}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3 font-mono">
-                      <strong className="text-white mr-1.5">{c.method}</strong>
-                      <span className="text-white/60">{c.path}</span>
-                    </td>
-                    <td className="px-4 py-3 font-mono">{c.durationMs}ms</td>
-                    <td className="px-4 py-3 font-mono text-white/50">
-                      {c.requestBodySize} B
-                    </td>
-                    <td className="px-4 py-3 text-white/40">
-                      {new Date(c.timestamp).toLocaleTimeString()}
-                    </td>
-                    <td className="px-4 py-3 text-right space-x-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setInspectedCapture(c)}
-                        className="h-7 text-xs border-white/10 bg-white/5 text-white/80"
-                      >
-                        <Eye className="size-3 mr-1" />
-                        Inspect
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleOpenReplay(c)}
-                        className="h-7 text-xs border-indigo-500/30 text-indigo-300 hover:bg-indigo-500/10"
-                      >
-                        <ArrowRightLeft className="size-3 mr-1" />
-                        Replay
-                      </Button>
-                    </td>
+        <TabsContent value="captures" className="mt-0">
+          <div className="rounded-xl border border-white/10 bg-white/5 overflow-hidden">
+            {captures.length === 0 ? (
+              <div className="p-12 text-center text-white/40 text-xs">
+                No tunnel requests captured yet.
+              </div>
+            ) : (
+              <table className="w-full text-left text-xs text-white/70">
+                <thead className="bg-white/5 text-white/50 border-b border-white/10">
+                  <tr>
+                    <th className="px-4 py-3 font-medium">Status</th>
+                    <th className="px-4 py-3 font-medium">Method & Path</th>
+                    <th className="px-4 py-3 font-medium">Duration</th>
+                    <th className="px-4 py-3 font-medium">Payload Size</th>
+                    <th className="px-4 py-3 font-medium">Time</th>
+                    <th className="px-4 py-3 font-medium text-right">
+                      Actions
+                    </th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
-        </div>
-      )}
+                </thead>
+                <tbody className="divide-y divide-white/5">
+                  {captures.map((c) => (
+                    <tr
+                      key={c.id}
+                      className="hover:bg-white/5 transition-colors"
+                    >
+                      <td className="px-4 py-3">
+                        <span
+                          className={`px-2 py-0.5 rounded text-[11px] font-bold font-mono ${
+                            c.statusCode < 400
+                              ? 'bg-emerald-500/15 text-emerald-400'
+                              : 'bg-rose-500/15 text-rose-400'
+                          }`}
+                        >
+                          {c.statusCode}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 font-mono">
+                        <strong className="text-white mr-1.5">
+                          {c.method}
+                        </strong>
+                        <span className="text-white/60">{c.path}</span>
+                      </td>
+                      <td className="px-4 py-3 font-mono">{c.durationMs}ms</td>
+                      <td className="px-4 py-3 font-mono text-white/50">
+                        {c.requestBodySize} B
+                      </td>
+                      <td className="px-4 py-3 text-white/40">
+                        {new Date(c.timestamp).toLocaleTimeString()}
+                      </td>
+                      <td className="px-4 py-3 text-right space-x-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setInspectedCapture(c)}
+                          className="h-7 text-xs border-white/10 bg-white/5 text-white/80"
+                        >
+                          <Eye className="size-3 mr-1" />
+                          Inspect
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleOpenReplay(c)}
+                          className="h-7 text-xs border-indigo-500/30 text-indigo-300 hover:bg-indigo-500/10"
+                        >
+                          <ArrowRightLeft className="size-3 mr-1" />
+                          Replay
+                        </Button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+          </div>
+        </TabsContent>
+      </Tabs>
 
       <RequestInspectorModal
         capture={inspectedCapture}

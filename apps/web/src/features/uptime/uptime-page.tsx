@@ -9,7 +9,10 @@ import {
   Trash2,
 } from 'lucide-react';
 import { useState } from 'react';
+import { Badge } from '#/components/ui/badge';
 import { Button } from '#/components/ui/button';
+import { Card } from '#/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '#/components/ui/tabs';
 import { useOrganization } from '#/features/organizations/hooks/use-organization';
 import { AddMonitorModal } from './components/add-monitor-modal';
 import { IncidentModal } from './components/incident-modal';
@@ -31,9 +34,6 @@ export function UptimePage({ orgSlug }: { orgSlug: string }) {
   const { data: statusPage } = useStatusPageConfig(orgId);
   const mutations = useUptimeMutations(orgId || '');
 
-  const [activeTab, setActiveTab] = useState<'monitors' | 'incidents'>(
-    'monitors',
-  );
   const [showAddMonitor, setShowAddMonitor] = useState(false);
   const [showIncidentModal, setShowIncidentModal] = useState(false);
   const [showStatusModal, setShowStatusModal] = useState(false);
@@ -127,57 +127,41 @@ export function UptimePage({ orgSlug }: { orgSlug: string }) {
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="rounded-xl border border-white/10 bg-white/5 p-4">
+        <Card className="border-white/10 bg-white/5 p-4 text-white">
           <span className="text-xs text-white/50">Total Probes</span>
           <p className="text-2xl font-semibold mt-1">{monitors.length}</p>
-        </div>
-        <div className="rounded-xl border border-white/10 bg-white/5 p-4">
+        </Card>
+        <Card className="border-white/10 bg-white/5 p-4 text-white">
           <span className="text-xs text-emerald-400/80">Healthy Monitors</span>
           <p className="text-2xl font-semibold text-emerald-400 mt-1">
             {healthyCount}
           </p>
-        </div>
-        <div className="rounded-xl border border-white/10 bg-white/5 p-4">
+        </Card>
+        <Card className="border-white/10 bg-white/5 p-4 text-white">
           <span className="text-xs text-rose-400/80">Down / Outage</span>
           <p className="text-2xl font-semibold text-rose-400 mt-1">
             {downCount}
           </p>
-        </div>
-        <div className="rounded-xl border border-white/10 bg-white/5 p-4">
+        </Card>
+        <Card className="border-white/10 bg-white/5 p-4 text-white">
           <span className="text-xs text-amber-400/80">Active Incidents</span>
           <p className="text-2xl font-semibold text-amber-400 mt-1">
             {activeIncidents.length}
           </p>
-        </div>
+        </Card>
       </div>
 
-      <div className="flex items-center gap-4 border-b border-white/10">
-        <button
-          type="button"
-          onClick={() => setActiveTab('monitors')}
-          className={`pb-3 text-sm font-medium border-b-2 transition-colors ${
-            activeTab === 'monitors'
-              ? 'border-emerald-500 text-white'
-              : 'border-transparent text-white/50 hover:text-white/80'
-          }`}
-        >
-          Probe Monitors ({monitors.length})
-        </button>
-        <button
-          type="button"
-          onClick={() => setActiveTab('incidents')}
-          className={`pb-3 text-sm font-medium border-b-2 transition-colors ${
-            activeTab === 'incidents'
-              ? 'border-emerald-500 text-white'
-              : 'border-transparent text-white/50 hover:text-white/80'
-          }`}
-        >
-          Incidents ({incidents.length})
-        </button>
-      </div>
+      <Tabs defaultValue="monitors" className="space-y-4">
+        <TabsList className="bg-white/5 border border-white/10 p-1">
+          <TabsTrigger value="monitors" className="text-xs">
+            Probe Monitors ({monitors.length})
+          </TabsTrigger>
+          <TabsTrigger value="incidents" className="text-xs">
+            Incidents ({incidents.length})
+          </TabsTrigger>
+        </TabsList>
 
-      {activeTab === 'monitors' ? (
-        <div className="space-y-4">
+        <TabsContent value="monitors" className="mt-0">
           {monitors.length === 0 ? (
             <div className="rounded-xl border border-white/10 bg-white/5 p-12 text-center">
               <Activity className="size-10 text-white/20 mx-auto mb-3" />
@@ -191,7 +175,7 @@ export function UptimePage({ orgSlug }: { orgSlug: string }) {
               <Button
                 size="sm"
                 onClick={() => setShowAddMonitor(true)}
-                className="bg-emerald-600 text-xs"
+                className="bg-emerald-600 hover:bg-emerald-500 text-xs text-white"
               >
                 <Plus className="mr-1.5 size-3.5" />
                 Create your first monitor
@@ -212,66 +196,72 @@ export function UptimePage({ orgSlug }: { orgSlug: string }) {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-white/5">
-                  {monitors.map((m) => (
-                    <tr
-                      key={m.id}
-                      className="hover:bg-white/5 transition-colors"
-                    >
-                      <td className="px-4 py-3">
-                        <span
-                          className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full font-medium ${
-                            m.status === 'active'
-                              ? 'bg-emerald-500/15 text-emerald-400'
-                              : 'bg-rose-500/15 text-rose-400'
-                          }`}
-                        >
-                          <span
-                            className={`size-1.5 rounded-full ${m.status === 'active' ? 'bg-emerald-400' : 'bg-rose-400'}`}
-                          />
-                          {m.status}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3">
-                        <span className="font-semibold text-white block">
-                          {m.name}
-                        </span>
-                        <span className="font-mono text-white/40">
-                          {m.target}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3 uppercase font-mono">
-                        {m.type}
-                      </td>
-                      <td className="px-4 py-3">{m.intervalSeconds}s</td>
-                      <td className="px-4 py-3 text-right space-x-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => mutations.probeMonitor.mutate(m.id)}
-                          className="h-7 text-xs border-white/10 bg-white/5 text-white/80"
-                          title="Run probe test now"
-                        >
-                          <RefreshCw className="size-3 mr-1" />
-                          Test
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => mutations.removeMonitor.mutate(m.id)}
-                          className="h-7 text-xs border-rose-500/20 text-rose-400 hover:bg-rose-500/10"
-                        >
-                          <Trash2 className="size-3" />
-                        </Button>
-                      </td>
-                    </tr>
-                  ))}
+                  {monitors.map((m) => {
+                    const isActive = m.status === 'active';
+                    return (
+                      <tr
+                        key={m.id}
+                        className="hover:bg-white/5 transition-colors"
+                      >
+                        <td className="px-4 py-3">
+                          <Badge
+                            variant={isActive ? 'default' : 'destructive'}
+                            className={`text-[11px] font-medium gap-1.5 ${
+                              isActive
+                                ? 'bg-emerald-500/15 text-emerald-400 hover:bg-emerald-500/20'
+                                : 'bg-rose-500/15 text-rose-400 hover:bg-rose-500/20'
+                            }`}
+                          >
+                            <span
+                              className={`size-1.5 rounded-full ${
+                                isActive ? 'bg-emerald-400' : 'bg-rose-400'
+                              }`}
+                            />
+                            {m.status}
+                          </Badge>
+                        </td>
+                        <td className="px-4 py-3">
+                          <span className="font-semibold text-white block">
+                            {m.name}
+                          </span>
+                          <span className="font-mono text-white/40">
+                            {m.target}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3 uppercase font-mono">
+                          {m.type}
+                        </td>
+                        <td className="px-4 py-3">{m.intervalSeconds}s</td>
+                        <td className="px-4 py-3 text-right space-x-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => mutations.probeMonitor.mutate(m.id)}
+                            className="h-7 text-xs border-white/10 bg-white/5 text-white/80"
+                            title="Run probe test now"
+                          >
+                            <RefreshCw className="size-3 mr-1" />
+                            Test
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => mutations.removeMonitor.mutate(m.id)}
+                            className="h-7 text-xs border-rose-500/20 text-rose-400 hover:bg-rose-500/10"
+                          >
+                            <Trash2 className="size-3" />
+                          </Button>
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
           )}
-        </div>
-      ) : (
-        <div className="space-y-4">
+        </TabsContent>
+
+        <TabsContent value="incidents" className="mt-0 space-y-4">
           {incidents.length === 0 ? (
             <div className="rounded-xl border border-white/10 bg-white/5 p-12 text-center">
               <CheckCircle2 className="size-10 text-emerald-400/30 mx-auto mb-3" />
@@ -284,18 +274,21 @@ export function UptimePage({ orgSlug }: { orgSlug: string }) {
             </div>
           ) : (
             incidents.map((inc) => (
-              <div
+              <Card
                 key={inc.id}
-                className="rounded-xl border border-white/10 bg-white/5 p-4 space-y-3"
+                className="border-white/10 bg-white/5 p-4 space-y-3 text-white"
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <span className="font-semibold text-white text-sm">
                       {inc.title}
                     </span>
-                    <span className="px-2 py-0.5 rounded text-[10px] uppercase font-bold bg-white/10 text-white/70">
+                    <Badge
+                      variant="outline"
+                      className="text-[10px] uppercase font-bold border-white/10 text-white/70"
+                    >
                       {inc.severity}
-                    </span>
+                    </Badge>
                   </div>
                   <span className="text-xs text-white/40">
                     {new Date(inc.startedAt).toLocaleString()}
@@ -311,11 +304,11 @@ export function UptimePage({ orgSlug }: { orgSlug: string }) {
                     </div>
                   ))}
                 </div>
-              </div>
+              </Card>
             ))
           )}
-        </div>
-      )}
+        </TabsContent>
+      </Tabs>
 
       <AddMonitorModal
         isOpen={showAddMonitor}

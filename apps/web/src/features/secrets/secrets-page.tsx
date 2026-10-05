@@ -149,52 +149,55 @@ export function SecretsPage({ orgSlug }: { orgSlug: string }) {
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div className="flex items-center gap-2 overflow-x-auto pb-1">
               {projects.map((proj) => (
-                <button
+                <Button
                   key={proj.id}
-                  type="button"
+                  size="sm"
+                  variant={proj.id === activeProjectId ? 'default' : 'outline'}
                   onClick={() => {
                     setSelectedProjectId(proj.id);
                     setSelectedEnvId('');
                   }}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+                  className={`text-xs h-8 ${
                     proj.id === activeProjectId
-                      ? 'bg-indigo-600 text-white'
-                      : 'bg-white/5 text-white/70 hover:bg-white/10'
+                      ? 'bg-indigo-600 hover:bg-indigo-500 text-white'
+                      : 'border-white/10 bg-white/5 text-white/70 hover:bg-white/10'
                   }`}
                 >
                   {proj.name}
-                </button>
+                </Button>
               ))}
             </div>
 
             <div className="flex items-center gap-2">
               <span className="text-xs text-white/40">Environment:</span>
               {environments.map((env) => (
-                <button
+                <Button
                   key={env.id}
-                  type="button"
+                  size="sm"
+                  variant="outline"
                   onClick={() => setSelectedEnvId(env.id)}
-                  className={`px-2.5 py-1 rounded-md text-xs font-mono transition-colors ${
+                  className={`text-xs font-mono h-7 px-2.5 ${
                     env.id === activeEnvId
-                      ? 'border border-indigo-400/40 bg-indigo-500/20 text-indigo-300'
-                      : 'border border-white/10 bg-white/5 text-white/60 hover:bg-white/10'
+                      ? 'border-indigo-400/40 bg-indigo-500/20 text-indigo-300'
+                      : 'border-white/10 bg-white/5 text-white/60 hover:bg-white/10'
                   }`}
                 >
                   {env.slug}
-                </button>
+                </Button>
               ))}
-              <button
-                type="button"
+              <Button
+                variant="outline"
+                size="sm"
                 onClick={() => setShowEnvModal(true)}
-                className="size-6 flex items-center justify-center rounded-md border border-dashed border-white/20 text-white/60 hover:text-white"
+                className="size-7 p-0 border-dashed border-white/20 text-white/60 hover:text-white"
                 title="Add Environment"
               >
                 <Plus className="size-3" />
-              </button>
+              </Button>
             </div>
           </div>
 
-          <div className="flex items-center justify-between rounded-xl border border-white/10 bg-black/40 px-4 py-2.5 font-mono text-xs text-white/70">
+          <div className="flex items-center justify-between rounded-xl border border-white/10 bg-black/40 px-4 py-2 font-mono text-xs text-white/70">
             <div className="flex items-center gap-2 overflow-hidden truncate">
               <Terminal className="size-4 shrink-0 text-indigo-400" />
               <span className="truncate">
@@ -206,8 +209,9 @@ export function SecretsPage({ orgSlug }: { orgSlug: string }) {
                 -- npm run dev
               </span>
             </div>
-            <button
-              type="button"
+            <Button
+              variant="ghost"
+              size="sm"
               onClick={() => {
                 const projSlug =
                   projects.find((p) => p.id === activeProjectId)?.slug || 'app';
@@ -218,11 +222,11 @@ export function SecretsPage({ orgSlug }: { orgSlug: string }) {
                   `outpipe secrets run -p ${projSlug} -e ${envSlug} -- npm run dev`,
                 );
               }}
-              className="ml-3 shrink-0 text-white/40 hover:text-white"
+              className="size-7 p-0 ml-3 shrink-0 text-white/40 hover:text-white hover:bg-transparent"
               title="Copy CLI command"
             >
               <Copy className="size-3.5" />
-            </button>
+            </Button>
           </div>
 
           <div className="flex items-center justify-between">
