@@ -10,9 +10,9 @@
     "preview": "astro preview"
   },
   "dependencies": {
-    "@astrojs/react": "^4.2.1",
+    "@astrojs/react": "^7.0.0",
     "@outpipe/share-crypto": "0.1.1",
-    "astro": "^5.4.2",
+    "astro": "^7.3.5",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
   },

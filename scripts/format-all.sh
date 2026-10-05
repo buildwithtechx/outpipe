@@ -3,10 +3,10 @@
 set -euo pipefail
 
 mapfile -d '' go_files < <(find . -type f -name '*.go' \
-  -not -path './node_modules/*' -not -path './.git/*' -print0)
+  -not -path '*/node_modules/*' -not -path './.git/*' -print0)
 if ((${#go_files[@]})); then
   if command -v gofmt >/dev/null 2>&1; then
-    gofmt -w "${go_files[@]}"
+    printf '%s\0' "${go_files[@]}" | xargs -0 gofmt -w
   elif command -v go >/dev/null 2>&1; then
     go fmt ./...
   fi

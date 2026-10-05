@@ -196,11 +196,11 @@ func (s *UptimeService) ListOrgIncidents(ctx context.Context, orgID string) ([]m
 }
 
 type PublicStatusData struct {
-	Page            models.UptimeStatusPage  `json:"page"`
-	OverallStatus   string                   `json:"overallStatus"`
-	Monitors        []models.UptimeMonitor   `json:"monitors"`
-	ActiveIncidents []models.UptimeIncident  `json:"activeIncidents"`
-	PastIncidents   []models.UptimeIncident  `json:"pastIncidents"`
+	Page            models.UptimeStatusPage `json:"page"`
+	OverallStatus   string                  `json:"overallStatus"`
+	Monitors        []models.UptimeMonitor  `json:"monitors"`
+	ActiveIncidents []models.UptimeIncident `json:"activeIncidents"`
+	PastIncidents   []models.UptimeIncident `json:"pastIncidents"`
 }
 
 func (s *UptimeService) GetPublicStatusData(ctx context.Context, slug string) (PublicStatusData, error) {
