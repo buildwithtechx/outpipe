@@ -56,7 +56,7 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run format
-      - run: npm run build --workspace packages/share-crypto
+      - run: npm run build --workspace packages/shared
       - run: npm run typecheck
       - run: npm run typecheck --workspace apps/secrets-share
       - run: npm run typecheck --workspace apps/status

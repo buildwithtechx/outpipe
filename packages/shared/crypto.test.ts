@@ -6,9 +6,9 @@ import {
   shareNeedsPassword,
   sharePasswordVerifier,
   shareVerifier,
-} from '../src';
+} from './crypto';
 
-describe('packages/share-crypto', () => {
+describe('shared secret cryptography', () => {
   it('encrypts a bundle without exposing its values in stored fields', async () => {
     const content = {
       type: 'bundle' as const,

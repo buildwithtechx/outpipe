@@ -3,7 +3,7 @@ import {
   shareNeedsPassword,
   sharePasswordVerifier,
   shareVerifier,
-} from '@outpipe/share-crypto';
+} from '@outpipe/shared/crypto';
 import { useEffect, useState } from 'react';
 import {
   getShareMetaApi,

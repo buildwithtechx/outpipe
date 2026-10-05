@@ -1,4 +1,4 @@
-import { completeShareUrl, encryptShare } from '@outpipe/share-crypto';
+import { completeShareUrl, encryptShare } from '@outpipe/shared/crypto';
 import { useState } from 'react';
 import { createShareApi } from '../lib/api';
 
