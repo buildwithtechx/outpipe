@@ -66,6 +66,15 @@ export function mapStatusResponse(data: RawStatusResponse): StatusPageData {
 export async function fetchStatusData(
   slug = 'default',
 ): Promise<StatusPageData | null> {
+  const result = await fetchStatusResult(slug);
+  return result.state === 'ready' ? result.data : null;
+}
+
+export type StatusResult =
+  | { state: 'ready'; data: StatusPageData }
+  | { state: 'not-found' | 'unavailable' };
+
+export async function fetchStatusResult(slug: string): Promise<StatusResult> {
   const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8080';
   try {
     const response = await fetch(
@@ -74,10 +83,11 @@ export async function fetchStatusData(
         headers: { Accept: 'application/json' },
       },
     );
-    if (!response.ok) return null;
-    return mapStatusResponse(await response.json());
+    if (response.status === 404) return { state: 'not-found' };
+    if (!response.ok) return { state: 'unavailable' };
+    return { state: 'ready', data: mapStatusResponse(await response.json()) };
   } catch {
-    return null;
+    return { state: 'unavailable' };
   }
 }
 

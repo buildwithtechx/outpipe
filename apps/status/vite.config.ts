@@ -9,6 +9,11 @@ export default defineConfig({
   esbuild: {
     target: 'es2022',
   },
+  optimizeDeps: {
+    esbuildOptions: {
+      target: 'es2022',
+    },
+  },
   server: {
     port: 4322,
   },

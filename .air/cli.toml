@@ -2,9 +2,8 @@ root = "."
 tmp_dir = "tmp/air-cli"
 
 [build]
-  cmd = "go build -o ./tmp/air-cli/outpipe ./cmd/cli"
-  bin = "./tmp/air-cli/outpipe"
-  full_bin = ""
+  cmd = "go build -o ./tmp/air-cli/outpipe.exe ./cmd/cli"
+  entrypoint = ["./tmp/air-cli/outpipe.exe"]
   include_ext = ["go", "tpl", "tmpl", "html"]
   exclude_dir = ["apps", "docs", "data", "tmp", "node_modules", "target", "dist", "packages", "bin", ".air"]
   exclude_file = []

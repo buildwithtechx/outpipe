@@ -6,9 +6,9 @@ import {
   shareNeedsPassword,
   sharePasswordVerifier,
   shareVerifier,
-} from '../src';
+} from './crypto';
 
-describe('packages/share-crypto', () => {
+describe('shared secret cryptography', () => {
   it('encrypts a bundle without exposing its values in stored fields', async () => {
     const content = {
       type: 'bundle' as const,
@@ -38,12 +38,13 @@ describe('packages/share-crypto', () => {
   });
 
   it('encrypted shares are snapshots, not references to later source edits', async () => {
+    const entry = { key: 'TOKEN', value: 'first' };
     const source = {
       type: 'bundle' as const,
-      entries: [{ key: 'TOKEN', value: 'first' }],
+      entries: [entry],
     };
     const encrypted = await encryptShare(source);
-    source.entries[0].value = 'second';
+    entry.value = 'second';
     expect(await decryptShare(encrypted, encrypted.key)).toEqual({
       type: 'bundle',
       entries: [{ key: 'TOKEN', value: 'first' }],

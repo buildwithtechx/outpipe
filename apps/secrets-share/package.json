@@ -11,7 +11,7 @@
   },
   "dependencies": {
     "@astrojs/react": "^7.0.0",
-    "@outpipe/share-crypto": "0.1.1",
+    "@outpipe/shared": "0.1.1",
     "astro": "^7.3.5",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"

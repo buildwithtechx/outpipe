@@ -1,7 +1,19 @@
 import { afterEach, expect, it, vi } from 'vitest';
-import { fetchStatusData, mapStatusResponse, subscribeToStatus } from './api';
+import {
+  fetchStatusData,
+  fetchStatusResult,
+  mapStatusResponse,
+  subscribeToStatus,
+} from './api';
 
 afterEach(() => vi.unstubAllGlobals());
+
+it('distinguishes unpublished pages from failures that can be retried', async () => {
+  vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: false, status: 404 }));
+  expect(await fetchStatusResult('missing')).toEqual({ state: 'not-found' });
+  vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: false, status: 503 }));
+  expect(await fetchStatusResult('team')).toEqual({ state: 'unavailable' });
+});
 
 it('maps the Go status response without fabricating history or incidents', () => {
   const data = mapStatusResponse({

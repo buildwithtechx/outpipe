@@ -17,6 +17,7 @@
     "postinstall": "fumadocs-mdx"
   },
   "dependencies": {
+    "@outpipe/shared": "0.1.1",
     "@faker-js/faker": "^10.6.0",
     "@paystack/inline-js": "^2.25.0",
     "@posthog/react": "^1.11.1",

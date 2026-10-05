@@ -2,11 +2,10 @@ root = "."
 tmp_dir = "tmp/air-server"
 
 [build]
-  cmd = "go build -o ./tmp/air-server/outpipe-api ./cmd/server"
-  bin = "./tmp/air-server/outpipe-api"
-  full_bin = ""
+  cmd = "go build -o ./tmp/air-server/outpipe-api.exe ./cmd/server"
+  entrypoint = ["./tmp/air-server/outpipe-api.exe"]
   include_ext = ["go", "tpl", "tmpl", "html"]
-  exclude_dir = ["apps", "docs", "data", "tmp", "node_modules", "target", "dist", "packages", "bin", ".air"]
+  exclude_dir = ["apps", "docs", "data", "tmp", "node_modules", "vendor", "target", "dist", "packages", "bin", ".air"]
   exclude_file = []
   delay = 1000
   stop_on_error = true

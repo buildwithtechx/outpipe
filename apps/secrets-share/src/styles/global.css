@@ -1,22 +1,23 @@
+@import "@outpipe/shared/brand.css";
+
 :root {
-  --bg-primary: #090d16;
-  --bg-card: #0f172a;
-  --bg-card-hover: #131d35;
-  --bg-input: #0b1120;
-  --border-primary: #1e293b;
-  --border-focus: #3b82f6;
-  --text-primary: #f8fafc;
-  --text-secondary: #94a3b8;
-  --text-muted: #64748b;
-  --accent-blue: #3b82f6;
-  --accent-cyan: #06b6d4;
+  --bg-primary: var(--brand-background);
+  --bg-card: var(--brand-surface);
+  --bg-card-hover: var(--brand-raised);
+  --bg-input: var(--brand-surface);
+  --border-primary: var(--brand-border);
+  --border-focus: var(--brand-accent);
+  --text-primary: var(--brand-text);
+  --text-secondary: var(--brand-secondary);
+  --text-muted: var(--brand-muted);
+  --accent-blue: var(--brand-accent);
   --accent-emerald: #10b981;
   --accent-rose: #f43f5e;
   --accent-amber: #f59e0b;
   --radius-sm: 6px;
   --radius-md: 10px;
   --radius-lg: 14px;
-  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --font-sans: var(--brand-font);
   --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
 }
 
@@ -44,63 +45,25 @@ a {
 
 .container {
   width: 100%;
-  max-width: 680px;
+  max-width: 720px;
   margin: 0 auto;
   padding: 0 1.25rem;
 }
 
-.header {
-  padding: 2rem 0 1rem;
-  border-bottom: 1px solid var(--border-primary);
-}
-
-.header-content {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.logo-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-weight: 700;
-  font-size: 1.125rem;
-  letter-spacing: -0.025em;
-  color: #fff;
-}
-
-.logo-icon {
-  width: 28px;
-  height: 28px;
-  background: linear-gradient(135deg, var(--accent-blue), var(--accent-cyan));
-  border-radius: var(--radius-sm);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
 
 .badge-tag {
   font-size: 0.75rem;
   font-weight: 600;
   padding: 0.2rem 0.5rem;
   border-radius: 9999px;
-  background-color: rgba(59, 130, 246, 0.15);
-  color: #60a5fa;
-  border: 1px solid rgba(59, 130, 246, 0.3);
+  background-color: var(--bg-card-hover);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-primary);
 }
 
 .main-content {
   flex: 1;
-  padding: 2.5rem 0 4rem;
-}
-
-.footer {
-  padding: 2rem 0;
-  border-top: 1px solid var(--border-primary);
-  color: var(--text-muted);
-  font-size: 0.875rem;
-  text-align: center;
+  padding: 4rem 0;
 }
 
 .card {
@@ -108,7 +71,6 @@ a {
   border: 1px solid var(--border-primary);
   border-radius: var(--radius-lg);
   padding: 1.75rem;
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.4), 0 8px 10px -6px rgba(0, 0, 0, 0.4);
 }
 
 .card-title {
@@ -188,13 +150,13 @@ a {
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  background: linear-gradient(135deg, #2563eb, #3b82f6);
-  color: #fff;
+  background: var(--brand-primary);
+  color: var(--brand-primary-text);
   font-weight: 600;
   font-size: 0.9375rem;
   height: 44px;
   padding: 0 1.25rem;
-  border-radius: var(--radius-md);
+  border-radius: 9999px;
   border: none;
   cursor: pointer;
   transition: opacity 0.15s ease, transform 0.05s ease;
@@ -236,12 +198,12 @@ a {
 }
 
 .alert-banner {
-  background-color: rgba(59, 130, 246, 0.08);
-  border: 1px solid rgba(59, 130, 246, 0.2);
+  background-color: var(--bg-card-hover);
+  border: 1px solid var(--border-primary);
   border-radius: var(--radius-md);
   padding: 0.875rem 1rem;
   font-size: 0.8125rem;
-  color: #93c5fd;
+  color: var(--text-secondary);
   margin-bottom: 1.5rem;
   display: flex;
   align-items: flex-start;
@@ -261,13 +223,13 @@ a {
 }
 
 .code-box {
-  background-color: #030712;
+  background-color: var(--bg-input);
   border: 1px solid var(--border-primary);
   border-radius: var(--radius-md);
   padding: 1rem;
   font-family: var(--font-mono);
   font-size: 0.875rem;
-  color: #e2e8f0;
+  color: var(--text-primary);
   white-space: pre-wrap;
   word-break: break-all;
   max-height: 320px;

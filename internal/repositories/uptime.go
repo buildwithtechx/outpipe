@@ -161,11 +161,12 @@ func (r *GormUptimeRepository) GetStatusPageByOrg(ctx context.Context, orgID str
 
 func (r *GormUptimeRepository) GetStatusPageBySlug(ctx context.Context, slug string) (*models.UptimeStatusPage, error) {
 	var page models.UptimeStatusPage
-	if err := r.db.WithContext(ctx).First(&page, "slug = ?", slug).Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, fmt.Errorf("status page %q not found: %w", slug, err)
-		}
-		return nil, fmt.Errorf("find status page %q: %w", slug, err)
+	result := r.db.WithContext(ctx).Where("slug = ?", slug).Limit(1).Find(&page)
+	if result.Error != nil {
+		return nil, fmt.Errorf("find status page %q: %w", slug, result.Error)
+	}
+	if result.RowsAffected == 0 {
+		return nil, fmt.Errorf("status page %q not found: %w", slug, gorm.ErrRecordNotFound)
 	}
 	return &page, nil
 }

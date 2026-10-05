@@ -40,9 +40,9 @@ async function handleSubmit() {
 
 <template>
   <div class="modal-backdrop" @click.self="emit('close')">
-    <div class="modal-content" role="dialog" aria-modal="true">
+    <div class="modal-content" role="dialog" aria-modal="true" aria-labelledby="subscribe-title">
       <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem;">
-        <h2 class="modal-title">Subscribe to Updates</h2>
+        <h2 id="subscribe-title" class="modal-title">Subscribe to updates</h2>
         <button
           type="button"
           style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 1.25rem;"
@@ -111,14 +111,15 @@ async function handleSubmit() {
         </div>
 
         <div style="margin-bottom: 1.25rem;">
-          <label style="display: block; font-size: 0.8125rem; font-weight: 500; color: var(--text-secondary); margin-bottom: 0.5rem;">
+          <label for="subscriber-target" style="display: block; font-size: 0.8125rem; font-weight: 500; color: var(--text-secondary); margin-bottom: 0.5rem;">
             {{ subType === 'email' ? 'Email Address' : 'Webhook Endpoint URL' }}
           </label>
           <input
+            id="subscriber-target"
             v-model="target"
             :type="subType === 'email' ? 'email' : 'url'"
             :placeholder="subType === 'email' ? 'devops@example.com' : 'https://api.example.com/webhooks/status'"
-            style="width: 100%; height: 42px; background-color: var(--bg-input); border: 1px solid var(--border-primary); border-radius: var(--radius-md); padding: 0 0.875rem; color: #fff; font-size: 0.875rem; outline: none;"
+            style="width: 100%; height: 42px; background-color: var(--bg-input); border: 1px solid var(--border-primary); border-radius: var(--radius-md); padding: 0 0.875rem; color: #fff; font-size: 0.875rem;"
             required
           />
         </div>
@@ -137,8 +138,9 @@ async function handleSubmit() {
           </button>
           <button
             type="submit"
+            class="btn-subscribe"
             :disabled="isSubmitting"
-            style="flex: 2; height: 42px; background: linear-gradient(135deg, #2563eb, #3b82f6); border: none; color: #fff; border-radius: var(--radius-md); font-weight: 600; cursor: pointer; font-size: 0.875rem;"
+            style="flex: 2; height: 42px; justify-content: center;"
           >
             {{ isSubmitting ? 'Subscribing...' : 'Subscribe' }}
           </button>
