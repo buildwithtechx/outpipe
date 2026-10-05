@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"sync/atomic"
 	"testing"
 
 	"outpipe.dev/outpipe/internal/config"
@@ -13,9 +14,9 @@ import (
 )
 
 func TestAnalyticsExporterTinybirdAndClickHouse(t *testing.T) {
-	calls := 0
+	var calls atomic.Int32
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		calls++
+		calls.Add(1)
 		if r.Method != http.MethodPost {
 			t.Error("analytics must POST")
 		}
@@ -55,8 +56,8 @@ func TestAnalyticsExporterTinybirdAndClickHouse(t *testing.T) {
 	if err := exporter.Export(context.Background(), "metrics", []models.TelemetryMetric{{ID: "metric-a", OrganizationID: "org-a", Name: "latency"}}); err != nil {
 		t.Fatal(err)
 	}
-	if calls != 2 {
-		t.Fatalf("expected both exporters, got %d", calls)
+	if calls.Load() != 2 {
+		t.Fatalf("expected both exporters, got %d", calls.Load())
 	}
 }
 
