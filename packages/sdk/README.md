@@ -12,7 +12,7 @@ short-lived tokens issued by the API.
 import { TunnelAPIClient } from '@outpipe/sdk';
 
 const client = new TunnelAPIClient({ apiKey: process.env.OUTPIPE_API_KEY });
-const tunnels = await client.listTunnels(organizationId);
+const tunnels = await client.listTunnels('organization-id');
 ```
 
 Clients default to `https://api.outpipe.dev`. Set `apiUrl` only when connecting
