@@ -153,6 +153,9 @@ func (h *Handler) handleAuthentication(ctx context.Context, connection *websocke
 		return err
 	}
 
+	if state.authenticated && state.identity.OrganizationID != "" && state.identity != identity {
+		return fmt.Errorf("relay authentication cannot replace the connection identity")
+	}
 	state.authenticated = true
 	state.identity = identity
 	payload, err := protocol.EncodePayload(protocol.MessageTypeAuthResponse, message.RequestID, protocol.AuthResponse{Authenticated: true, AgentID: identity.AgentID, OrganizationID: identity.OrganizationID, GrantedCapabilities: []string{"http", "https", "tcp", "udp"}})

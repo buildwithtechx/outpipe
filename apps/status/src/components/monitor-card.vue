@@ -45,7 +45,7 @@ function getStatusColor(status: string): string {
           <span class="monitor-protocol">{{ monitor.type }}</span>
         </div>
         <div class="monitor-status-badge" :style="{ color: getStatusColor(monitor.status) }">
-          <span class="status-dot" :class="monitor.status === 'down' ? 'outage' : monitor.status" style="width: 8px; height: 8px;" />
+          <span class="status-dot" :class="monitor.status === 'down' ? 'outage' : monitor.status === 'paused' ? 'unknown' : monitor.status" style="width: 8px; height: 8px;" />
           {{ formatStatus(monitor.status) }}
         </div>
       </div>

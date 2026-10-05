@@ -55,6 +55,9 @@ func (s *ObservabilityService) IngestTraces(ctx context.Context, orgID string, r
 				if span.EndTimeUnixNano < span.StartTimeUnixNano {
 					return 0, fmt.Errorf("span end precedes start")
 				}
+				if err := validateTelemetryTimestamp(span.StartTimeUnixNano, span.EndTimeUnixNano); err != nil {
+					return 0, err
+				}
 				if len(span.Name) > 255 || len(span.GetStatus().GetMessage()) > 512 {
 					return 0, fmt.Errorf("span field exceeds limit")
 				}
@@ -127,6 +130,9 @@ func (s *ObservabilityService) IngestLogs(ctx context.Context, orgID string, raw
 				}
 				if len(log.SeverityText) > 32 {
 					return 0, fmt.Errorf("log severity exceeds limit")
+				}
+				if err := validateTelemetryTimestamp(log.TimeUnixNano, log.ObservedTimeUnixNano); err != nil {
+					return 0, err
 				}
 				attributes, err := marshalTelemetryAttributes(log.Attributes)
 				if err != nil {

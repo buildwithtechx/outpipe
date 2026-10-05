@@ -93,7 +93,7 @@ func main() {
 	app.Use(recover.New())
 	app.Get("/v1/connect", relayHandler.Upgrade)
 	app.Get("/healthz", func(c *fiber.Ctx) error {
-		return c.JSON(fiber.Map{"status": "ok", "sessions": len(sessions.Snapshot()), "metrics": metrics.Snapshot()})
+		return c.JSON(fiber.Map{"status": "ok", "sessions": len(sessions.Snapshot()), "metrics": metrics.Snapshot(), "captureDrops": captures.dropped.Load()})
 	})
 	app.Get("/metrics", func(c *fiber.Ctx) error {
 		c.Type("text", "plain")

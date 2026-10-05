@@ -4,11 +4,12 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"golang.org/x/sync/singleflight"
 	"net/http"
 	"net/url"
 	"strings"
 	"sync"
+
+	"golang.org/x/sync/singleflight"
 
 	"outpipe.dev/outpipe/internal/auth"
 	"outpipe.dev/outpipe/internal/infra/httpclient"

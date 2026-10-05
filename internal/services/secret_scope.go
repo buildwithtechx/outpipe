@@ -27,8 +27,10 @@ func resolveSecretScope(ctx context.Context, repo repositories.SecretRepository,
 	projectID := ""
 	for _, item := range projects {
 		if item.ID == project || item.Slug == project {
+			if projectID != "" {
+				return "", "", SecretInputError("project scope is ambiguous; use a project ID")
+			}
 			projectID = item.ID
-			break
 		}
 	}
 	if projectID == "" {
@@ -41,10 +43,17 @@ func resolveSecretScope(ctx context.Context, repo repositories.SecretRepository,
 	if err != nil {
 		return "", "", fmt.Errorf("resolve secret environment: %w", err)
 	}
+	environmentID := ""
 	for _, item := range environments {
 		if item.ID == environment || item.Slug == environment {
-			return projectID, item.ID, nil
+			if environmentID != "" {
+				return "", "", SecretInputError("environment scope is ambiguous; use an environment ID")
+			}
+			environmentID = item.ID
 		}
+	}
+	if environmentID != "" {
+		return projectID, environmentID, nil
 	}
 	return "", "", fmt.Errorf("secret environment: %w", repositories.ErrNotFound)
 }

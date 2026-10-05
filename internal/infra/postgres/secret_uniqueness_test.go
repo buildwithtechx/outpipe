@@ -2,6 +2,7 @@ package postgres
 
 import (
 	"database/sql"
+	"fmt"
 	"testing"
 
 	"gorm.io/driver/sqlite"
@@ -40,11 +41,13 @@ func TestSecretUniquenessUpgradePreservesHistory(t *testing.T) {
 	if err := db.Create(&second).Error; err != nil {
 		t.Fatal(err)
 	}
-	for _, entry := range []models.SecretEntry{first, first, second} {
-		version := models.SecretVersion{OrganizationID: "org", EntryID: entry.ID, Version: 1, Ciphertext: "preserved", IV: "nonce"}
+	expected := make(map[string]models.SecretVersion)
+	for index, entry := range []models.SecretEntry{first, first, second} {
+		version := models.SecretVersion{OrganizationID: "org", EntryID: entry.ID, Version: 1, Ciphertext: fmt.Sprintf("ciphertext-%d", index), IV: fmt.Sprintf("nonce-%d", index)}
 		if err := db.Create(&version).Error; err != nil {
 			t.Fatal(err)
 		}
+		expected[version.ID] = version
 	}
 	if err := migrateSecretUniqueness(db); err != nil {
 		t.Fatal(err)
@@ -64,6 +67,16 @@ func TestSecretUniquenessUpgradePreservesHistory(t *testing.T) {
 	}
 	if total != 2 || active != 1 || versions != 3 {
 		t.Fatalf("lost history or retained duplicates: total=%d active=%d versions=%d", total, active, versions)
+	}
+	var retained []models.SecretVersion
+	if err := db.Find(&retained).Error; err != nil {
+		t.Fatal(err)
+	}
+	for _, version := range retained {
+		before, exists := expected[version.ID]
+		if !exists || version.Ciphertext != before.Ciphertext || version.IV != before.IV || version.EntryID != before.EntryID {
+			t.Fatalf("secret history changed: %s", version.ID)
+		}
 	}
 	third := models.SecretEntry{OrganizationID: "org", ProjectID: "project", EnvironmentID: "environment", Key: "KEY"}
 	if err := db.Create(&third).Error; err == nil {

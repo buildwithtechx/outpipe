@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"outpipe.dev/outpipe/internal/engine"
 	"time"
 )
@@ -50,6 +51,10 @@ func (r *captureRecorder) start(ctx context.Context) {
 						if err := r.sendCapture(ctx, capture); err == nil {
 							break
 						}
+						if attempt == 2 {
+							r.dropped.Add(1)
+							break
+						}
 						timer := time.NewTimer(time.Duration(attempt+1) * time.Second)
 						select {
 						case <-ctx.Done():
@@ -96,6 +101,8 @@ func (r *captureRecorder) RecordCapture(_ context.Context, capture engine.Reques
 	select {
 	case r.queue <- capture:
 	default:
+		r.dropped.Add(1)
+		return fmt.Errorf("capture upload queue is full")
 	}
 	return nil
 }

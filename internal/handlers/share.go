@@ -1,10 +1,12 @@
 package handlers
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 
 	"github.com/gofiber/fiber/v2"
+	"outpipe.dev/outpipe/internal/repositories"
 	"outpipe.dev/outpipe/internal/services"
 	"outpipe.dev/outpipe/internal/validation"
 )
@@ -99,6 +101,9 @@ func (h *ShareHandler) ListOrgShares(c *fiber.Ctx) error {
 func (h *ShareHandler) RevokeOrgShare(c *fiber.Ctx) error {
 	id := strings.TrimSpace(c.Params("shareID"))
 	if err := h.shares.RevokeOrgShare(c.UserContext(), c.Params("organizationID"), id); err != nil {
+		if errors.Is(err, repositories.ErrNotFound) {
+			return writeError(c, fiber.StatusNotFound, err)
+		}
 		return writeError(c, fiber.StatusInternalServerError, err)
 	}
 	return c.SendStatus(fiber.StatusNoContent)

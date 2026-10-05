@@ -55,14 +55,15 @@ func TestCaptureQueueDoesNotBlockRequestsOnSlowControlPlane(t *testing.T) {
 			t.Error(err)
 		}
 		for range 200 {
-			if err := recorder.RecordCapture(ctx, engine.RequestCapture{}); err != nil {
-				t.Error(err)
-			}
+			_ = recorder.RecordCapture(ctx, engine.RequestCapture{})
 		}
 		close(done)
 	}()
 	select {
 	case <-done:
+		if recorder.dropped.Load() == 0 {
+			t.Fatal("overflow drops were not recorded")
+		}
 	case <-time.After(time.Second):
 		t.Fatal("capture blocked tunnel traffic")
 	}

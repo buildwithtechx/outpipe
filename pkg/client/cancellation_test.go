@@ -9,9 +9,13 @@ import (
 	"time"
 
 	"github.com/gorilla/websocket"
+	"outpipe.dev/outpipe/pkg/protocol"
 )
 
 func TestServeLocalContextCancellationClosesIdleRelay(t *testing.T) {
+	processed := make(chan struct{})
+	target := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) { w.WriteHeader(http.StatusOK) }))
+	defer target.Close()
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		upgrader := websocket.Upgrader{}
 		connection, err := upgrader.Upgrade(w, r, nil)
@@ -24,6 +28,26 @@ func TestServeLocalContextCancellationClosesIdleRelay(t *testing.T) {
 			t.Error(err)
 			return
 		}
+		payload, err := protocol.EncodePayload(protocol.MessageTypeHTTPRequest, "request", protocol.HTTPRequest{Method: http.MethodGet, Path: "/"})
+		if err != nil {
+			t.Error(err)
+			return
+		}
+		if err := connection.WriteMessage(websocket.TextMessage, payload); err != nil {
+			t.Error(err)
+			return
+		}
+		_, data, err := connection.ReadMessage()
+		if err != nil {
+			t.Error(err)
+			return
+		}
+		message, err := protocol.Decode(data)
+		if err != nil || message.Type != protocol.MessageTypeHTTPResponse {
+			t.Errorf("relay frame was not processed: %v", err)
+			return
+		}
+		close(processed)
 		_, _, _ = connection.ReadMessage()
 	}))
 	defer server.Close()
@@ -36,7 +60,12 @@ func TestServeLocalContextCancellationClosesIdleRelay(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 	done := make(chan error, 1)
-	go func() { done <- client.ServeLocal(ctx, "http://localhost:3000") }()
+	go func() { done <- client.ServeLocal(ctx, target.URL) }()
+	select {
+	case <-processed:
+	case <-time.After(2 * time.Second):
+		t.Fatal("relay frame was not processed before cancellation")
+	}
 	cancel()
 	select {
 	case <-done:

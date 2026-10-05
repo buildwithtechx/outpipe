@@ -11,6 +11,28 @@ import (
 
 type testMachineResolver struct{ policy ManagedTunnelPolicy }
 
+func TestAuthenticationCannotReplaceExistingCredentialIdentity(t *testing.T) {
+	original := AgentIdentity{OrganizationID: "org", AgentID: "agent", ExpiresAt: time.Now().Add(time.Hour).Unix()}
+	replacement := original
+	replacement.ExpiresAt = time.Now().Add(time.Minute).Unix()
+	handler := &Handler{authenticator: &mockAuthenticator{tokens: map[string]AgentIdentity{"replacement": replacement}}}
+	state := &connectionState{negotiated: true, authenticated: true, identity: original}
+	raw, err := protocol.EncodePayload(protocol.MessageTypeAuth, "auth", protocol.AuthRequest{Token: "replacement"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	message, err := protocol.Decode(raw)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := handler.handleAuthentication(context.Background(), nil, message, state); err == nil {
+		t.Fatal("replacement identity accepted")
+	}
+	if state.identity != original {
+		t.Fatal("connection identity changed")
+	}
+}
+
 func (r *testMachineResolver) Resolve(context.Context, string) (ManagedTunnelPolicy, error) {
 	return r.policy, nil
 }

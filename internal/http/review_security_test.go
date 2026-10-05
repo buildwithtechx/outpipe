@@ -47,6 +47,18 @@ func TestSecretReadScopeAndTokenCreationScope(t *testing.T) {
 	app.Get("/secrets", handler.CLIGetSecrets)
 	protected := app.Group("/organizations", sessionRequired(stack.auth, stack.keys, "session"))
 	protected.Post("/:organizationID/tokens", organizationRoleRequired(stack.organizations, models.MemberRoleAdmin), handler.CreateMachineToken)
+	protected.Post("/:organizationID/projects", organizationRoleRequired(stack.organizations, models.MemberRoleAdmin), handler.CreateProject)
+	invalidProject := httptest.NewRequest("POST", "/organizations/"+stack.organizationID+"/projects", strings.NewReader(`{"slug":"$(command)","name":"Invalid"}`))
+	invalidProject.Header.Set("Content-Type", "application/json")
+	invalidProject.Header.Set("Authorization", "Bearer "+stack.apiKeys["star"])
+	invalidResponse, err := app.Test(invalidProject)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer invalidResponse.Body.Close()
+	if invalidResponse.StatusCode != 400 {
+		t.Fatalf("invalid slug returned %d", invalidResponse.StatusCode)
+	}
 	request := httptest.NewRequest("POST", "/organizations/"+stack.organizationID+"/tokens", strings.NewReader(`{"name":"scoped","projectId":"backend","environmentId":"staging","scopes":["secrets:read"]}`))
 	request.Header.Set("Content-Type", "application/json")
 	request.Header.Set("Authorization", "Bearer "+stack.apiKeys["star"])

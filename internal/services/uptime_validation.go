@@ -25,7 +25,7 @@ func validateMonitorInput(ctx context.Context, input CreateMonitorInput) error {
 	}
 	switch input.Protocol {
 	case "http", "https":
-		target := input.URL
+		target := strings.TrimSpace(input.URL)
 		if !strings.Contains(target, "://") {
 			target = input.Protocol + "://" + target
 		}

@@ -88,16 +88,7 @@ func (e *HTTPAnalyticsExporter) Export(ctx context.Context, signal string, rows 
 		if err != nil {
 			return fmt.Errorf("encode analytics event: %w", err)
 		}
-		timestamp := item["timestamp"]
-		if len(timestamp) == 0 {
-			timestamp = item["created_at"]
-		}
-		if len(timestamp) == 0 {
-			timestamp, err = json.Marshal(time.Now().UTC().Format(time.RFC3339Nano))
-			if err != nil {
-				return fmt.Errorf("encode export timestamp: %w", err)
-			}
-		}
+		timestamp := analyticsEventTime(item).Format(time.RFC3339Nano)
 		event := map[string]any{"id": item["id"], "organization_id": item["organization_id"], "signal": signal, "payload": string(payload), "timestamp": timestamp}
 		if err := encoder.Encode(event); err != nil {
 			return fmt.Errorf("encode analytics row: %w", err)

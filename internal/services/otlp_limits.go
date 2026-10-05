@@ -62,8 +62,39 @@ func preflightProtobuf(raw []byte, descriptor protoreflect.MessageDescriptor, bu
 			if err := preflightProtobuf(child, field.Message(), budget, depth+1); err != nil {
 				return err
 			}
+		} else if wireType == protowire.BytesType && field != nil && field.IsList() && field.Kind() != protoreflect.StringKind && field.Kind() != protoreflect.BytesKind {
+			packed, size := protowire.ConsumeBytes(raw)
+			if size < 0 {
+				return fmt.Errorf("invalid packed OTLP field")
+			}
+			if err := reservePackedValues(packed, field.Kind(), budget); err != nil {
+				return err
+			}
 		}
 		raw = raw[fieldSize:]
+	}
+	return nil
+}
+
+func reservePackedValues(raw []byte, kind protoreflect.Kind, budget *otlpParseBudget) error {
+	for len(raw) > 0 {
+		size := 0
+		switch kind {
+		case protoreflect.DoubleKind, protoreflect.Fixed64Kind, protoreflect.Sfixed64Kind:
+			size = 8
+		case protoreflect.FloatKind, protoreflect.Fixed32Kind, protoreflect.Sfixed32Kind:
+			size = 4
+		default:
+			_, size = protowire.ConsumeVarint(raw)
+		}
+		if size <= 0 || size > len(raw) {
+			return fmt.Errorf("invalid packed OTLP value")
+		}
+		budget.fields++
+		if budget.fields > 300000 {
+			return fmt.Errorf("OTLP field allocation limit exceeded")
+		}
+		raw = raw[size:]
 	}
 	return nil
 }

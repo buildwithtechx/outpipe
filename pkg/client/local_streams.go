@@ -1,7 +1,9 @@
 package client
 
 import (
+	"context"
 	"encoding/base64"
+	"fmt"
 	"net"
 
 	"outpipe.dev/outpipe/pkg/protocol"
@@ -81,7 +83,7 @@ func (c *RelayConnection) proxyUDP(connection *net.UDPConn) {
 	}
 }
 
-func (c *RelayConnection) handleTCPData(target string, message protocol.Envelope) error {
+func (c *RelayConnection) handleTCPData(ctx context.Context, target string, message protocol.Envelope) error {
 	var data protocol.TCPData
 
 	if err := protocol.DecodePayload(message, &data); err != nil {
@@ -90,19 +92,27 @@ func (c *RelayConnection) handleTCPData(target string, message protocol.Envelope
 
 	c.tcpMu.Lock()
 	connection := c.tcpConns[data.ConnectionID]
+	c.tcpMu.Unlock()
 	created := false
 	var err error
 
 	if connection == nil {
-		connection, err = net.Dial("tcp", target)
+		connection, err = (&net.Dialer{}).DialContext(ctx, "tcp", target)
 
 		if err == nil {
+			c.tcpMu.Lock()
+			if ctx.Err() != nil {
+				c.tcpMu.Unlock()
+				if closeErr := connection.Close(); closeErr != nil {
+					return fmt.Errorf("close canceled local connection: %w", closeErr)
+				}
+				return fmt.Errorf("connect local target canceled: %w", ctx.Err())
+			}
 			c.tcpConns[data.ConnectionID] = connection
 			created = true
+			c.tcpMu.Unlock()
 		}
 	}
-
-	c.tcpMu.Unlock()
 
 	if connection == nil {
 		return c.sendTCPClose(data.ConnectionID, "connect local target failed")

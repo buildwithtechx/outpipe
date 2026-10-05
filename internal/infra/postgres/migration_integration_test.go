@@ -3,10 +3,14 @@ package postgres
 import (
 	"context"
 	"os"
-	"outpipe.dev/outpipe/internal/models"
-	"outpipe.dev/outpipe/internal/repositories"
+	"strings"
 	"testing"
 	"time"
+
+	"github.com/google/uuid"
+	"gorm.io/gorm"
+	"outpipe.dev/outpipe/internal/models"
+	"outpipe.dev/outpipe/internal/repositories"
 )
 
 func TestMigrationRunnerIsRestartSafe(t *testing.T) {
@@ -24,6 +28,29 @@ func TestMigrationRunnerIsRestartSafe(t *testing.T) {
 		t.Fatalf("get migration database: %v", err)
 	}
 	defer sqlDB.Close()
+	schema := "migration_" + strings.ReplaceAll(uuid.NewString(), "-", "")
+	if err := db.Exec("CREATE SCHEMA " + schema).Error; err != nil {
+		t.Fatal(err)
+	}
+	db = db.Session(&gorm.Session{NewDB: true})
+	connection, err := sqlDB.Conn(context.Background())
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer func() {
+		if err := connection.Close(); err != nil {
+			t.Errorf("close isolated migration connection: %v", err)
+		}
+	}()
+	defer func() {
+		if err := db.Exec("DROP SCHEMA " + schema + " CASCADE").Error; err != nil {
+			t.Error(err)
+		}
+	}()
+	db.Statement.ConnPool = connection
+	if err := db.Exec("SET search_path TO " + schema).Error; err != nil {
+		t.Fatal(err)
+	}
 
 	if err := Migrate(db); err != nil {
 		t.Fatalf("run clean migration: %v", err)

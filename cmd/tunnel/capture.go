@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"outpipe.dev/outpipe/internal/engine"
@@ -24,6 +25,7 @@ type captureRecorder struct {
 	policyQueue chan capturePolicyRequest
 	queue       chan engine.RequestCapture
 	wait        sync.WaitGroup
+	dropped     atomic.Uint64
 }
 
 func (r *captureRecorder) enabledPolicy(ctx context.Context, tunnelID, orgID string) (bool, error) {

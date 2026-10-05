@@ -41,13 +41,25 @@ export function StatusPageModal({
   const [title, setTitle] = useState(initialTitle);
   const [description, setDescription] = useState(initialDescription);
   const [isPublic, setIsPublic] = useState(initialIsPublic);
+  const [dirty, setDirty] = useState(false);
   useEffect(() => {
-    if (!isOpen) return;
+    if (!isOpen) {
+      setDirty(false);
+      return;
+    }
+    if (dirty) return;
     setSlug(initialSlug);
     setTitle(initialTitle);
     setDescription(initialDescription);
     setIsPublic(initialIsPublic);
-  }, [isOpen, initialSlug, initialTitle, initialDescription, initialIsPublic]);
+  }, [
+    isOpen,
+    dirty,
+    initialSlug,
+    initialTitle,
+    initialDescription,
+    initialIsPublic,
+  ]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -83,7 +95,10 @@ export function StatusPageModal({
                 type="text"
                 required
                 value={slug}
-                onChange={(e) => setSlug(e.target.value)}
+                onChange={(e) => {
+                  setDirty(true);
+                  setSlug(e.target.value);
+                }}
                 className="h-7 border-0 bg-transparent px-1 text-white font-mono placeholder-white/30 focus-visible:ring-0 shadow-none"
               />
             </div>
@@ -102,7 +117,10 @@ export function StatusPageModal({
               required
               placeholder="e.g. Acme Network Status"
               value={title}
-              onChange={(e) => setTitle(e.target.value)}
+              onChange={(e) => {
+                setDirty(true);
+                setTitle(e.target.value);
+              }}
               className="border-white/10 bg-white/5 text-xs text-white placeholder-white/30"
             />
           </div>
@@ -119,7 +137,10 @@ export function StatusPageModal({
               rows={2}
               placeholder="Public message shown to your users..."
               value={description}
-              onChange={(e) => setDescription(e.target.value)}
+              onChange={(e) => {
+                setDirty(true);
+                setDescription(e.target.value);
+              }}
               className="border-white/10 bg-white/5 text-xs text-white placeholder-white/30"
             />
           </div>
@@ -139,7 +160,10 @@ export function StatusPageModal({
             <Switch
               id="status-public-switch"
               checked={isPublic}
-              onCheckedChange={setIsPublic}
+              onCheckedChange={(value) => {
+                setDirty(true);
+                setIsPublic(value);
+              }}
             />
           </div>
 

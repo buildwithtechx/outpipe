@@ -38,7 +38,9 @@ func (s *UptimeService) RunScheduler(ctx context.Context, reportError func(error
 				go func(monitor models.UptimeMonitor) {
 					defer pending.Done()
 					defer func() { <-slots }()
-					if _, err := s.Probe(ctx, &monitor); err != nil && reportError != nil {
+					probeCtx, cancel := context.WithTimeout(context.WithoutCancel(ctx), 70*time.Second)
+					defer cancel()
+					if _, err := s.Probe(probeCtx, &monitor); err != nil && reportError != nil {
 						reportError(fmt.Errorf("run scheduled uptime probe: %w", err))
 					}
 				}(monitor)

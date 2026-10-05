@@ -73,6 +73,19 @@ func TestSecretConcurrentWritesRestoreAndProjectDeletion(t *testing.T) {
 	if err := s.DeleteProject(ctx, "org", project.ID); err != nil {
 		t.Fatal(err)
 	}
+	first, err := s.CreateProject(ctx, "org", "duplicate", "First", "", "user")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := s.CreateProject(ctx, "org", "duplicate", "Second", "", "user"); err != nil {
+		t.Fatal(err)
+	}
+	if _, _, err := s.ResolveScope(ctx, "org", "duplicate", ""); err == nil {
+		t.Fatal("ambiguous slug selected a project")
+	}
+	if resolved, _, err := s.ResolveScope(ctx, "org", first.ID, ""); err != nil || resolved != first.ID {
+		t.Fatal("explicit project ID did not resolve")
+	}
 	for _, model := range []any{&models.SecretEntry{}, &models.SecretVersion{}, &models.SecretEnvironment{}} {
 		var count int64
 		if err := db.Model(model).Count(&count).Error; err != nil {

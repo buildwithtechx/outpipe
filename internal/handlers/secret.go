@@ -50,7 +50,7 @@ func (h *SecretHandler) ListProjects(c *fiber.Ctx) error {
 	orgID := strings.TrimSpace(c.Params("organizationID"))
 	projects, err := h.secrets.ListProjects(c.UserContext(), orgID)
 	if err != nil {
-		return writeError(c, fiber.StatusInternalServerError, err)
+		return writeSecretError(c, err)
 	}
 	return c.JSON(projects)
 }
@@ -70,7 +70,7 @@ func (h *SecretHandler) CreateProject(c *fiber.Ctx) error {
 	}
 	project, err := h.secrets.CreateProject(c.UserContext(), orgID, input.Slug, input.Name, input.Description, userID)
 	if err != nil {
-		return writeError(c, fiber.StatusInternalServerError, err)
+		return writeSecretError(c, err)
 	}
 	return c.Status(fiber.StatusCreated).JSON(project)
 }
@@ -79,7 +79,7 @@ func (h *SecretHandler) DeleteProject(c *fiber.Ctx) error {
 	orgID := strings.TrimSpace(c.Params("organizationID"))
 	projectID := strings.TrimSpace(c.Params("projectID"))
 	if err := h.secrets.DeleteProject(c.UserContext(), orgID, projectID); err != nil {
-		return writeError(c, fiber.StatusInternalServerError, err)
+		return writeSecretError(c, err)
 	}
 	return c.SendStatus(fiber.StatusNoContent)
 }
@@ -89,7 +89,7 @@ func (h *SecretHandler) ListEnvironments(c *fiber.Ctx) error {
 	projectID := strings.TrimSpace(c.Params("projectID"))
 	envs, err := h.secrets.ListEnvironments(c.UserContext(), orgID, projectID)
 	if err != nil {
-		return writeError(c, fiber.StatusInternalServerError, err)
+		return writeSecretError(c, err)
 	}
 	return c.JSON(envs)
 }
@@ -110,7 +110,7 @@ func (h *SecretHandler) CreateEnvironment(c *fiber.Ctx) error {
 	}
 	env, err := h.secrets.CreateEnvironment(c.UserContext(), orgID, projectID, input.Slug, input.Name, userID)
 	if err != nil {
-		return writeError(c, fiber.StatusInternalServerError, err)
+		return writeSecretError(c, err)
 	}
 	return c.Status(fiber.StatusCreated).JSON(env)
 }
@@ -122,7 +122,7 @@ func (h *SecretHandler) ListSecrets(c *fiber.Ctx) error {
 	reveal := c.Query("reveal") == "true"
 	secrets, err := h.secrets.ListSecrets(c.UserContext(), orgID, projectID, envID, reveal)
 	if err != nil {
-		return writeError(c, fiber.StatusInternalServerError, err)
+		return writeSecretError(c, err)
 	}
 	return c.JSON(secrets)
 }
@@ -144,7 +144,7 @@ func (h *SecretHandler) SetSecret(c *fiber.Ctx) error {
 	}
 	item, err := h.secrets.SetSecret(c.UserContext(), orgID, projectID, envID, input.Key, input.Value, input.Comment, userID)
 	if err != nil {
-		return writeError(c, fiber.StatusInternalServerError, err)
+		return writeSecretError(c, err)
 	}
 	return c.Status(fiber.StatusCreated).JSON(item)
 }
@@ -153,7 +153,7 @@ func (h *SecretHandler) DeleteSecret(c *fiber.Ctx) error {
 	orgID := strings.TrimSpace(c.Params("organizationID"))
 	entryID := strings.TrimSpace(c.Params("secretID"))
 	if err := h.secrets.SoftDeleteSecret(c.UserContext(), orgID, entryID); err != nil {
-		return writeError(c, fiber.StatusInternalServerError, err)
+		return writeSecretError(c, err)
 	}
 	return c.SendStatus(fiber.StatusNoContent)
 }
@@ -162,7 +162,7 @@ func (h *SecretHandler) RestoreSecret(c *fiber.Ctx) error {
 	orgID := strings.TrimSpace(c.Params("organizationID"))
 	entryID := strings.TrimSpace(c.Params("secretID"))
 	if err := h.secrets.RestoreSecret(c.UserContext(), orgID, entryID); err != nil {
-		return writeError(c, fiber.StatusInternalServerError, err)
+		return writeSecretError(c, err)
 	}
 	return c.SendStatus(fiber.StatusOK)
 }
@@ -173,7 +173,7 @@ func (h *SecretHandler) ListTrash(c *fiber.Ctx) error {
 	envID := strings.TrimSpace(c.Params("environmentID"))
 	entries, err := h.secrets.ListTrash(c.UserContext(), orgID, projectID, envID)
 	if err != nil {
-		return writeError(c, fiber.StatusInternalServerError, err)
+		return writeSecretError(c, err)
 	}
 	return c.JSON(entries)
 }
@@ -182,7 +182,7 @@ func (h *SecretHandler) ListMachineTokens(c *fiber.Ctx) error {
 	orgID := strings.TrimSpace(c.Params("organizationID"))
 	tokens, err := h.secrets.ListMachineTokens(c.UserContext(), orgID)
 	if err != nil {
-		return writeError(c, fiber.StatusInternalServerError, err)
+		return writeSecretError(c, err)
 	}
 	return c.JSON(tokens)
 }
@@ -202,7 +202,7 @@ func (h *SecretHandler) CreateMachineToken(c *fiber.Ctx) error {
 	}
 	token, err := h.secrets.CreateMachineToken(c.UserContext(), orgID, input.ProjectID, input.EnvironmentID, input.Name, input.Scopes, userID)
 	if err != nil {
-		return writeError(c, fiber.StatusInternalServerError, err)
+		return writeSecretError(c, err)
 	}
 	return c.Status(fiber.StatusCreated).JSON(token)
 }
@@ -211,7 +211,7 @@ func (h *SecretHandler) RevokeMachineToken(c *fiber.Ctx) error {
 	orgID := strings.TrimSpace(c.Params("organizationID"))
 	tokenID := strings.TrimSpace(c.Params("tokenID"))
 	if err := h.secrets.RevokeMachineToken(c.UserContext(), orgID, tokenID); err != nil {
-		return writeError(c, fiber.StatusInternalServerError, err)
+		return writeSecretError(c, err)
 	}
 	return c.SendStatus(fiber.StatusNoContent)
 }
@@ -241,11 +241,14 @@ func (h *SecretHandler) CLIGetSecrets(c *fiber.Ctx) error {
 
 	secrets, err := h.secrets.ListSecrets(c.UserContext(), token.OrganizationID, projectID, envID, true)
 	if err != nil {
-		return writeError(c, fiber.StatusInternalServerError, err)
+		return writeSecretError(c, err)
 	}
 
 	envMap := make(map[string]string, len(secrets))
 	for _, s := range secrets {
+		if _, exists := envMap[s.Key]; exists {
+			return writeError(c, fiber.StatusBadRequest, fmt.Errorf("secret keys are ambiguous; specify project and environment"))
+		}
 		envMap[s.Key] = s.Value
 	}
 	return c.JSON(envMap)

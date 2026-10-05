@@ -268,7 +268,7 @@ func (c *RelayConnection) ServeLocal(ctx context.Context, targetURL string) erro
 				return err
 			}
 		case protocol.MessageTypeTCPData:
-			if err := c.handleTCPData(targetURL, message); err != nil {
+			if err := c.handleTCPData(ctx, targetURL, message); err != nil {
 				return err
 			}
 		case protocol.MessageTypeTCPClose:
