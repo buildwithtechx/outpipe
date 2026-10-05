@@ -1,8 +1,8 @@
 # Outpipe
 
-Outpipe is an independent tunneling platform for exposing local and private services through secure public endpoints.
+Outpipe is a hosted SaaS for exposing local and private services through secure public endpoints, with open-source clients and server code.
 
-It is designed to work without Outpipe. Outpipe is an optional integration that can create and manage tunnels through the public Outpipe API.
+Users connect to the hosted service through the dashboard, CLI, desktop app or SDKs. Database, Redis, internal authentication, TLS, backups and provider credentials belong to the service operator.
 
 ## Hosted domains
 
@@ -32,7 +32,19 @@ It is designed to work without Outpipe. Outpipe is an optional integration that 
 - `apps/desktop` contains the Tauri desktop shell.
 - `integrations/outpipe` contains the optional Outpipe adapter.
 
+## Hosted usage
+
+The CLI defaults to the hosted API and relay; users do not need an environment
+file or server configuration. Run `outpipe login`, then
+`outpipe open --port 3000`. Credentials are saved in your OS user configuration
+directory and reused across projects. SDK clients need only a scoped credential.
+Machine automation uses `OUTPIPE_TOKEN` for secrets and tunnel creation, with
+the appropriate scopes. Endpoint overrides are available for local development.
+
 ## Development
+
+The root and server environment examples below configure the service operator's
+development environment. They are not requirements for SaaS customers.
 
 Requirements:
 
@@ -46,6 +58,18 @@ for the hosted service. Override `apiUrl` (TypeScript/Angular), `BaseURL`
 
 After updating Go dependencies, run `go mod vendor` if you have a local
 `vendor/` directory. Vendored dependencies are not tracked in this repository.
+
+Generate the local self-signed TLS certificate and key with
+`go run ./scripts/generate_local_tls.go`. The generated files live in
+`data/tls/`, are ignored by Git, and are preserved when the command is rerun.
+The environment examples point to these files; TLS remains disabled until
+explicitly enabled. Use an actual contact email for ACME issuance.
+
+The examples configure relay readiness at `http://127.0.0.1:8081` and backups
+in `data/backups/`. Backups require installed `pg_dump` and `pg_restore`
+executables. API, agent and machine-token example values are placeholders;
+issue real credentials for your organization before using them. Keep generated
+secrets in your ignored `.env`.
 
 ```sh
 npm install

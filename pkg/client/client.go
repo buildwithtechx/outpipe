@@ -28,7 +28,7 @@ func New(cfg Config) (*Client, error) {
 	baseURL := strings.TrimRight(cfg.BaseURL, "/")
 
 	if baseURL == "" {
-		return nil, fmt.Errorf("client base url is required")
+		baseURL = "https://api.outpipe.dev"
 	}
 
 	httpClient := cfg.HTTPClient

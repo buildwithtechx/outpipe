@@ -41,13 +41,13 @@ type CheckConfig struct {
 
 type CLIConfig struct {
 	Version      int    `json:"version" env:"-"`
-	APIURL       string `env:"OUTPIPE_API_URL" envDefault:"http://localhost:8080"`
-	RelayURL     string `env:"OUTPIPE_RELAY_URL" envDefault:"ws://localhost:8081"`
-	PublicDomain string `env:"OUTPIPE_DOMAIN" envDefault:"outpipe.app"`
-	APIKey       string `env:"OUTPIPE_API_KEY"`
-	AgentToken   string `env:"OUTPIPE_AGENT_TOKEN"`
-	Password     string `env:"OUTPIPE_PASSWORD"`
-	ConfigPath   string `env:"OUTPIPE_CONFIG_PATH" envDefault:".config/outpipe/config.json"`
+	APIURL       string `json:"apiUrl" env:"OUTPIPE_API_URL" envDefault:"https://api.outpipe.dev"`
+	RelayURL     string `json:"relayUrl" env:"OUTPIPE_RELAY_URL" envDefault:"wss://relay.outpipe.app/v1/connect"`
+	PublicDomain string `json:"publicDomain" env:"OUTPIPE_DOMAIN" envDefault:"outpipe.app"`
+	APIKey       string `json:"apiKey" env:"OUTPIPE_API_KEY"`
+	AgentToken   string `json:"agentToken" env:"OUTPIPE_AGENT_TOKEN"`
+	Password     string `json:"password" env:"OUTPIPE_PASSWORD"`
+	ConfigPath   string `json:"configPath" env:"OUTPIPE_CONFIG_PATH"`
 }
 
 const CurrentCLIConfigVersion = 1

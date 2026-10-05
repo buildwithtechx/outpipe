@@ -15,10 +15,13 @@ import (
 func newMachineTunnelCommand(cfg config.CLIConfig) *cobra.Command {
 	port := 3000
 	protocolName := "http"
-	command := &cobra.Command{Use: "machine-tunnel NAME", Short: "create and connect a tunnel using OUTPIPE_MACHINE_TOKEN", Args: cobra.ExactArgs(1), RunE: func(cmd *cobra.Command, args []string) error {
-		token := os.Getenv("OUTPIPE_MACHINE_TOKEN")
+	command := &cobra.Command{Use: "machine-tunnel NAME", Short: "create and connect a tunnel using a scoped machine credential", Args: cobra.ExactArgs(1), RunE: func(cmd *cobra.Command, args []string) error {
+		token := os.Getenv("OUTPIPE_TOKEN")
 		if token == "" {
-			return fmt.Errorf("OUTPIPE_MACHINE_TOKEN is required")
+			token = os.Getenv("OUTPIPE_MACHINE_TOKEN")
+		}
+		if token == "" {
+			return fmt.Errorf("set OUTPIPE_TOKEN to a machine token with tunnels:write scope")
 		}
 		api, err := client.New(client.Config{BaseURL: cfg.APIURL, APIKey: token})
 		if err != nil {

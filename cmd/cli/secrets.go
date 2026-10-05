@@ -40,7 +40,7 @@ func newSecretsRunCommand(cfg config.CLIConfig) *cobra.Command {
 
 			apiURL := cfg.APIURL
 			if apiURL == "" {
-				apiURL = "http://localhost:8080"
+				apiURL = "https://api.outpipe.dev"
 			}
 
 			reqURL := fmt.Sprintf("%s/api/v1/cli/secrets", strings.TrimRight(apiURL, "/"))

@@ -35,6 +35,15 @@ func run(args []string) error {
 	}
 
 	if stored, loadErr := config.LoadCLIFile(cfg.ConfigPath); loadErr == nil {
+		if _, ok := os.LookupEnv("OUTPIPE_API_URL"); !ok && stored.APIURL != "" {
+			cfg.APIURL = stored.APIURL
+		}
+		if _, ok := os.LookupEnv("OUTPIPE_RELAY_URL"); !ok && stored.RelayURL != "" {
+			cfg.RelayURL = stored.RelayURL
+		}
+		if _, ok := os.LookupEnv("OUTPIPE_DOMAIN"); !ok && stored.PublicDomain != "" {
+			cfg.PublicDomain = stored.PublicDomain
+		}
 
 		if _, ok := os.LookupEnv("OUTPIPE_API_KEY"); !ok {
 			cfg.APIKey = stored.APIKey
