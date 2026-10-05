@@ -33,7 +33,7 @@ func newSecretsRunCommand(cfg config.CLIConfig) *cobra.Command {
 		Short: "run a command with secrets injected into the environment",
 		Args:  cobra.MinimumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			token := os.Getenv("OUTPIPE_TOKEN")
+			token := cliEnvValue("OUTPIPE_TOKEN")
 			if token == "" {
 				return fmt.Errorf("set OUTPIPE_TOKEN to a secrets machine token with secrets:read scope")
 			}

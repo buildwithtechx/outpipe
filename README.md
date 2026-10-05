@@ -63,7 +63,9 @@ Generate the local self-signed TLS certificate and key with
 `go run ./scripts/generate_local_tls.go`. The generated files live in
 `data/tls/`, are ignored by Git, and are preserved when the command is rerun.
 The environment examples point to these files; TLS remains disabled until
-explicitly enabled. Use an actual contact email for ACME issuance.
+explicitly enabled. ACME also requires `OUTPIPE_ACME_ENABLED=true` and an
+actual contact email. Examples use Let's Encrypt staging; production issuance
+requires the production ACME directory.
 
 The examples configure relay readiness at `http://127.0.0.1:8081` and backups
 in `data/backups/`. Backups require installed `pg_dump` and `pg_restore`

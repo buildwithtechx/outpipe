@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"net/http"
-	"os"
 	"time"
 
 	"github.com/spf13/cobra"
@@ -16,9 +15,9 @@ func newMachineTunnelCommand(cfg config.CLIConfig) *cobra.Command {
 	port := 3000
 	protocolName := "http"
 	command := &cobra.Command{Use: "machine-tunnel NAME", Short: "create and connect a tunnel using a scoped machine credential", Args: cobra.ExactArgs(1), RunE: func(cmd *cobra.Command, args []string) error {
-		token := os.Getenv("OUTPIPE_TOKEN")
+		token := cliEnvValue("OUTPIPE_MACHINE_TOKEN")
 		if token == "" {
-			token = os.Getenv("OUTPIPE_MACHINE_TOKEN")
+			token = cliEnvValue("OUTPIPE_TOKEN")
 		}
 		if token == "" {
 			return fmt.Errorf("set OUTPIPE_TOKEN to a machine token with tunnels:write scope")

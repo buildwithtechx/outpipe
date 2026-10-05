@@ -39,4 +39,15 @@ func TestLoginCredentialsAndEndpointPersistAcrossProjects(t *testing.T) {
 	if err := run([]string{"health"}); err != nil {
 		t.Fatalf("second project did not reuse stored endpoint and credential: %v", err)
 	}
+	t.Setenv("OUTPIPE_API_URL", "")
+	t.Setenv("OUTPIPE_RELAY_URL", "")
+	t.Setenv("OUTPIPE_API_KEY", "replace_with_api_key")
+	t.Setenv("OUTPIPE_AGENT_TOKEN", "replace_with_agent_token")
+	cfg, err := loadCLISettings()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if cfg.APIURL != server.URL || cfg.RelayURL != "ws://relay.test" || cfg.APIKey != "project-key" || cfg.AgentToken != "project-agent" {
+		t.Fatal("empty overrides or example placeholders replaced saved login settings")
+	}
 }

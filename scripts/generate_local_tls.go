@@ -8,6 +8,7 @@ import (
 	"crypto/x509"
 	"crypto/x509/pkix"
 	"encoding/pem"
+	"errors"
 	"fmt"
 	"math/big"
 	"net"
@@ -27,7 +28,7 @@ func generateLocalTLS() error {
 	directory := filepath.Join("data", "tls")
 	certPath, keyPath := filepath.Join(directory, "localhost.crt"), filepath.Join(directory, "localhost.key")
 	if _, err := os.Stat(certPath); err == nil {
-		if _, err := tls.LoadX509KeyPair(certPath, keyPath); err != nil {
+		if err := validateLocalTLSPair(certPath, keyPath); err != nil {
 			return fmt.Errorf("validate existing local TLS pair: %w", err)
 		}
 		fmt.Println("Existing local TLS pair preserved")
@@ -67,31 +68,78 @@ func generateLocalTLS() error {
 	if err := os.MkdirAll(directory, 0700); err != nil {
 		return fmt.Errorf("create local TLS directory: %w", err)
 	}
-	if err := saveNewFile(keyPath, pem.EncodeToMemory(&pem.Block{Type: "PRIVATE KEY", Bytes: keyDER}), 0600); err != nil {
-		return fmt.Errorf("save local TLS key: %w", err)
+	if err := saveLocalTLSPair(certPath, keyPath, der, keyDER); err != nil {
+		return err
 	}
-	if err := saveNewFile(certPath, pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: der}), 0644); err != nil {
-		return fmt.Errorf("save local TLS certificate: %w", err)
-	}
-	if _, err := tls.LoadX509KeyPair(certPath, keyPath); err != nil {
+	if err := validateLocalTLSPair(certPath, keyPath); err != nil {
 		return fmt.Errorf("validate generated TLS pair: %w", err)
 	}
 	fmt.Println("Generated local TLS pair in data/tls")
 	return nil
 }
 
-func saveNewFile(path string, data []byte, mode os.FileMode) error {
+func saveLocalTLSPair(certPath, keyPath string, der, keyDER []byte) error {
+	keyInfo, err := saveNewFile(keyPath, pem.EncodeToMemory(&pem.Block{Type: "PRIVATE KEY", Bytes: keyDER}), 0600)
+	if err != nil {
+		return fmt.Errorf("save local TLS key: %w", err)
+	}
+	if _, err := saveNewFile(certPath, pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: der}), 0644); err != nil {
+		return fmt.Errorf("save local TLS certificate: %w", errors.Join(err, removeCreatedFile(keyPath, keyInfo)))
+	}
+	return nil
+}
+
+func saveNewFile(path string, data []byte, mode os.FileMode) (os.FileInfo, error) {
 	file, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_EXCL, mode)
 	if err != nil {
-		return fmt.Errorf("create new TLS file: %w", err)
+		return nil, fmt.Errorf("create new TLS file: %w", err)
+	}
+	info, statErr := file.Stat()
+	if statErr != nil {
+		return nil, fmt.Errorf("inspect new TLS file: %w", errors.Join(statErr, file.Close()))
 	}
 	_, writeErr := file.Write(data)
 	closeErr := file.Close()
-	if writeErr != nil {
-		return fmt.Errorf("write TLS file: %w", writeErr)
+	if err := errors.Join(writeErr, closeErr); err != nil {
+		return nil, fmt.Errorf("save TLS file: %w", errors.Join(err, removeCreatedFile(path, info)))
 	}
-	if closeErr != nil {
-		return fmt.Errorf("close TLS file: %w", closeErr)
+	return info, nil
+}
+
+func removeCreatedFile(path string, created os.FileInfo) error {
+	current, err := os.Stat(path)
+	if errors.Is(err, os.ErrNotExist) {
+		return nil
+	}
+	if err != nil {
+		return fmt.Errorf("inspect incomplete TLS file: %w", err)
+	}
+	if !os.SameFile(current, created) {
+		return fmt.Errorf("incomplete TLS file was replaced; refusing to remove it")
+	}
+	if err := os.Remove(path); err != nil {
+		return fmt.Errorf("remove incomplete TLS file: %w", err)
+	}
+	return nil
+}
+
+func validateLocalTLSPair(certPath, keyPath string) error {
+	pair, err := tls.LoadX509KeyPair(certPath, keyPath)
+	if err != nil {
+		return fmt.Errorf("load TLS pair: %w", err)
+	}
+	leaf, err := x509.ParseCertificate(pair.Certificate[0])
+	if err != nil {
+		return fmt.Errorf("parse TLS certificate: %w", err)
+	}
+	now := time.Now()
+	if now.Before(leaf.NotBefore) || !now.Before(leaf.NotAfter) {
+		return fmt.Errorf("local TLS certificate is expired or not yet valid; move the existing pair aside to regenerate")
+	}
+	for _, host := range []string{"localhost", "outpipe.localhost", "preview.outpipe.localhost", "127.0.0.1", "::1"} {
+		if err := leaf.VerifyHostname(host); err != nil {
+			return fmt.Errorf("local TLS certificate does not cover %s: %w", host, err)
+		}
 	}
 	return nil
 }

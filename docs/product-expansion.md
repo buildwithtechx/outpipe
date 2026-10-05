@@ -33,7 +33,7 @@ Replay permits HTTP(S) public destinations only. The client disables ambient pro
 
 Create an organization-wide machine token with the exact `tunnels:write` scope. Newly issued machine tokens expire after 24 hours; old tokens without an expiry must be replaced. Project/environment-bound secret tokens cannot create tunnels.
 
-Set `OUTPIPE_TOKEN` to a machine credential with `tunnels:write`, then run `outpipe machine-tunnel NAME --port 3000 --protocol http` (also supports TCP/UDP). Hosted API and relay URLs are automatic; endpoint overrides are only needed for development. `OUTPIPE_MACHINE_TOKEN` remains a compatibility alias. The command creates a machine-owned tunnel through the public API and connects with a 15-minute relay credential scoped to that tunnel and machine. The command stops when the relay credential expires; automatic credential renewal is not implemented. The target is the local machine. Revocation and ownership are checked again during stream traffic.
+Set `OUTPIPE_TOKEN` to a machine credential with `tunnels:write`, then run `outpipe machine-tunnel NAME --port 3000 --protocol http` (also supports TCP/UDP). Hosted API and relay URLs are automatic; endpoint overrides are only needed for development. Set `OUTPIPE_MACHINE_TOKEN` to override the shared token with a dedicated tunnel credential. The command creates a machine-owned tunnel through the public API and connects with a 15-minute relay credential scoped to that tunnel and machine. The command stops when the relay credential expires; automatic credential renewal is not implemented. The target is the local machine. Revocation and ownership are checked again during stream traffic.
 
 ## Uptime assertions
 

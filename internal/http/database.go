@@ -245,7 +245,7 @@ func NewDatabaseDependencies(db *gorm.DB, cfg config.APIConfig) (Dependencies, e
 		return Dependencies{}, err
 	}
 
-	if cfg.App.ACMEEmail != "" {
+	if cfg.App.ACMEEnabled && cfg.App.ACMEEmail != "" {
 		issuer, issuerErr := certificates.NewACMEIssuer(certificates.ACMEConfig{Email: cfg.App.ACMEEmail, Directory: cfg.App.ACMEDirectory, CacheDir: cfg.App.CertificateCache, AllowedHost: func(host string) bool {
 			return strings.Contains(host, ".") && !strings.Contains(host, "..")
 		}})

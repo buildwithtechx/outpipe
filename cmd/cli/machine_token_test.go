@@ -12,13 +12,16 @@ import (
 
 func TestMachineTunnelUsesSharedScopedToken(t *testing.T) {
 	for _, shared := range []bool{true, false} {
-		t.Run(map[bool]string{true: "shared token", false: "legacy alias"}[shared], func(t *testing.T) {
+		t.Run(map[bool]string{true: "shared token", false: "dedicated tunnel token"}[shared], func(t *testing.T) {
 			t.Setenv("OUTPIPE_TOKEN", "")
-			t.Setenv("OUTPIPE_MACHINE_TOKEN", "legacy-token")
-			want := "Bearer legacy-token"
+			t.Setenv("OUTPIPE_MACHINE_TOKEN", "")
+			want := "Bearer shared-token"
 			if shared {
 				t.Setenv("OUTPIPE_TOKEN", "shared-token")
-				want = "Bearer shared-token"
+			} else {
+				t.Setenv("OUTPIPE_TOKEN", "secrets-token")
+				t.Setenv("OUTPIPE_MACHINE_TOKEN", "tunnel-token")
+				want = "Bearer tunnel-token"
 			}
 			var called atomic.Bool
 			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

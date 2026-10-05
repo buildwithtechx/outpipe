@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"net/mail"
 	"net/url"
 	"os"
 	"path/filepath"
@@ -229,6 +230,11 @@ func validateApp(cfg AppConfig) error {
 func validateAPIApp(cfg AppConfig) error {
 	if err := validateApp(cfg); err != nil {
 		return err
+	}
+	if cfg.ACMEEnabled {
+		if _, err := mail.ParseAddress(cfg.ACMEEmail); err != nil {
+			return fmt.Errorf("ACME requires a valid contact email: %w", err)
+		}
 	}
 	if !strings.EqualFold(cfg.Environment, "production") {
 		return nil
