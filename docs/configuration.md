@@ -146,6 +146,7 @@ public data plane is entirely separate from the control-plane handlers.
 | `OUTPIPE_RELAY_URL`   | `ws://localhost:8081`         | Relay WebSocket URL. May be `wss://` in production.               |
 | `OUTPIPE_DOMAIN`      | `outpipe.app`                 | Public tunnel domain, used to normalize managed-tunnel hostnames. |
 | `OUTPIPE_API_KEY`     | empty                         | API key for managed-tunnel and management commands.               |
+| `OUTPIPE_TOKEN`       | empty                         | Short-lived secrets machine token with `secrets:read`, required by `outpipe secrets run`. |
 | `OUTPIPE_AGENT_TOKEN` | empty                         | Agent token for ephemeral CI/CD tunnel opening.                   |
 | `OUTPIPE_PASSWORD`    | empty                         | Default tunnel access password.                                   |
 | `OUTPIPE_CONFIG_PATH` | `.config/outpipe/config.json` | Where `outpipe login` stores credentials (0600).                  |
@@ -179,6 +180,8 @@ shared timeout. `-json` switches to JSON output for monitoring systems.
 
 Flags override the environment: `-api-url`, `-relay-url`, `-database-url`,
 `-redis-host`, `-timeout`, `-json`.
+
+The API check uses the authenticated `/internal/health` endpoint on `OUTPIPE_INTERNAL_API_URL`, with `OUTPIPE_INTERNAL_API_SECRET`. The relay enables TLS when either `OUTPIPE_REQUIRE_TLS` or `OUTPIPE_TUNNEL_REQUIRE_TLS` is true; configure certificate and key files in either case. Local examples use `outpipe.localhost` consistently for the API, relay, and CLI.
 
 ## Deployment minimums
 

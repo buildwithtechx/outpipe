@@ -27,6 +27,10 @@ type Dependencies struct {
 	APIKeys       *services.APIKeyService
 	Webhooks      *services.WebhookService
 	Support       *services.SupportService
+	Secrets       *services.SecretService
+	Shares        *services.ShareService
+	Uptime        *services.UptimeService
+	Observability *services.ObservabilityService
 	WelcomeMailer services.WelcomeMailer
 	Ready         func(context.Context) error
 	RateLimiter   *infraredis.Client
@@ -61,6 +65,10 @@ type Handlers struct {
 	Webhooks            *handlers.WebhookHandler
 	Support             *handlers.SupportHandler
 	AuditLogs           *handlers.AuditLogHandler
+	Secrets             *handlers.SecretHandler
+	Shares              *handlers.ShareHandler
+	Uptime              *handlers.UptimeHandler
+	Observability       *handlers.ObservabilityHandler
 	auditService        *services.AuditService
 	authService         *services.AuthService
 	organizationService *services.OrganizationService
@@ -93,6 +101,9 @@ func buildHandlers(deps Dependencies, cookie handlers.SessionCookieConfig) (Hand
 	}
 
 	tunnelHandler, err := handlers.NewTunnelHandler(deps.Tunnels)
+	if tunnelHandler != nil {
+		tunnelHandler.SetMachineService(deps.Secrets)
+	}
 
 	if err != nil {
 		return Handlers{}, err
@@ -167,5 +178,35 @@ func buildHandlers(deps Dependencies, cookie handlers.SessionCookieConfig) (Hand
 		return Handlers{}, err
 	}
 
-	return Handlers{Health: handlers.NewHealthHandler(deps.Ready), Auth: authHandler, Organizations: organizationHandler, Invitations: invitationHandler, Tunnels: tunnelHandler, Agents: agentHandler, Domains: domainHandler, Usage: usageHandler, Billing: billingHandler, OAuth: oauthHandler, Account: accountHandler, Admin: adminHandler, APIKeys: apiKeyHandler, Webhooks: webhookHandler, Support: supportHandler, AuditLogs: auditLogHandler, authService: deps.Auth, organizationService: deps.Organizations, apiKeyService: deps.APIKeys, auditService: deps.Audit, agentService: deps.Agents}, nil
+	var secretHandler *handlers.SecretHandler
+	if deps.Secrets != nil {
+		secretHandler, err = handlers.NewSecretHandler(deps.Secrets)
+		if err != nil {
+			return Handlers{}, err
+		}
+	}
+
+	var shareHandler *handlers.ShareHandler
+	if deps.Shares != nil {
+		shareHandler, err = handlers.NewShareHandler(deps.Shares)
+		if err != nil {
+			return Handlers{}, err
+		}
+	}
+
+	var uptimeHandler *handlers.UptimeHandler
+	if deps.Uptime != nil {
+		uptimeHandler, err = handlers.NewUptimeHandler(deps.Uptime)
+		if err != nil {
+			return Handlers{}, err
+		}
+	}
+
+	var observabilityHandler *handlers.ObservabilityHandler
+	if deps.Observability != nil {
+		observabilityHandler = handlers.NewObservabilityHandler(deps.Observability)
+		observabilityHandler.SetTunnels(deps.Tunnels)
+	}
+
+	return Handlers{Health: handlers.NewHealthHandler(deps.Ready), Auth: authHandler, Organizations: organizationHandler, Invitations: invitationHandler, Tunnels: tunnelHandler, Agents: agentHandler, Domains: domainHandler, Usage: usageHandler, Billing: billingHandler, OAuth: oauthHandler, Account: accountHandler, Admin: adminHandler, APIKeys: apiKeyHandler, Webhooks: webhookHandler, Support: supportHandler, AuditLogs: auditLogHandler, Secrets: secretHandler, Shares: shareHandler, Uptime: uptimeHandler, Observability: observabilityHandler, authService: deps.Auth, organizationService: deps.Organizations, apiKeyService: deps.APIKeys, auditService: deps.Audit, agentService: deps.Agents}, nil
 }

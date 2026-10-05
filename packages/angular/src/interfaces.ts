@@ -1,5 +1,5 @@
 export type OutpipeAngularConfig = {
-  apiUrl: string;
+  apiUrl?: string;
   apiKey?: string;
   apiPrefix?: string;
 };

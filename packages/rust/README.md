@@ -10,7 +10,7 @@ outpipe = "0.1"
 ```rust
 use outpipe::{Client, CreateTunnel};
 
-let client = Client::builder("https://api.outpipe.dev")
+let client = Client::builder()
     .api_key(std::env::var("OUTPIPE_API_KEY")?)
     .build()?;
 

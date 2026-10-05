@@ -217,6 +217,10 @@ func (m *TCPManager) CloseConnection(tunnelID, connectionID string) {
 	m.mu.Lock()
 	connection := m.connections[connectionID]
 	hook := m.usageHook
+	if _, ok := m.tunnels[tunnelID][connectionID]; !ok {
+		m.mu.Unlock()
+		return
+	}
 
 	if tunnelConnections := m.tunnels[tunnelID]; tunnelConnections != nil {
 

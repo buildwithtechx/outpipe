@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1
 
 # Build the public tunnel relay and data plane.
-FROM golang:1.25-alpine AS build
+FROM golang:1.26.8-alpine AS build
 
 WORKDIR /workspace
 

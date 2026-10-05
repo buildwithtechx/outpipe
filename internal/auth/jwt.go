@@ -11,6 +11,8 @@ import (
 )
 
 type RelayClaims struct {
+	TunnelID       string `json:"tunnel_id,omitempty"`
+	MachineTokenID string `json:"machine_token_id,omitempty"`
 	Sub            string `json:"sub"`
 	Org            string `json:"org"`
 	MaxTunnels     int    `json:"max_tunnels,omitempty"`

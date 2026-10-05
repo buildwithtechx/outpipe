@@ -233,6 +233,8 @@ func (c *RelayConnection) SendHeartbeat() error {
 }
 
 func (c *RelayConnection) ServeLocal(ctx context.Context, targetURL string) error {
+	stopClose := context.AfterFunc(ctx, func() { _ = c.Close() })
+	defer stopClose()
 
 	for {
 		_, data, err := c.conn.ReadMessage()
@@ -266,7 +268,7 @@ func (c *RelayConnection) ServeLocal(ctx context.Context, targetURL string) erro
 				return err
 			}
 		case protocol.MessageTypeTCPData:
-			if err := c.handleTCPData(targetURL, message); err != nil {
+			if err := c.handleTCPData(ctx, targetURL, message); err != nil {
 				return err
 			}
 		case protocol.MessageTypeTCPClose:

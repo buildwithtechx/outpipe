@@ -102,6 +102,10 @@ func (s *TunnelService) List(ctx context.Context, organizationID string) ([]mode
 }
 
 func (s *TunnelService) Create(ctx context.Context, organizationID, name string, protocol models.TunnelProtocol, targetHost string, targetPort int, publicHostname, password, metadata string) (models.Tunnel, error) {
+	return s.createOwned(ctx, organizationID, name, protocol, targetHost, targetPort, publicHostname, password, metadata, nil)
+}
+
+func (s *TunnelService) createOwned(ctx context.Context, organizationID, name string, protocol models.TunnelProtocol, targetHost string, targetPort int, publicHostname, password, metadata string, machineTokenID *string) (models.Tunnel, error) {
 
 	if organizationID == "" || strings.TrimSpace(name) == "" || strings.TrimSpace(targetHost) == "" || !validTunnelProtocol(protocol) || targetPort < 1 || targetPort > 65535 {
 		return models.Tunnel{}, fmt.Errorf("invalid tunnel configuration")
@@ -134,6 +138,10 @@ func (s *TunnelService) Create(ctx context.Context, organizationID, name string,
 	}
 
 	tunnel := models.Tunnel{OrganizationID: organizationID, Name: strings.TrimSpace(name), Protocol: protocol, Status: models.TunnelStatusCreated, TargetHost: strings.TrimSpace(targetHost), TargetPort: targetPort, PublicHostname: strings.ToLower(strings.TrimSpace(publicHostname)), AccessPolicy: `{}`, Metadata: metadata, PasswordHash: passwordHash}
+	if machineTokenID != nil && *machineTokenID != "" {
+		tunnel.MachineOwned = true
+		tunnel.MachineTokenID = machineTokenID
+	}
 
 	if s.billing != nil {
 		plan, _, err := s.billing.Entitlements(ctx, organizationID)
@@ -158,6 +166,10 @@ func (s *TunnelService) Create(ctx context.Context, organizationID, name string,
 	}
 
 	return tunnel, nil
+}
+
+func (s *TunnelService) CreateWithMachineOwner(ctx context.Context, organizationID, name string, protocol models.TunnelProtocol, targetHost string, targetPort int, publicHostname, password, metadata string, machineTokenID *string) (models.Tunnel, error) {
+	return s.createOwned(ctx, organizationID, name, protocol, targetHost, targetPort, publicHostname, password, metadata, machineTokenID)
 }
 
 func hashTunnelPassword(password string) (string, error) {

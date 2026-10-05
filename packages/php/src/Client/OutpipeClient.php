@@ -11,7 +11,7 @@ use Outpipe\Exceptions\ApiException;
 final class OutpipeClient
 {
     public function __construct(
-        private readonly string $baseUrl,
+        private readonly string $baseUrl = 'https://api.outpipe.dev',
         private readonly ?string $apiKey = null,
         private readonly float $timeout = 10.0,
         private readonly ?HttpTransport $transport = null,

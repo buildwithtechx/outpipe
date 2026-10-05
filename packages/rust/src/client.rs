@@ -21,12 +21,17 @@ pub struct Client {
 }
 
 impl ClientBuilder {
-    pub fn new(base_url: impl Into<String>) -> Self {
+    pub fn new() -> Self {
         Self {
-            base_url: base_url.into(),
+            base_url: "https://api.outpipe.dev".into(),
             api_key: None,
             http: None,
         }
+    }
+
+    pub fn base_url(mut self, base_url: impl Into<String>) -> Self {
+        self.base_url = base_url.into();
+        self
     }
 
     pub fn api_key(mut self, api_key: impl Into<String>) -> Self {
@@ -57,9 +62,26 @@ impl ClientBuilder {
     }
 }
 
+impl Default for ClientBuilder {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::Client;
+
+    #[test]
+    fn defaults_to_hosted_endpoint() {
+        let client = Client::builder().api_key("key").build().unwrap();
+        assert_eq!(client.base_url.as_str(), "https://api.outpipe.dev/");
+    }
+}
+
 impl Client {
-    pub fn builder(base_url: impl Into<String>) -> ClientBuilder {
-        ClientBuilder::new(base_url)
+    pub fn builder() -> ClientBuilder {
+        ClientBuilder::new()
     }
 
     pub async fn health(&self) -> Result<serde_json::Value> {

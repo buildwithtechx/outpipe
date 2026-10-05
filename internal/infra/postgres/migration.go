@@ -112,7 +112,36 @@ func migrations() []migration {
 		return db.AutoMigrate(&models.WebhookSubscription{}, &models.WebhookDelivery{})
 	}}, {version: 15, name: "usage_event_pagination_index", up: func(db *gorm.DB) error {
 		return db.AutoMigrate(&models.UsageEvent{})
-	}}}
+	}}, {version: 16, name: "secrets_management_and_shares", up: func(db *gorm.DB) error {
+		return db.AutoMigrate(
+			&models.SecretProject{},
+			&models.SecretEnvironment{},
+			&models.SecretEntry{},
+			&models.SecretVersion{},
+			&models.SecretMachineToken{},
+			&models.SecretAuditEvent{},
+			&models.SecretShareLink{},
+		)
+	}}, {version: 17, name: "uptime_monitoring_and_status_pages", up: func(db *gorm.DB) error {
+		return db.AutoMigrate(
+			&models.UptimeMonitor{},
+			&models.UptimeCheck{},
+			&models.UptimeIncident{},
+			&models.UptimeIncidentUpdate{},
+			&models.UptimeStatusPage{},
+			&models.UptimeSubscriber{},
+		)
+	}}, {version: 18, name: "observability_traces_logs_and_captures", up: func(db *gorm.DB) error {
+		return db.AutoMigrate(
+			&models.RequestCapture{},
+			&models.TelemetrySpan{},
+			&models.TelemetryLog{},
+		)
+	}}, {version: 19, name: "telemetry_metrics_uptime_assertions_and_capture", up: func(db *gorm.DB) error {
+		return db.AutoMigrate(&models.TelemetryMetric{}, &models.TelemetrySpan{}, &models.TelemetryLog{}, &models.UptimeMonitor{}, &models.Tunnel{})
+	}}, {version: 20, name: "scheduled_uptime_and_status_privacy", up: func(db *gorm.DB) error {
+		return db.AutoMigrate(&models.UptimeMonitor{}, &models.UptimeStatusPage{}, &models.TelemetrySpan{}, &models.TelemetryLog{})
+	}}, {version: 21, name: "unique_active_secrets_and_versions", up: migrateSecretUniqueness}}
 }
 
 func seedDefaultBillingPlans(db *gorm.DB) error {

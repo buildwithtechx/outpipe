@@ -18,11 +18,14 @@ function Dust() {
   const points = useRef<THREE.Points>(null);
   const count = 300;
   const positions = useMemo(() => createDust(count), []);
+  const timer = useMemo(() => new THREE.Timer(), []);
 
-  useFrame(({ clock }) => {
+  useFrame(() => {
     if (!points.current) return;
-    points.current.rotation.x = clock.elapsedTime * 0.05;
-    points.current.position.x = 8 + Math.sin(clock.elapsedTime * 0.2) * 0.5;
+    timer.update();
+    const elapsedTime = timer.getElapsed();
+    points.current.rotation.x = elapsedTime * 0.05;
+    points.current.position.x = 8 + Math.sin(elapsedTime * 0.2) * 0.5;
   });
 
   return (
@@ -48,6 +51,7 @@ function Dust() {
 
 function RelayBeam({ color }: { color: string }) {
   const mesh = useRef<THREE.Mesh>(null);
+  const timer = useMemo(() => new THREE.Timer(), []);
   const uniforms = useMemo(
     () => ({
       uTime: { value: 0 },
@@ -56,10 +60,11 @@ function RelayBeam({ color }: { color: string }) {
     [color],
   );
 
-  useFrame(({ clock }) => {
+  useFrame(() => {
     if (mesh.current) {
+      timer.update();
       (mesh.current.material as THREE.ShaderMaterial).uniforms.uTime.value =
-        clock.elapsedTime;
+        timer.getElapsed();
     }
   });
 

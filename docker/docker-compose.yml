@@ -29,7 +29,7 @@ services:
 
   api:
     build:
-      context: .
+      context: ..
       dockerfile: docker/Dockerfile.api
       network: host
     environment:
@@ -58,7 +58,7 @@ services:
 
   relay:
     build:
-      context: .
+      context: ..
       dockerfile: docker/Dockerfile.tunnel
       network: host
     environment:
@@ -83,7 +83,7 @@ services:
     ports:
       - "13000:3000"
     volumes:
-      - .:/workspace:Z
+      - ..:/workspace:Z
     depends_on:
       api: { condition: service_healthy }
 

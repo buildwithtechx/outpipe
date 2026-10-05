@@ -15,6 +15,9 @@ import (
 )
 
 type AgentIdentity struct {
+	TunnelID       string `json:"tunnelId,omitempty"`
+	MachineTokenID string `json:"machineTokenId,omitempty"`
+	ExpiresAt      int64  `json:"expiresAt,omitempty"`
 	AgentID        string
 	OrganizationID string
 	MaxTunnels     int
@@ -40,6 +43,11 @@ type ManagedTunnelPasswordVerifier interface {
 }
 
 type ManagedTunnelPolicy struct {
+	CaptureEnabled    bool    `json:"captureEnabled"`
+	MachineTokenID    *string `json:"machineTokenId,omitempty"`
+	TargetHost        string  `json:"targetHost"`
+	TargetPort        int     `json:"targetPort"`
+	Protocol          string  `json:"protocol"`
 	OrganizationID    string
 	PublicHostname    string
 	PasswordHash      string
@@ -212,6 +220,18 @@ func (h *Handler) Connect(connection *websocket.Conn) {
 	}
 
 	defer func() { h.closeOwnedSessions(ctx, state.identity, owned) }()
+	var expiryTimer *time.Timer
+	watchExpiry := func() {
+		if expiryTimer == nil && state.identity.ExpiresAt != 0 {
+			expiryTimer = time.AfterFunc(time.Until(time.Unix(state.identity.ExpiresAt, 0)), func() { _ = connection.Close() })
+		}
+	}
+	defer func() {
+		if expiryTimer != nil {
+			expiryTimer.Stop()
+		}
+	}()
+	watchExpiry()
 
 	for {
 		messageType, data, err := connection.ReadMessage()
@@ -238,6 +258,10 @@ func (h *Handler) Connect(connection *websocket.Conn) {
 		if err := h.handleMessage(ctx, connection, state.identity, message, owned, state); err != nil {
 			h.metrics.AddError()
 			h.writeError(connection, "message", err.Error())
+			if state.identity.ExpiresAt != 0 && time.Now().Unix() >= state.identity.ExpiresAt {
+				_ = connection.Close()
+				return
+			}
 		}
 
 		if state.authenticated && !heartbeatStarted {
@@ -245,6 +269,7 @@ func (h *Handler) Connect(connection *websocket.Conn) {
 			go h.sendHeartbeats(connectionCtx, connection, state.identity.OrganizationID)
 			heartbeatStarted = true
 		}
+		watchExpiry()
 
 		h.recordMessageUsage(ctx, state.identity.OrganizationID, message)
 	}

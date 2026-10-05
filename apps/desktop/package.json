@@ -1,7 +1,7 @@
 {
   "name": "@outpipe/desktop",
   "productName": "Outpipe",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "private": true,
   "description": "Outpipe standalone desktop application",
   "author": "TechX",

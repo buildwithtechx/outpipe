@@ -34,6 +34,7 @@ func LoadRelay() (RelayConfig, error) {
 		return RelayConfig{}, err
 	}
 
+	cfg.App.RequireTLS = cfg.App.RequireTLS || cfg.Tunnel.RequireTLS
 	if err := validateRelay(cfg); err != nil {
 		return RelayConfig{}, err
 	}

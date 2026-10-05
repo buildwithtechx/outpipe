@@ -1,6 +1,6 @@
 {
   "name": "outpipe",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "private": true,
   "description": "Standalone tunneling platform with Go relays, a TypeScript dashboard, and a Tauri desktop client",
   "license": "AGPL-3.0-or-later",
@@ -15,9 +15,13 @@
     "dev:cron": "air -c .air/cron.toml",
     "dev:check": "air -c .air/check.toml",
     "dev:cli": "air -c .air/cli.toml",
-    "build": "npm run build:web && npm run build:api && npm run build:tunnel && npm run build:cron && npm run build:check && npm run build:cli && npm run build:packages && npm run build:go-sdk && npm run build:rust-sdk && npm run check:php && npm run build:desktop",
+    "build": "npm run build:packages && npm run build:web && npm run build:secrets-share && npm run build:status && npm run build:api && npm run build:tunnel && npm run build:cron && npm run build:check && npm run build:cli && npm run build:go-sdk && npm run build:rust-sdk && npm run check:php && npm run build:desktop",
     "build:web": "npm run generate-routes && npm run build --workspace apps/web",
+    "build:secrets-share": "npm run build --workspace apps/secrets-share",
+    "build:status": "npm run build --workspace apps/status",
     "dev:web": "npm run dev --workspace apps/web",
+    "dev:secrets-share": "npm run dev --workspace apps/secrets-share",
+    "dev:status": "npm run dev --workspace apps/status",
     "dev:desktop": "npm run dev --workspace apps/desktop",
     "build:desktop": "npm run build --workspace apps/desktop",
     "build:api": "go build -ldflags='-s -w' -o bin/outpipe-api ./cmd/server",
@@ -27,14 +31,15 @@
     "build:cli": "go build -ldflags='-s -w' -o bin/outpipe ./cmd/cli",
     "build:go-sdk": "cd packages/go && go build ./...",
     "build:rust-sdk": "cargo build --manifest-path packages/rust/Cargo.toml",
-    "build:packages": "npm run build --workspace packages/sdk && npm run build --workspace packages/react && npm run build --workspace packages/vite-plugin && npm run build --workspace packages/next && npm run build --workspace packages/nest && npm run build --workspace packages/express && npm run build --workspace packages/angular",
+    "build:packages": "npm run build --workspace packages/sdk && npm run build --workspace packages/share-crypto && npm run build --workspace packages/hono && npm run build --workspace packages/tanstack-start && npm run build --workspace packages/react && npm run build --workspace packages/vite-plugin && npm run build --workspace packages/next && npm run build --workspace packages/nest && npm run build --workspace packages/express && npm run build --workspace packages/angular",
     "generate-routes": "npm run generate-routes --workspace apps/web",
     "fmt": "bash scripts/format-all.sh",
     "format:fix": "biome check --write apps packages protocol",
     "format": "biome check apps packages protocol",
     "typecheck": "npm run generate-routes && tsc --noEmit -p apps/web/tsconfig.json",
-    "typecheck:packages": "npm run build:types --workspace packages/sdk && npm run typecheck --workspace packages/sdk && npm run typecheck --workspace packages/react && npm run typecheck --workspace packages/vite-plugin && npm run typecheck --workspace packages/next && npm run typecheck --workspace packages/nest && npm run typecheck --workspace packages/express && npm run typecheck --workspace packages/angular",
+    "typecheck:packages": "npm run build:types --workspace packages/sdk && npm run typecheck --workspace packages/sdk && npm run typecheck --workspace packages/share-crypto && npm run typecheck --workspace packages/hono && npm run typecheck --workspace packages/tanstack-start && npm run typecheck --workspace packages/react && npm run typecheck --workspace packages/vite-plugin && npm run typecheck --workspace packages/next && npm run typecheck --workspace packages/nest && npm run typecheck --workspace packages/express && npm run typecheck --workspace packages/angular",
     "test": "go test ./... && npm run test --workspaces --if-present && npm run test:go-sdk && npm run test:rust-sdk && npm run test:php",
+    "test:product-contracts": "vitest run apps/status/src/api.test.ts apps/web/src/features/observability/services/observability-response.test.ts",
     "test:go-sdk": "cd packages/go && go vet ./... && go test ./...",
     "test:rust-sdk": "cargo fmt --manifest-path packages/rust/Cargo.toml --all -- --check && cargo test --manifest-path packages/rust/Cargo.toml",
     "test:php": "cd packages/php && composer validate --strict --no-check-publish && composer test && composer check",
@@ -42,18 +47,20 @@
     "clean": "rm -rf bin apps/web/dist apps/desktop/src-tauri/target"
   },
   "devDependencies": {
-    "@biomejs/biome": "^2.5.14",
-    "@types/node": "^26.6.2",
+    "@biomejs/biome": "^2.5.15",
+    "@types/node": "^26.6.4",
     "concurrently": "^10.0.5",
     "tsup": "^8.5.1",
     "typescript": "^7.0.2",
-    "vitest": "^5.0.1"
+    "vitest": "^5.0.3"
   },
   "overrides": {
     "esbuild": "0.28.1",
     "postcss": "8.5.24",
     "sharp": "^0.35.4",
-    "next": "^16.3.5",
-    "qs": "^6.16.0"
+    "next": "^16.3.8",
+    "qs": "^6.16.0",
+    "dompurify": "^3.4.16",
+    "undici": "^7.29.1"
   }
 }

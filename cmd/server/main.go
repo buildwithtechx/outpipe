@@ -97,6 +97,14 @@ func main() {
 		log.Fatal(err)
 	}
 
+	schedulerDone := make(chan struct{})
+	go func() {
+		defer close(schedulerDone)
+		if err := deps.Uptime.RunScheduler(ctx, func(err error) { log.Printf("uptime scheduler: %v", err) }); err != nil {
+			log.Printf("uptime scheduler stopped: %v", err)
+			stop()
+		}
+	}()
 	go func() {
 
 		if err := server.Listen(cfg.App.ListenAddress()); err != nil {
@@ -114,6 +122,7 @@ func main() {
 
 	}()
 	<-ctx.Done()
+	<-schedulerDone
 
 	if err := server.Shutdown(); err != nil {
 		log.Printf("shutdown http server: %v", err)

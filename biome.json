@@ -8,6 +8,7 @@
       "packages/**/*.tsx",
       "!**/.source",
       "!**/.tanstack",
+      "!**/.astro",
       "!**/*.gen.ts",
       "!**/routeTree.gen.ts",
       "!!**/dist",

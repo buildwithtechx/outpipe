@@ -34,6 +34,13 @@ export function setTunnelStatus(tunnelID: string, status: Tunnel['status']) {
   );
 }
 
+export function setTunnelCapture(tunnelID: string, enabled: boolean) {
+  return apiClient.patch<Tunnel>(
+    `/api/v1/tunnels/${encodeURIComponent(tunnelID)}/capture`,
+    { enabled },
+  );
+}
+
 export function revokeTunnel(tunnelID: string) {
   return apiClient.delete<void>(
     `/api/v1/tunnels/${encodeURIComponent(tunnelID)}`,

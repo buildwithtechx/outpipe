@@ -19,8 +19,9 @@ type RequestRouter struct {
 }
 
 type pendingRequest struct {
-	tunnelID string
-	response chan protocol.HTTPResponse
+	tunnelID  string
+	sessionID string
+	response  chan protocol.HTTPResponse
 }
 
 func NewRequestRouter(sessions *SessionRegistry, timeout time.Duration) (*RequestRouter, error) {
@@ -59,7 +60,7 @@ func (r *RequestRouter) ForwardHTTP(ctx context.Context, tunnelID string, reques
 
 	response := make(chan protocol.HTTPResponse, 1)
 	r.mu.Lock()
-	r.pending[requestID] = pendingRequest{tunnelID: tunnelID, response: response}
+	r.pending[requestID] = pendingRequest{tunnelID: tunnelID, sessionID: session.ID, response: response}
 	r.mu.Unlock()
 	message := protocol.Envelope{Version: protocol.Version, Type: protocol.MessageTypeHTTPRequest, RequestID: requestID, Payload: payload}
 
@@ -112,6 +113,38 @@ func (r *RequestRouter) Handle(message protocol.Envelope) bool {
 	return true
 }
 
+func (r *RequestRouter) HandleOwned(message protocol.Envelope, organizationID string, owned map[string]string) bool {
+	if message.Type != protocol.MessageTypeHTTPResponse {
+		return false
+	}
+	var response protocol.HTTPResponse
+	if err := protocol.DecodePayload(message, &response); err != nil {
+		return false
+	}
+	r.sessions.mu.RLock()
+	defer r.sessions.mu.RUnlock()
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	pending, ok := r.pending[message.RequestID]
+	if !ok {
+		return false
+	}
+	session, ok := r.sessions.sessions[pending.tunnelID]
+	if !ok || session.OrganizationID != organizationID || owned[pending.tunnelID] != pending.sessionID || session.ID != pending.sessionID {
+		return false
+	}
+	delete(r.pending, message.RequestID)
+	pending.response <- response
+	return true
+}
+
+func (r *RequestRouter) PendingTunnel(requestID string) (string, bool) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	pending, ok := r.pending[requestID]
+	return pending.tunnelID, ok
+}
+
 func (r *RequestRouter) RemoveTunnel(tunnelID string) {
 	r.mu.Lock()
 
@@ -156,6 +189,22 @@ func (r *RequestRouter) PasswordHash(tunnelID string) (string, bool) {
 	}
 
 	return session.PasswordHash, true
+}
+
+func (r *RequestRouter) SetCaptureEnabled(tunnelID string, enabled bool) bool {
+	resolved, ok := r.sessions.Resolve(tunnelID)
+	if !ok {
+		return false
+	}
+	return r.sessions.SetCaptureEnabled(resolved, enabled)
+}
+
+func (r *RequestRouter) IsCaptureEnabled(tunnelID string) bool {
+	resolved, ok := r.sessions.Resolve(tunnelID)
+	if !ok {
+		return false
+	}
+	return r.sessions.IsCaptureEnabled(resolved)
 }
 
 func (r *RequestRouter) remove(requestID string) {

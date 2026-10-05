@@ -1,0 +1,12 @@
+SCHEMA >
+    `id` String,
+    `organization_id` String,
+    `signal` LowCardinality(String),
+    `payload` String,
+    `timestamp` DateTime64(9)
+
+ENGINE "ReplacingMergeTree"
+ENGINE_VER "timestamp"
+ENGINE_PARTITION_KEY "toYYYYMM(timestamp)"
+ENGINE_SORTING_KEY "organization_id, signal, timestamp, id"
+ENGINE_TTL "toDateTime(timestamp) + INTERVAL 30 DAY"

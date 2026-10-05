@@ -63,3 +63,16 @@ func TestLoadCLIDoesNotRequireServerSecrets(t *testing.T) {
 		t.Fatal("expected API key to be optional")
 	}
 }
+
+func TestTunnelTLSSettingEnablesRelayTLS(t *testing.T) {
+	t.Setenv("OUTPIPE_TUNNEL_REQUIRE_TLS", "true")
+	t.Setenv("OUTPIPE_TLS_CERT_FILE", "certificate.pem")
+	t.Setenv("OUTPIPE_TLS_KEY_FILE", "key.pem")
+	cfg, err := LoadRelay()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !cfg.App.RequireTLS {
+		t.Fatal("tunnel TLS setting was ignored")
+	}
+}

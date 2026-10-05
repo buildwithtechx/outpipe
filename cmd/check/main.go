@@ -124,7 +124,7 @@ func main() {
 
 func checkAPI(ctx context.Context, apiURL string, secret string) CheckResult {
 	started := time.Now()
-	request, err := http.NewRequestWithContext(ctx, http.MethodGet, strings.TrimRight(apiURL, "/")+"/readyz", nil)
+	request, err := http.NewRequestWithContext(ctx, http.MethodGet, strings.TrimRight(apiURL, "/")+"/internal/health", nil)
 
 	if err != nil {
 		return fail("api", started, fmt.Errorf("create api readiness request: %w", err))

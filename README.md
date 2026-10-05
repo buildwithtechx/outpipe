@@ -36,9 +36,16 @@ It is designed to work without Outpipe. Outpipe is an optional integration that 
 
 Requirements:
 
-- Go 1.25.13 or newer
+- Go 1.26.8 or newer
 - Node.js 22 or newer
 - npm 10 or newer
+
+SDK clients default to `https://api.outpipe.dev`; only credentials are needed
+for the hosted service. Override `apiUrl` (TypeScript/Angular), `BaseURL`
+(Go), `baseUrl` (PHP), or `.base_url(...)` (Rust) for a self-hosted API.
+
+After updating Go dependencies, run `go mod vendor` if you have a local
+`vendor/` directory. Vendored dependencies are not tracked in this repository.
 
 ```sh
 npm install
@@ -90,7 +97,7 @@ Each independently deployed command has a focused environment example:
 
 See [docs/configuration.md](docs/configuration.md) for descriptions of every variable.
 
-For local development, use `docker compose up` with `docker-compose.yml`. That
+For local development, use `docker compose -f docker/docker-compose.yml up`. That
 file intentionally uses development credentials, localhost URLs, and a source
 mount. Production deployments should build and run each service from its own
 Dockerfile; provide `OUTPIPE_*` values through the deployment environment or a

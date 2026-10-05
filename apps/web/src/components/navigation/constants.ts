@@ -7,6 +7,7 @@ import {
   Key,
   Layers,
   LineChart,
+  Lock,
   Radio,
   ScrollText,
   Settings,
@@ -25,82 +26,124 @@ export interface NavItem {
   desc?: string;
 }
 
-export function getWorkspaceNavItems(orgSlug: string): NavItem[] {
+export interface NavGroup {
+  name: string;
+  items: NavItem[];
+}
+
+export function getWorkspaceNavGroups(orgSlug: string): NavGroup[] {
   return [
     {
-      label: 'Overview',
-      to: `/${orgSlug}`,
-      icon: Layers,
-      exact: true,
-      desc: 'Workspace summary & connection health',
+      name: 'Tunnels & Traffic',
+      items: [
+        {
+          label: 'Overview',
+          to: `/${orgSlug}`,
+          icon: Layers,
+          exact: true,
+          desc: 'Workspace summary & connection health',
+        },
+        {
+          label: 'Tunnels',
+          to: `/${orgSlug}/tunnels`,
+          icon: Cable,
+          desc: 'Manage active tunnels & ports',
+        },
+        {
+          label: 'Agents',
+          to: `/${orgSlug}/agents`,
+          icon: Radio,
+          desc: 'Connected Outpipe CLI agents',
+        },
+        {
+          label: 'Custom Domains',
+          to: `/${orgSlug}/domains`,
+          icon: Globe,
+          desc: 'Custom hostnames & certificates',
+        },
+        {
+          label: 'Live Requests',
+          to: `/${orgSlug}/requests`,
+          icon: Activity,
+          desc: 'Realtime tunnel traffic stream',
+        },
+      ],
     },
     {
-      label: 'Tunnels',
-      to: `/${orgSlug}/tunnels`,
-      icon: Cable,
-      desc: 'Manage active tunnels & ports',
+      name: 'Platform Services',
+      items: [
+        {
+          label: 'Observability',
+          to: `/${orgSlug}/observability`,
+          icon: Activity,
+          desc: 'Distributed traces, logs & request inspection',
+        },
+        {
+          label: 'Uptime & Status',
+          to: `/${orgSlug}/uptime`,
+          icon: LineChart,
+          desc: 'Health probes, incidents & status page',
+        },
+        {
+          label: 'Secrets Vault',
+          to: `/${orgSlug}/secrets`,
+          icon: Lock,
+          desc: 'Encrypted environment variables & shares',
+        },
+      ],
     },
     {
-      label: 'Agents',
-      to: `/${orgSlug}/agents`,
-      icon: Radio,
-      desc: 'Connected Outpipe CLI agents',
-    },
-    {
-      label: 'Custom Domains',
-      to: `/${orgSlug}/domains`,
-      icon: Globe,
-      desc: 'Custom hostnames & certificates',
-    },
-    {
-      label: 'Live Requests',
-      to: `/${orgSlug}/requests`,
-      icon: Activity,
-      desc: 'Realtime tunnel traffic stream',
-    },
-    {
-      label: 'Usage',
-      to: `/${orgSlug}/usage`,
-      icon: ScrollText,
-      desc: 'Bandwidth & concurrent connection limits',
-    },
-    {
-      label: 'Billing',
-      to: `/${orgSlug}/billing`,
-      icon: CreditCard,
-      desc: 'Subscription tier & invoice history',
-    },
-    {
-      label: 'Members',
-      to: `/${orgSlug}/members`,
-      icon: Users,
-      desc: 'Team members, roles & invitations',
-    },
-    {
-      label: 'API Keys',
-      to: `/${orgSlug}/api-keys`,
-      icon: Key,
-      desc: 'Service tokens for CLI & CI/CD workflows',
-    },
-    {
-      label: 'Webhooks',
-      to: `/${orgSlug}/webhooks`,
-      icon: Webhook,
-      desc: 'Workspace lifecycle event dispatches',
-    },
-    {
-      label: 'Audit Logs',
-      to: `/${orgSlug}/audit-logs`,
-      icon: ScrollText,
-      desc: 'Security event logs & activity trail',
-    },
-    {
-      label: 'Settings',
-      to: `/${orgSlug}/settings`,
-      icon: Settings,
-      desc: 'Workspace settings & danger zone',
+      name: 'Settings & Administration',
+      items: [
+        {
+          label: 'Usage',
+          to: `/${orgSlug}/usage`,
+          icon: ScrollText,
+          desc: 'Bandwidth & concurrent connection limits',
+        },
+        {
+          label: 'Billing',
+          to: `/${orgSlug}/billing`,
+          icon: CreditCard,
+          desc: 'Subscription tier & invoice history',
+        },
+        {
+          label: 'Members',
+          to: `/${orgSlug}/members`,
+          icon: Users,
+          desc: 'Team members, roles & invitations',
+        },
+        {
+          label: 'API Keys',
+          to: `/${orgSlug}/api-keys`,
+          icon: Key,
+          desc: 'Service tokens for CLI & CI/CD workflows',
+        },
+        {
+          label: 'Webhooks',
+          to: `/${orgSlug}/webhooks`,
+          icon: Webhook,
+          desc: 'Workspace lifecycle event dispatches',
+        },
+        {
+          label: 'Audit Logs',
+          to: `/${orgSlug}/audit-logs`,
+          icon: ScrollText,
+          desc: 'Security event logs & activity trail',
+        },
+        {
+          label: 'Settings',
+          to: `/${orgSlug}/settings`,
+          icon: Settings,
+          desc: 'Workspace settings & danger zone',
+        },
+      ],
     },
   ];
+}
+
+export function getWorkspaceNavItems(orgSlug: string): NavItem[] {
+  return getWorkspaceNavGroups(orgSlug).flatMap((group) => group.items);
 }
 
 export const ADMIN_NAV_ITEMS: NavItem[] = [

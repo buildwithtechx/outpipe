@@ -1,6 +1,6 @@
 {
   "name": "@outpipe/angular",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "publishConfig": {
     "access": "public"
   },
@@ -18,9 +18,11 @@
     "test": "vitest run --passWithNoTests"
   },
   "description": "Angular integration for Outpipe",
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "dependencies": {
-    "@outpipe/sdk": "0.1.0"
+    "@outpipe/sdk": "0.1.1"
   },
   "peerDependencies": {
     "@angular/common": ">=17",

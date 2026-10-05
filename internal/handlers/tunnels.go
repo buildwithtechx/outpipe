@@ -14,7 +14,11 @@ import (
 	"outpipe.dev/outpipe/internal/validation"
 )
 
-type TunnelHandler struct{ tunnels *services.TunnelService }
+type TunnelHandler struct {
+	tunnels    *services.TunnelService
+	secrets    *services.SecretService
+	signingKey string
+}
 
 func (h *TunnelHandler) OrganizationID(ctx context.Context, id string) (string, error) {
 	tunnel, err := h.tunnels.Find(ctx, id)
@@ -95,8 +99,11 @@ func (h *TunnelHandler) Policy(c *fiber.Ctx) error {
 	if err != nil {
 		return writeError(c, fiber.StatusNotFound, err)
 	}
+	if !h.machinePolicyAllowed(c, tunnel) {
+		return c.SendStatus(fiber.StatusForbidden)
+	}
 
-	return c.JSON(fiber.Map{"organizationId": tunnel.OrganizationID, "publicHostname": tunnel.PublicHostname, "status": tunnel.Status, "passwordProtected": tunnel.PasswordHash != ""})
+	return c.JSON(fiber.Map{"organizationId": tunnel.OrganizationID, "publicHostname": tunnel.PublicHostname, "status": tunnel.Status, "passwordProtected": tunnel.PasswordHash != "", "captureEnabled": tunnel.CaptureEnabled, "machineTokenId": tunnel.MachineTokenID, "targetHost": tunnel.TargetHost, "targetPort": tunnel.TargetPort, "protocol": tunnel.Protocol})
 }
 
 func (h *TunnelHandler) VerifyPassword(c *fiber.Ctx) error {

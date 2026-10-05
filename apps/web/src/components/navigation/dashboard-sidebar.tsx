@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { Badge } from '#/components/ui/badge';
 import { useAuthSession } from '#/features/auth/hooks/use-auth-session';
 import { useOrganization } from '#/features/organizations/hooks/use-organization';
-import { getWorkspaceNavItems } from './constants';
+import { getWorkspaceNavGroups } from './constants';
 
 interface DashboardSidebarProps {
   orgSlug: string;
@@ -34,7 +34,7 @@ export function DashboardSidebar({
   }, [mobileOpen, setMobileOpen]);
 
   const isPlatformAdmin = Boolean(session?.isPlatformAdmin);
-  const navItems = getWorkspaceNavItems(orgSlug);
+  const navGroups = getWorkspaceNavGroups(orgSlug);
 
   const copyCliCommand = async () => {
     await navigator.clipboard.writeText('outpipe http 3000');
@@ -44,7 +44,7 @@ export function DashboardSidebar({
 
   const content = (
     <div className="flex h-full flex-col justify-between p-4 text-white">
-      <div className="space-y-5">
+      <div className="space-y-5 overflow-y-auto pr-1">
         {/* Workspace Quick Card */}
         {organization && (
           <div className="flex items-center justify-between gap-2 rounded-2xl border border-white/10 bg-white/2.5 p-3 shadow-xs">
@@ -70,35 +70,44 @@ export function DashboardSidebar({
           </div>
         )}
 
-        {/* Navigation Items */}
-        <nav className="space-y-0.5" aria-label="Workspace navigation">
-          {navItems.map((item) => {
-            const isActive = item.exact
-              ? location.pathname === item.to ||
-                location.pathname === `${item.to}/`
-              : location.pathname.startsWith(item.to);
-            const Icon = item.icon;
+        {/* Navigation Groups */}
+        <nav className="space-y-4" aria-label="Workspace navigation">
+          {navGroups.map((group) => (
+            <div key={group.name} className="space-y-1">
+              <span className="px-3 text-[10px] uppercase font-bold tracking-wider text-white/35 block">
+                {group.name}
+              </span>
+              <div className="space-y-0.5">
+                {group.items.map((item) => {
+                  const isActive = item.exact
+                    ? location.pathname === item.to ||
+                      location.pathname === `${item.to}/`
+                    : location.pathname.startsWith(item.to);
+                  const Icon = item.icon;
 
-            return (
-              <Link
-                key={item.to}
-                to={item.to}
-                onClick={() => setMobileOpen(false)}
-                className={`flex items-center gap-3 rounded-xl px-3 py-2 text-xs font-medium transition-all ${
-                  isActive
-                    ? 'bg-indigo-600 text-white font-semibold shadow-xs'
-                    : 'text-white/60 hover:bg-white/6 hover:text-white'
-                }`}
-              >
-                <Icon
-                  className={`size-4 shrink-0 transition-colors ${
-                    isActive ? 'text-white' : 'text-white/40'
-                  }`}
-                />
-                <span className="truncate">{item.label}</span>
-              </Link>
-            );
-          })}
+                  return (
+                    <Link
+                      key={item.to}
+                      to={item.to}
+                      onClick={() => setMobileOpen(false)}
+                      className={`flex items-center gap-3 rounded-xl px-3 py-2 text-xs font-medium transition-all ${
+                        isActive
+                          ? 'bg-indigo-600 text-white font-semibold shadow-xs'
+                          : 'text-white/60 hover:bg-white/6 hover:text-white'
+                      }`}
+                    >
+                      <Icon
+                        className={`size-4 shrink-0 transition-colors ${
+                          isActive ? 'text-white' : 'text-white/40'
+                        }`}
+                      />
+                      <span className="truncate">{item.label}</span>
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
 
           {/* Superadmin Quick Access in Sidebar */}
           {isPlatformAdmin && (

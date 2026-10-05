@@ -7,6 +7,9 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+	"sync"
+
+	"golang.org/x/sync/singleflight"
 
 	"outpipe.dev/outpipe/internal/auth"
 	"outpipe.dev/outpipe/internal/infra/httpclient"
@@ -19,9 +22,12 @@ type InternalAgentAuthenticator struct {
 }
 
 type InternalTunnelResolver struct {
-	baseURL string
-	secret  string
-	client  *http.Client
+	baseURL  string
+	secret   string
+	client   *http.Client
+	mu       sync.Mutex
+	policies map[string]cachedTunnelPolicy
+	requests singleflight.Group
 }
 
 func NewInternalAgentAuthenticator(baseURL, secret string, client *http.Client) (*InternalAgentAuthenticator, error) {
@@ -41,6 +47,7 @@ func (a *InternalAgentAuthenticator) Authenticate(ctx context.Context, token str
 	if strings.Count(token, ".") == 2 {
 		if claims, err := auth.VerifyRelayToken(token, a.secret); err == nil {
 			return AgentIdentity{
+				TunnelID: claims.TunnelID, MachineTokenID: claims.MachineTokenID, ExpiresAt: claims.Exp,
 				AgentID:        claims.Sub,
 				OrganizationID: claims.Org,
 				MaxTunnels:     claims.MaxTunnels,
@@ -100,10 +107,14 @@ func NewInternalTunnelResolver(baseURL, secret string, client *http.Client) (*In
 		client = httpclient.New(0)
 	}
 
-	return &InternalTunnelResolver{baseURL: strings.TrimRight(baseURL, "/"), secret: secret, client: client}, nil
+	return &InternalTunnelResolver{baseURL: strings.TrimRight(baseURL, "/"), secret: secret, client: client, policies: make(map[string]cachedTunnelPolicy)}, nil
 }
 
 func (r *InternalTunnelResolver) Resolve(ctx context.Context, tunnelID string) (ManagedTunnelPolicy, error) {
+	return r.cachedPolicy(ctx, tunnelID)
+}
+
+func (r *InternalTunnelResolver) resolve(ctx context.Context, tunnelID string) (ManagedTunnelPolicy, error) {
 	request, err := http.NewRequestWithContext(ctx, http.MethodGet, r.baseURL+"/internal/tunnels/"+url.PathEscape(tunnelID)+"/policy", nil)
 
 	if err != nil {
@@ -124,10 +135,15 @@ func (r *InternalTunnelResolver) Resolve(ctx context.Context, tunnelID string) (
 	}
 
 	var body struct {
-		OrganizationID    string `json:"organizationId"`
-		PublicHostname    string `json:"publicHostname"`
-		PasswordProtected bool   `json:"passwordProtected"`
-		Status            string `json:"status"`
+		CaptureEnabled    bool    `json:"captureEnabled"`
+		MachineTokenID    *string `json:"machineTokenId,omitempty"`
+		TargetHost        string  `json:"targetHost"`
+		TargetPort        int     `json:"targetPort"`
+		Protocol          string  `json:"protocol"`
+		OrganizationID    string  `json:"organizationId"`
+		PublicHostname    string  `json:"publicHostname"`
+		PasswordProtected bool    `json:"passwordProtected"`
+		Status            string  `json:"status"`
 	}
 	if err := json.NewDecoder(response.Body).Decode(&body); err != nil {
 		return ManagedTunnelPolicy{}, fmt.Errorf("decode tunnel policy response: %w", err)
@@ -137,7 +153,7 @@ func (r *InternalTunnelResolver) Resolve(ctx context.Context, tunnelID string) (
 		return ManagedTunnelPolicy{}, fmt.Errorf("tunnel policy response is incomplete")
 	}
 
-	return ManagedTunnelPolicy{OrganizationID: body.OrganizationID, PublicHostname: body.PublicHostname, PasswordProtected: body.PasswordProtected, Status: body.Status}, nil
+	return ManagedTunnelPolicy{OrganizationID: body.OrganizationID, PublicHostname: body.PublicHostname, PasswordProtected: body.PasswordProtected, Status: body.Status, CaptureEnabled: body.CaptureEnabled, MachineTokenID: body.MachineTokenID, TargetHost: body.TargetHost, TargetPort: body.TargetPort, Protocol: body.Protocol}, nil
 }
 
 func (r *InternalTunnelResolver) VerifyPassword(ctx context.Context, tunnelID, password string) (bool, error) {

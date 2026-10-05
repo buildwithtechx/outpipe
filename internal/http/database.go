@@ -58,43 +58,30 @@ func NewDatabaseDependencies(db *gorm.DB, cfg config.APIConfig) (Dependencies, e
 	}
 
 	deviceLogins, err := repositories.NewDeviceLoginRepository(db)
-
 	if err != nil {
 		return Dependencies{}, err
 	}
-
 	organizations, err := repositories.NewOrganizationRepository(db)
-
 	if err != nil {
 		return Dependencies{}, err
 	}
-
 	invitations, err := repositories.NewOrganizationInvitationRepository(db)
-
 	if err != nil {
 		return Dependencies{}, err
 	}
-
 	tunnels, err := repositories.NewTunnelRepository(db)
-
 	if err != nil {
 		return Dependencies{}, err
 	}
-
 	agents, err := repositories.NewAgentRepository(db)
-
 	if err != nil {
 		return Dependencies{}, err
 	}
-
 	domains, err := repositories.NewDomainRepository(db)
-
 	if err != nil {
 		return Dependencies{}, err
 	}
-
 	billingRepository, err := repositories.NewBillingRepository(db)
-
 	if err != nil {
 		return Dependencies{}, err
 	}
@@ -324,6 +311,10 @@ func NewDatabaseDependencies(db *gorm.DB, cfg config.APIConfig) (Dependencies, e
 	}
 
 	tunnelService.SetWebhooks(webhookService)
+	secretService, shareService, uptimeService, obsService, err := productServices(db, cfg)
+	if err != nil {
+		return Dependencies{}, err
+	}
 
-	return Dependencies{Auth: authService, DeviceLogin: deviceService, Organizations: organizationService, Invitations: invitationService, Tunnels: tunnelService, Agents: agentService, Domains: domainService, Usage: usageService, Billing: billingService, Account: accountService, Admin: adminService, Audit: auditService, APIKeys: apiKeyService, Webhooks: webhookService, Support: supportService, WelcomeMailer: welcomeMailer, Ready: databaseReady(db), Metrics: metrics}, nil
+	return Dependencies{Auth: authService, DeviceLogin: deviceService, Organizations: organizationService, Invitations: invitationService, Tunnels: tunnelService, Agents: agentService, Domains: domainService, Usage: usageService, Billing: billingService, Account: accountService, Admin: adminService, Audit: auditService, APIKeys: apiKeyService, Webhooks: webhookService, Support: supportService, Secrets: secretService, Shares: shareService, Uptime: uptimeService, Observability: obsService, WelcomeMailer: welcomeMailer, Ready: databaseReady(db), Metrics: metrics}, nil
 }

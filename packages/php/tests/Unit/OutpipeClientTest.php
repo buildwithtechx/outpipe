@@ -33,7 +33,7 @@ final class OutpipeClientTest extends TestCase
     public function testItAddsQueryParametersToGetRequests(): void
     {
         $transport = new FakeTransport([new Response(200, [], '{"available":true}')]);
-        $client = new OutpipeClient('https://api.outpipe.dev', null, 10, $transport);
+        $client = new OutpipeClient(transport: $transport);
 
         self::assertSame(['available' => true], $client->slugAvailable('new-team'));
         self::assertSame('https://api.outpipe.dev/api/v1/organizations/slug-availability?slug=new-team', $transport->requests[0]['url']);

@@ -14,7 +14,10 @@ export class OutpipeApiService {
     @Inject(HttpClient) private readonly http: HttpClient,
     @Inject(OUTPIPE_API_CONFIG) private readonly config: OutpipeAngularConfig,
   ) {
-    this.apiUrl = config.apiUrl.replace(/\/$/, '');
+    this.apiUrl = (config.apiUrl ?? 'https://api.outpipe.dev').replace(
+      /\/$/,
+      '',
+    );
     this.apiPrefix = `/${(config.apiPrefix ?? 'api/v1').replace(/^\/+|\/+$/g, '')}`;
   }
 

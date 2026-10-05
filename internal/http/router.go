@@ -61,6 +61,10 @@ func RegisterRoutes(app *fiber.App, handlers Handlers, options RouterOptions) er
 		app.Post("/api/v1/support/bug-report", supportLimiter, handlers.Support.BugReport)
 	}
 	authLimiter := requestRateLimitDistributed(options.RateLimiter, 10, time.Minute, func(c *fiber.Ctx) string { return "auth:" + requestClientIP(c) })
+	if handlers.Tunnels != nil {
+		handlers.Tunnels.SetMachineSigningKey(options.InternalAPISecret)
+		app.Post("/api/v1/machines/tunnels", authLimiter, handlers.Tunnels.CreateMachine)
+	}
 	app.Post("/api/v1/auth/device/start", authLimiter, handlers.Auth.StartDeviceLogin)
 	app.Get("/api/v1/auth/device/poll", authLimiter, handlers.Auth.PollDeviceLogin)
 
@@ -76,6 +80,28 @@ func RegisterRoutes(app *fiber.App, handlers Handlers, options RouterOptions) er
 	app.Get("/api/v1/auth/session", handlers.Auth.Session)
 	app.Post("/api/v1/auth/logout", handlers.Auth.Logout)
 	app.Post("/api/v1/agents/:agentID/heartbeat", agentTokenRequired(handlers.agentService, "agentID"), handlers.Agents.Heartbeat)
+
+	if handlers.Shares != nil {
+		app.Post("/api/v1/shares", handlers.Shares.Create)
+		app.Get("/api/v1/shares/:id", handlers.Shares.GetMeta)
+		app.Post("/api/v1/shares/:id/reveal", handlers.Shares.Reveal)
+	}
+
+	if handlers.Secrets != nil {
+		app.Get("/api/v1/cli/secrets", handlers.Secrets.CLIGetSecrets)
+	}
+
+	if handlers.Uptime != nil {
+		app.Get("/api/v1/status/:slug", handlers.Uptime.GetPublicStatus)
+		app.Post("/api/v1/status/:slug/subscribe", handlers.Uptime.Subscribe)
+	}
+
+	if handlers.Observability != nil {
+		ingest := app.Group("/api/v1/ingest/otlp", requestRateLimitDistributed(options.RateLimiter, 60, time.Minute, func(c *fiber.Ctx) string { return "ingestion-ip:" + requestClientIP(c) }), ingestionRequired(handlers.apiKeyService, handlers.authService, handlers.organizationService), requestRateLimitDistributed(options.RateLimiter, 60, time.Minute, func(c *fiber.Ctx) string { return "ingestion:" + c.Locals("ingestionOrganizationID").(string) }))
+		ingest.Post("/v1/traces", handlers.Observability.IngestOTLPTraces)
+		ingest.Post("/v1/logs", handlers.Observability.IngestOTLPLogs)
+		ingest.Post("/v1/metrics", handlers.Observability.IngestOTLPMetrics)
+	}
 
 	protected := app.Group("/api/v1", sessionRequired(handlers.authService, handlers.apiKeyService, options.CookieName), requestRateLimitDistributed(options.RateLimiter, 120, time.Minute, authenticatedRateLimitKey), auditRequest(handlers.auditService))
 	writeLimiter := requestRateLimitDistributed(options.RateLimiter, 30, time.Minute, authenticatedRateLimitKey)
@@ -121,11 +147,62 @@ func RegisterRoutes(app *fiber.App, handlers Handlers, options RouterOptions) er
 	protected.Post("/organizations/:organizationID/billing/cancel", organizationRoleRequired(handlers.organizationService, models.MemberRoleOwner), handlers.Billing.Cancel)
 	protected.Post("/organizations/:organizationID/billing/resume", organizationRoleRequired(handlers.organizationService, models.MemberRoleOwner), handlers.Billing.Resume)
 	protected.Patch("/tunnels/:tunnelID/status", apiKeyResourceScopeRequired(handlers.organizationService, "tunnels:write", "tunnelID", handlers.Tunnels.OrganizationID), handlers.Tunnels.SetStatus)
+	protected.Patch("/tunnels/:tunnelID/capture", apiKeyResourceScopeRequired(handlers.organizationService, "tunnels:write", "tunnelID", handlers.Tunnels.OrganizationID), handlers.Tunnels.SetCapture)
 	protected.Patch("/tunnels/:tunnelID/config", apiKeyResourceScopeRequired(handlers.organizationService, "tunnels:write", "tunnelID", handlers.Tunnels.OrganizationID), handlers.Tunnels.UpdateConfiguration)
 	protected.Get("/tunnels/:tunnelID", apiKeyResourceScopeRequired(handlers.organizationService, "tunnels:read", "tunnelID", handlers.Tunnels.OrganizationID), handlers.Tunnels.Inspect)
 	protected.Delete("/tunnels/:tunnelID", apiKeyResourceScopeRequired(handlers.organizationService, "tunnels:write", "tunnelID", handlers.Tunnels.OrganizationID), handlers.Tunnels.Revoke)
 	protected.Post("/domains/:domainID/verify", apiKeyResourceScopeRequired(handlers.organizationService, "domains:write", "domainID", handlers.Domains.OrganizationID), handlers.Domains.Verify)
 	protected.Delete("/agents/:agentID", apiKeyResourceScopeRequired(handlers.organizationService, "agents:write", "agentID", handlers.Agents.OrganizationID), handlers.Agents.Revoke)
+
+	if handlers.Shares != nil {
+		protected.Get("/organizations/:organizationID/secrets/shares", organizationRoleRequired(handlers.organizationService, models.MemberRoleViewer), handlers.Shares.ListOrgShares)
+		protected.Post("/organizations/:organizationID/secrets/shares", organizationRoleRequired(handlers.organizationService, models.MemberRoleMember), handlers.Shares.CreateOrg)
+		protected.Delete("/organizations/:organizationID/secrets/shares/:shareID", organizationRoleRequired(handlers.organizationService, models.MemberRoleAdmin), handlers.Shares.RevokeOrgShare)
+	}
+
+	if handlers.Secrets != nil {
+		protected.Get("/organizations/:organizationID/secrets/projects", organizationRoleRequired(handlers.organizationService, models.MemberRoleViewer), handlers.Secrets.ListProjects)
+		protected.Post("/organizations/:organizationID/secrets/projects", organizationRoleRequired(handlers.organizationService, models.MemberRoleAdmin), handlers.Secrets.CreateProject)
+		protected.Delete("/organizations/:organizationID/secrets/projects/:projectID", organizationRoleRequired(handlers.organizationService, models.MemberRoleAdmin), handlers.Secrets.DeleteProject)
+		protected.Get("/organizations/:organizationID/secrets/projects/:projectID/environments", organizationRoleRequired(handlers.organizationService, models.MemberRoleViewer), handlers.Secrets.ListEnvironments)
+		protected.Post("/organizations/:organizationID/secrets/projects/:projectID/environments", organizationRoleRequired(handlers.organizationService, models.MemberRoleAdmin), handlers.Secrets.CreateEnvironment)
+		protected.Get("/organizations/:organizationID/secrets/projects/:projectID/environments/:environmentID", organizationRoleRequired(handlers.organizationService, models.MemberRoleViewer), handlers.Secrets.ListSecrets)
+		protected.Post("/organizations/:organizationID/secrets/projects/:projectID/environments/:environmentID", organizationRoleRequired(handlers.organizationService, models.MemberRoleAdmin), handlers.Secrets.SetSecret)
+		protected.Delete("/organizations/:organizationID/secrets/:secretID", organizationRoleRequired(handlers.organizationService, models.MemberRoleAdmin), handlers.Secrets.DeleteSecret)
+		protected.Post("/organizations/:organizationID/secrets/:secretID/restore", organizationRoleRequired(handlers.organizationService, models.MemberRoleAdmin), handlers.Secrets.RestoreSecret)
+		protected.Get("/organizations/:organizationID/secrets/trash", organizationRoleRequired(handlers.organizationService, models.MemberRoleViewer), handlers.Secrets.ListTrash)
+		protected.Get("/organizations/:organizationID/secrets/tokens", organizationRoleRequired(handlers.organizationService, models.MemberRoleViewer), handlers.Secrets.ListMachineTokens)
+		protected.Post("/organizations/:organizationID/secrets/tokens", organizationRoleRequired(handlers.organizationService, models.MemberRoleAdmin), handlers.Secrets.CreateMachineToken)
+		protected.Delete("/organizations/:organizationID/secrets/tokens/:tokenID", organizationRoleRequired(handlers.organizationService, models.MemberRoleAdmin), handlers.Secrets.RevokeMachineToken)
+	}
+
+	if handlers.Uptime != nil {
+		protected.Get("/organizations/:organizationID/uptime/monitors", organizationRoleRequired(handlers.organizationService, models.MemberRoleViewer), handlers.Uptime.ListMonitors)
+		protected.Post("/organizations/:organizationID/uptime/monitors", organizationRoleRequired(handlers.organizationService, models.MemberRoleAdmin), handlers.Uptime.CreateMonitor)
+		protected.Get("/organizations/:organizationID/uptime/monitors/:id", organizationRoleRequired(handlers.organizationService, models.MemberRoleViewer), handlers.Uptime.GetMonitor)
+		protected.Get("/organizations/:organizationID/uptime/monitors/:id/checks", organizationRoleRequired(handlers.organizationService, models.MemberRoleViewer), handlers.Uptime.MonitorChecks)
+		protected.Delete("/organizations/:organizationID/uptime/monitors/:id", organizationRoleRequired(handlers.organizationService, models.MemberRoleAdmin), handlers.Uptime.DeleteMonitor)
+		protected.Post("/organizations/:organizationID/uptime/monitors/:id/probe", organizationRoleRequired(handlers.organizationService, models.MemberRoleAdmin), handlers.Uptime.ProbeMonitor)
+
+		protected.Get("/organizations/:organizationID/uptime/incidents", organizationRoleRequired(handlers.organizationService, models.MemberRoleViewer), handlers.Uptime.ListIncidents)
+		protected.Post("/organizations/:organizationID/uptime/incidents", organizationRoleRequired(handlers.organizationService, models.MemberRoleAdmin), handlers.Uptime.CreateIncident)
+		protected.Post("/organizations/:organizationID/uptime/incidents/:id/updates", organizationRoleRequired(handlers.organizationService, models.MemberRoleAdmin), handlers.Uptime.AddIncidentUpdate)
+
+		protected.Get("/organizations/:organizationID/uptime/status-page", organizationRoleRequired(handlers.organizationService, models.MemberRoleViewer), handlers.Uptime.GetStatusPage)
+		protected.Post("/organizations/:organizationID/uptime/status-page", organizationRoleRequired(handlers.organizationService, models.MemberRoleAdmin), handlers.Uptime.UpsertStatusPage)
+	}
+
+	if handlers.Observability != nil {
+		protected.Get("/organizations/:organizationID/observability/stats", organizationRoleRequired(handlers.organizationService, models.MemberRoleViewer), handlers.Observability.GetStats)
+		protected.Get("/organizations/:organizationID/observability/metrics", organizationRoleRequired(handlers.organizationService, models.MemberRoleViewer), handlers.Observability.ListMetrics)
+		protected.Post("/organizations/:organizationID/observability/ingestion-keys", writeLimiter, organizationRoleRequired(handlers.organizationService, models.MemberRoleAdmin), handlers.APIKeys.CreateIngestionKey)
+		protected.Get("/organizations/:organizationID/observability/traces", organizationRoleRequired(handlers.organizationService, models.MemberRoleViewer), handlers.Observability.ListTraces)
+		protected.Get("/organizations/:organizationID/observability/traces/:traceId", organizationRoleRequired(handlers.organizationService, models.MemberRoleViewer), handlers.Observability.GetTraceWaterfall)
+		protected.Get("/organizations/:organizationID/observability/logs", organizationRoleRequired(handlers.organizationService, models.MemberRoleViewer), handlers.Observability.ListLogs)
+		protected.Get("/organizations/:organizationID/observability/captures", organizationRoleRequired(handlers.organizationService, models.MemberRoleViewer), handlers.Observability.ListCaptures)
+		protected.Get("/organizations/:organizationID/observability/captures/:captureId", organizationRoleRequired(handlers.organizationService, models.MemberRoleViewer), handlers.Observability.GetCapture)
+		protected.Post("/organizations/:organizationID/observability/replay", organizationRoleRequired(handlers.organizationService, models.MemberRoleAdmin), handlers.Observability.ReplayRequest)
+	}
 
 	admin := protected.Group("/admin", platformAdminRequired(handlers.authService))
 	admin.Get("/overview", handlers.Admin.Overview)
@@ -161,6 +238,9 @@ func RegisterInternalRoutes(app *fiber.App, handlers Handlers, options RouterOpt
 		return "internal-password:" + requestClientIP(c) + ":" + c.Params("tunnelID")
 	}), handlers.Tunnels.VerifyPassword)
 	app.Post("/internal/usage", internalSecretRequired(options.InternalAPISecret), handlers.Usage.Ingest)
+	if handlers.Observability != nil {
+		app.Post("/internal/captures", internalSecretRequired(options.InternalAPISecret), handlers.Observability.IngestCapture)
+	}
 
 	return nil
 }

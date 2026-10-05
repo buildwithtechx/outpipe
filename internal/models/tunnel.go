@@ -16,6 +16,9 @@ type Tunnel struct {
 	AccessPolicy   string         `json:"accessPolicy" gorm:"type:jsonb;not null;default:'{}'"`
 	Metadata       string         `json:"metadata" gorm:"type:jsonb;not null;default:'{}'"`
 	PasswordHash   string         `json:"-" gorm:"type:text"`
+	MachineOwned   bool           `json:"machineOwned" gorm:"default:false"`
+	CaptureEnabled bool           `json:"captureEnabled" gorm:"default:false"`
+	MachineTokenID *string        `json:"machineTokenId,omitempty" gorm:"type:uuid;index"`
 	ExpiresAt      *time.Time     `json:"expiresAt,omitempty" gorm:"index"`
 	LastActiveAt   *time.Time     `json:"lastActiveAt,omitempty"`
 	RevokedAt      *time.Time     `json:"revokedAt,omitempty"`

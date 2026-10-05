@@ -3,6 +3,7 @@ package relay
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/gofiber/contrib/websocket"
 	"outpipe.dev/outpipe/pkg/protocol"
@@ -22,6 +23,9 @@ func (h *Handler) handleMessage(ctx context.Context, connection *websocket.Conn,
 
 	if state.identity.OrganizationID != "" {
 		identity = state.identity
+	}
+	if identity.ExpiresAt != 0 && time.Now().Unix() >= identity.ExpiresAt {
+		return fmt.Errorf("relay credential expired")
 	}
 
 	bandwidthLimit := identity.BandwidthBytes
@@ -51,14 +55,42 @@ func (h *Handler) handleMessage(ctx context.Context, connection *websocket.Conn,
 	case protocol.MessageTypeCloseTunnel:
 		return h.closeTunnel(identity.OrganizationID, message, owned)
 	case protocol.MessageTypeHTTPResponse:
-		if !h.router.Handle(message) {
+		tunnelID, ok := h.router.PendingTunnel(message.RequestID)
+		if !ok {
+			return fmt.Errorf("unmatched http response")
+		}
+		if err := h.authorizeStream(ctx, identity, tunnelID, owned); err != nil {
+			return err
+		}
+		if !h.router.HandleOwned(message, identity.OrganizationID, owned) {
 			return fmt.Errorf("unmatched http response")
 		}
 	case protocol.MessageTypeTCPData:
+		var data protocol.TCPData
+		if err := protocol.DecodePayload(message, &data); err != nil {
+			return fmt.Errorf("decode tcp stream: %w", err)
+		}
+		if err := h.authorizeStream(ctx, identity, data.TunnelID, owned); err != nil {
+			return err
+		}
 		return h.handleTCPData(message)
 	case protocol.MessageTypeTCPClose:
+		var data protocol.TCPClose
+		if err := protocol.DecodePayload(message, &data); err != nil {
+			return fmt.Errorf("decode tcp close: %w", err)
+		}
+		if err := h.authorizeStream(ctx, identity, data.TunnelID, owned); err != nil {
+			return err
+		}
 		return h.handleTCPClose(message)
 	case protocol.MessageTypeUDPResponse:
+		var data protocol.UDPResponse
+		if err := protocol.DecodePayload(message, &data); err != nil {
+			return fmt.Errorf("decode udp stream: %w", err)
+		}
+		if err := h.authorizeStream(ctx, identity, data.TunnelID, owned); err != nil {
+			return err
+		}
 		return h.handleUDPResponse(message)
 	default:
 		return fmt.Errorf("unsupported relay message type %q", message.Type)
@@ -121,6 +153,9 @@ func (h *Handler) handleAuthentication(ctx context.Context, connection *websocke
 		return err
 	}
 
+	if state.authenticated && state.identity.OrganizationID != "" && state.identity != identity {
+		return fmt.Errorf("relay authentication cannot replace the connection identity")
+	}
 	state.authenticated = true
 	state.identity = identity
 	payload, err := protocol.EncodePayload(protocol.MessageTypeAuthResponse, message.RequestID, protocol.AuthResponse{Authenticated: true, AgentID: identity.AgentID, OrganizationID: identity.OrganizationID, GrantedCapabilities: []string{"http", "https", "tcp", "udp"}})

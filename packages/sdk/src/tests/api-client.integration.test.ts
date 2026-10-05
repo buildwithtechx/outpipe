@@ -148,9 +148,9 @@ describe('TunnelAPIClient integration', () => {
 
   it('normalizes legacy tunnel URL fields at the API boundary', async () => {
     const client = new TunnelAPIClient({
-      apiUrl: 'https://api.outpipe.dev',
-      fetch: async () =>
-        new Response(
+      fetch: async (url) => {
+        expect(url).toBe('https://api.outpipe.dev/api/v1/tunnels/tunnel-1');
+        return new Response(
           JSON.stringify({
             id: 'tunnel-1',
             public_url: 'https://preview.outpipe.app',
@@ -160,7 +160,8 @@ describe('TunnelAPIClient integration', () => {
             status: 200,
             headers: { 'Content-Type': 'application/json' },
           },
-        ),
+        );
+      },
     });
 
     const tunnel = await client.inspectTunnel('tunnel-1');

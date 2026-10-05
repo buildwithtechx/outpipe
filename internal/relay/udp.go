@@ -20,6 +20,7 @@ type UDPManager struct {
 }
 
 type udpPacket struct {
+	tunnelID string
 	address  *net.UDPAddr
 	listener *net.UDPConn
 }
@@ -72,7 +73,7 @@ func (m *UDPManager) read(tunnelID string, listener *net.UDPConn) {
 			continue
 		}
 
-		m.packets[packetID] = udpPacket{address: address, listener: listener}
+		m.packets[packetID] = udpPacket{tunnelID: tunnelID, address: address, listener: listener}
 		m.mu.Unlock()
 		payload, encodeErr := protocol.EncodePayload(protocol.MessageTypeUDPData, "", protocol.UDPData{TunnelID: tunnelID, PacketID: packetID, SourceAddress: address.IP.String(), SourcePort: address.Port, Data: base64.StdEncoding.EncodeToString(buffer[:count])})
 		send := m.sender(tunnelID)
@@ -130,6 +131,10 @@ func (m *UDPManager) Write(tunnelID string, response protocol.UDPResponse) error
 
 	m.mu.Lock()
 	packet := m.packets[response.PacketID]
+	if packet.tunnelID != tunnelID {
+		m.mu.Unlock()
+		return fmt.Errorf("udp packet belongs to another tunnel")
+	}
 	delete(m.packets, response.PacketID)
 	m.mu.Unlock()
 

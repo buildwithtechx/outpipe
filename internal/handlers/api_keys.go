@@ -129,5 +129,5 @@ func (h *APIKeyHandler) Revoke(c *fiber.Ctx) error {
 }
 
 func validAPIKeyScope(scope string) bool {
-	return slices.Contains([]string{"organization:read", "organization:write", "organization:admin", "organization:owner", "tunnels:read", "tunnels:write", "agents:read", "agents:write", "domains:read", "domains:write", "account:read", "account:write", "billing:read", "*"}, scope)
+	return slices.Contains([]string{"organization:read", "organization:write", "organization:admin", "organization:owner", "tunnels:read", "tunnels:write", "agents:read", "agents:write", "domains:read", "domains:write", "account:read", "account:write", "billing:read", "telemetry:write", "*"}, scope)
 }
