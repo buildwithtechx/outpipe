@@ -16,7 +16,8 @@ const isRefreshing = ref(false);
 const isSubscribeOpen = ref(false);
 const slug = ref('default');
 const pageState = ref<'ready' | 'not-found' | 'unavailable'>('unavailable');
-const siteUrl = publicSiteUrl(import.meta.env.DEV);
+const siteUrl = publicSiteUrl(import.meta.env.DEV, import.meta.env.VITE_PUBLIC_SITE_URL);
+let icon: HTMLLinkElement | null = null;
 let timer: ReturnType<typeof setTimeout> | null = null;
 let disposed = false;
 
@@ -37,14 +38,16 @@ async function loadData() {
 
 onMounted(() => {
   loadData();
-  const icon = document.createElement('link');
+  icon = document.createElement('link');
   icon.rel = 'icon';
+  icon.type = 'image/svg+xml';
   icon.href = outpipeMark;
   document.head.appendChild(icon);
 });
 
 onUnmounted(() => {
   disposed = true;
+  icon?.remove();
   if (timer) clearTimeout(timer);
 });
 </script>

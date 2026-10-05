@@ -119,7 +119,7 @@ async function handleSubmit() {
             v-model="target"
             :type="subType === 'email' ? 'email' : 'url'"
             :placeholder="subType === 'email' ? 'devops@example.com' : 'https://api.example.com/webhooks/status'"
-            style="width: 100%; height: 42px; background-color: var(--bg-input); border: 1px solid var(--border-primary); border-radius: var(--radius-md); padding: 0 0.875rem; color: #fff; font-size: 0.875rem; outline: none;"
+            style="width: 100%; height: 42px; background-color: var(--bg-input); border: 1px solid var(--border-primary); border-radius: var(--radius-md); padding: 0 0.875rem; color: #fff; font-size: 0.875rem;"
             required
           />
         </div>

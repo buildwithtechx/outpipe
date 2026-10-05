@@ -66,14 +66,6 @@ a {
   padding: 4rem 0;
 }
 
-.footer {
-  padding: 2rem 0;
-  border-top: 1px solid var(--border-primary);
-  color: var(--text-muted);
-  font-size: 0.875rem;
-  text-align: center;
-}
-
 .card {
   background-color: var(--bg-card);
   border: 1px solid var(--border-primary);

@@ -51,6 +51,7 @@ Requirements:
 - Go 1.26.8 or newer
 - Node.js 22 or newer
 - npm 10 or newer
+- Air 1.67.4, which supports the repository's `build.entrypoint` configuration
 
 SDK clients default to `https://api.outpipe.dev`; only credentials are needed
 for the hosted service. Override `apiUrl` (TypeScript/Angular), `BaseURL`
@@ -74,6 +75,7 @@ issue real credentials for your organization before using them. Keep generated
 secrets in your ignored `.env`.
 
 ```sh
+go install github.com/air-verse/air@v1.67.4
 npm install
 npm run dev
 ```
@@ -81,6 +83,10 @@ npm run dev
 This starts the API on port 8080, tunnel relay on 8081, dashboard on 3000,
 secrets-share on 4321, and status app on 4322. Use `npm run dev:web`,
 `npm run dev:status`, or `npm run dev:secrets-share` to run an individual app.
+
+Public app links default to the dashboard on localhost:3000 during development
+and outpipe.dev in production. Override `VITE_PUBLIC_SITE_URL` in the status
+app or `PUBLIC_SITE_URL` in secrets-share when using another dashboard address.
 
 ## Common commands
 

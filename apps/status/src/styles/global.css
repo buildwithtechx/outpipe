@@ -76,46 +76,6 @@ a {
 .status-empty h2 { margin-bottom: 0.75rem; font-size: 1.5rem; }
 .status-empty p { margin-bottom: 1.5rem; color: var(--text-secondary); }
 
-.status-header {
-  padding: 2.5rem 0 1.5rem;
-  border-bottom: 1px solid var(--border-subtle);
-}
-
-.status-header-inner {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-  flex-wrap: wrap;
-}
-
-.brand-wrapper {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-
-.brand-logo {
-  width: 32px;
-  height: 32px;
-  background: var(--bg-card);
-  border-radius: var(--radius-sm);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.brand-title {
-  font-size: 1.25rem;
-  font-weight: 700;
-  letter-spacing: -0.02em;
-}
-
-.brand-subtitle {
-  font-size: 0.8125rem;
-  color: var(--text-muted);
-}
-
 .btn-subscribe {
   display: inline-flex;
   align-items: center;
@@ -232,12 +192,4 @@ a {
   font-size: 0.875rem;
   color: var(--text-secondary);
   margin-bottom: 1.25rem;
-}
-
-.status-footer {
-  padding: 2.5rem 0;
-  border-top: 1px solid var(--border-subtle);
-  text-align: center;
-  font-size: 0.8125rem;
-  color: var(--text-muted);
 }
