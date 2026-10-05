@@ -35,6 +35,6 @@ Set `OUTPIPE_MACHINE_TOKEN`, `OUTPIPE_API_URL`, and `OUTPIPE_RELAY_URL`, then ru
 
 The dashboard supports HTTP, HTTPS, TCP, and ICMP monitors. HTTP monitors can assert an exact status code and body regular expression; all protocols can set a maximum latency. API fields are `expectedStatusCode` (0 accepts 200–399), `bodyRegex`, and `maxLatencyMs` (0 disables the assertion), with `intervalSeconds` and `timeoutSeconds`. Body assertions read at most 1 MiB. Monitor targets must resolve to public addresses, and checks pin the validated IP.
 
-ICMP probes require raw-socket privileges on the check worker (for Linux, grant `CAP_NET_RAW`). A worker lacking that capability records a failed check with the socket error. Run the check worker on a host/network that permits outbound ICMP. Monitor reads, probes, deletion, check history, and incident updates enforce organization ownership.
+ICMP probes require raw-socket privileges on the API process executing the probe (for Linux, grant `CAP_NET_RAW`). A process lacking that capability records a failed check with the socket error. Run it on a host/network that permits outbound ICMP. Monitor reads, probes, deletion, check history, and incident updates enforce organization ownership.
 
 The ingestion encoding follows the [OTLP specification](https://opentelemetry.io/docs/specs/otlp/).
