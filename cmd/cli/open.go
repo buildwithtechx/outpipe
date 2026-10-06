@@ -30,6 +30,7 @@ func newTCPCommand(cfg config.CLIConfig) *cobra.Command {
 }
 
 func openTunnelCommand(cfg config.CLIConfig, name, short string) *cobra.Command {
+	var originTLS client.OriginTLSConfig
 	command := &cobra.Command{
 		Use:   name,
 		Short: short,
@@ -71,7 +72,7 @@ func openTunnelCommand(cfg config.CLIConfig, name, short string) *cobra.Command 
 				return err
 			}
 
-			return openTunnel(cmd.Context(), cfg, port, protocolName, subdomain, password, agentToken, tunnelID)
+			return openTunnel(cmd.Context(), cfg, port, protocolName, subdomain, password, agentToken, tunnelID, originTLS)
 		},
 	}
 
@@ -81,10 +82,20 @@ func openTunnelCommand(cfg config.CLIConfig, name, short string) *cobra.Command 
 	command.Flags().String("password", cfg.Password, "require this password for HTTP access")
 	command.Flags().String("agent-token", cfg.AgentToken, "agent token for CI/CD usage")
 	command.Flags().String("tunnel-id", "", "resume a managed tunnel")
+	command.Flags().StringVar(&originTLS.CAFile, "origin-ca", "", "PEM CA certificate file for the local HTTPS service")
+	command.Flags().StringVar(&originTLS.ServerName, "origin-server-name", "", "TLS certificate hostname for the local HTTPS service")
 	return command
 }
 
-func openTunnel(ctx context.Context, cfg config.CLIConfig, port int, protocolName, subdomain, password, agentToken, tunnelID string) error {
+func openTunnel(ctx context.Context, cfg config.CLIConfig, port int, protocolName, subdomain, password, agentToken, tunnelID string, originTLS client.OriginTLSConfig) error {
+	if protocolName != "https" && (originTLS.CAFile != "" || originTLS.ServerName != "") {
+		return fmt.Errorf("origin TLS options require --protocol https")
+	}
+	originClient, err := client.NewOriginHTTPClient(originTLS)
+	if err != nil {
+		return fmt.Errorf("configure local origin TLS: %w", err)
+	}
+	defer originClient.CloseIdleConnections()
 	ctx, stop := signal.NotifyContext(ctx, os.Interrupt, syscall.SIGTERM)
 	defer stop()
 	target := "http://127.0.0.1:" + fmt.Sprint(port)
@@ -182,7 +193,7 @@ func openTunnel(ctx context.Context, cfg config.CLIConfig, port int, protocolNam
 			}
 
 		}()
-		serveErr := connection.ServeLocal(ctx, target)
+		serveErr := connection.ServeLocalWithHTTPClient(ctx, target, originClient)
 		cancelConnection()
 		ticker.Stop()
 		connection.Close()

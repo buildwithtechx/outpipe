@@ -233,6 +233,13 @@ func (c *RelayConnection) SendHeartbeat() error {
 }
 
 func (c *RelayConnection) ServeLocal(ctx context.Context, targetURL string) error {
+	return c.ServeLocalWithHTTPClient(ctx, targetURL, &http.Client{Timeout: 90 * time.Second})
+}
+
+func (c *RelayConnection) ServeLocalWithHTTPClient(ctx context.Context, targetURL string, originClient *http.Client) error {
+	if originClient == nil {
+		return fmt.Errorf("origin HTTP client is required")
+	}
 	stopClose := context.AfterFunc(ctx, func() { _ = c.Close() })
 	defer stopClose()
 
@@ -257,7 +264,7 @@ func (c *RelayConnection) ServeLocal(ctx context.Context, targetURL string) erro
 				return err
 			}
 
-			response := c.forwardHTTP(ctx, targetURL, request)
+			response := c.forwardHTTP(ctx, targetURL, request, originClient)
 			payload, err := protocol.EncodePayload(protocol.MessageTypeHTTPResponse, message.RequestID, response)
 
 			if err != nil {
