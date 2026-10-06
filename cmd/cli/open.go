@@ -72,7 +72,12 @@ func openTunnelCommand(cfg config.CLIConfig, name, short string) *cobra.Command 
 				return err
 			}
 
-			return openTunnel(cmd.Context(), cfg, port, protocolName, subdomain, password, agentToken, tunnelID, originTLS)
+			originClient, err := prepareOriginClient(protocolName, originTLS)
+			if err != nil {
+				return err
+			}
+			defer originClient.CloseIdleConnections()
+			return openTunnel(cmd.Context(), cfg, port, protocolName, subdomain, password, agentToken, tunnelID, originClient)
 		},
 	}
 
@@ -87,15 +92,7 @@ func openTunnelCommand(cfg config.CLIConfig, name, short string) *cobra.Command 
 	return command
 }
 
-func openTunnel(ctx context.Context, cfg config.CLIConfig, port int, protocolName, subdomain, password, agentToken, tunnelID string, originTLS client.OriginTLSConfig) error {
-	if protocolName != "https" && (originTLS.CAFile != "" || originTLS.ServerName != "") {
-		return fmt.Errorf("origin TLS options require --protocol https")
-	}
-	originClient, err := client.NewOriginHTTPClient(originTLS)
-	if err != nil {
-		return fmt.Errorf("configure local origin TLS: %w", err)
-	}
-	defer originClient.CloseIdleConnections()
+func openTunnel(ctx context.Context, cfg config.CLIConfig, port int, protocolName, subdomain, password, agentToken, tunnelID string, originClient *http.Client) error {
 	ctx, stop := signal.NotifyContext(ctx, os.Interrupt, syscall.SIGTERM)
 	defer stop()
 	target := "http://127.0.0.1:" + fmt.Sprint(port)
