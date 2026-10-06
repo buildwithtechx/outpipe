@@ -5,6 +5,7 @@ export function QueryFeedback({
   query,
   label,
   children,
+  failClosed = false,
 }: {
   query: {
     isLoading: boolean;
@@ -14,6 +15,7 @@ export function QueryFeedback({
   };
   label: string;
   children: ReactNode;
+  failClosed?: boolean;
 }) {
   if (query.isLoading)
     return (
@@ -21,7 +23,7 @@ export function QueryFeedback({
         Loading {label}...
       </p>
     );
-  if (query.isError && query.data === undefined)
+  if (query.isError && (failClosed || query.data === undefined))
     return (
       <div
         role="alert"

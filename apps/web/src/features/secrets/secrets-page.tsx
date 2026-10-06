@@ -284,7 +284,11 @@ export function SecretsPage({ orgSlug }: { orgSlug: string }) {
             </Button>
           </div>
 
-          <QueryFeedback query={secretQuery} label="variables">
+          <QueryFeedback
+            query={secretQuery}
+            label="variables"
+            failClosed={reveal}
+          >
             <SecretVariablesTable
               secrets={secrets}
               reveal={reveal}

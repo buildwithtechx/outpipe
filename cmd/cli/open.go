@@ -25,7 +25,7 @@ func newOpenCommand(cfg config.CLIConfig) *cobra.Command {
 func newTCPCommand(cfg config.CLIConfig) *cobra.Command {
 	command := openTunnelCommand(cfg, "tcp", "open a raw TCP tunnel from a local port")
 	command.Flags().Lookup("protocol").DefValue = "tcp"
-	command.Flags().Lookup("protocol").Usage = "tunnel protocol (tcp, udp, http)"
+	command.Flags().Lookup("protocol").Usage = "tunnel protocol (tcp, udp, http, https)"
 	return command
 }
 
@@ -76,7 +76,7 @@ func openTunnelCommand(cfg config.CLIConfig, name, short string) *cobra.Command 
 	}
 
 	command.Flags().Int("port", 3000, "local port")
-	command.Flags().String("protocol", "http", "tunnel protocol (http, tcp, udp)")
+	command.Flags().String("protocol", "http", "tunnel protocol (http, https, tcp, udp)")
 	command.Flags().String("subdomain", "", "requested subdomain")
 	command.Flags().String("password", cfg.Password, "require this password for HTTP access")
 	command.Flags().String("agent-token", cfg.AgentToken, "agent token for CI/CD usage")
@@ -88,6 +88,9 @@ func openTunnel(ctx context.Context, cfg config.CLIConfig, port int, protocolNam
 	ctx, stop := signal.NotifyContext(ctx, os.Interrupt, syscall.SIGTERM)
 	defer stop()
 	target := "http://127.0.0.1:" + fmt.Sprint(port)
+	if protocolName == "https" {
+		target = "https://127.0.0.1:" + fmt.Sprint(port)
+	}
 
 	if protocolName == "tcp" || protocolName == "udp" {
 		target = "127.0.0.1:" + fmt.Sprint(port)

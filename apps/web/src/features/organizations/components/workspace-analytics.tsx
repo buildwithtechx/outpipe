@@ -67,6 +67,12 @@ export function WorkspaceAnalytics({
           </Button>
         </div>
       </div>
+      {query.isError && data && (
+        <p role="alert" className="text-sm text-amber-300">
+          Refresh failed. Showing the last available data; use Refresh to try
+          again.
+        </p>
+      )}
       {query.isLoading ? (
         <p role="status" className="py-8 text-sm text-muted-foreground">
           Loading traffic…

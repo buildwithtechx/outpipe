@@ -157,12 +157,12 @@ export function CommandPalette({
               </span>
             </button>
           ))}
-          {!filtered.length && (
-            <p role="status" className="p-6 text-sm text-muted-foreground">
-              No pages match “{search}”.
-            </p>
-          )}
         </div>
+        {!filtered.length && (
+          <p role="status" className="p-6 text-sm text-muted-foreground">
+            No pages match “{search}”.
+          </p>
+        )}
         <p className="text-xs text-muted-foreground">
           Ctrl/⌘ K to open · ↑ ↓ to navigate · Enter to select · Esc to close
         </p>

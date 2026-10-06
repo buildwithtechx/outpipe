@@ -2,6 +2,7 @@ import { Link } from '@tanstack/react-router';
 import { ArrowLeft, CircleAlert } from 'lucide-react';
 import { Button } from '#/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '#/components/ui/tabs';
+import { ApiError } from '#/lib/api-client';
 import { TunnelCaptureControl } from './components/tunnel-capture-control';
 import { TunnelConfigurationForm } from './components/tunnel-configuration-form';
 import { TunnelConnectGuide } from './components/tunnel-connect-guide';
@@ -27,7 +28,11 @@ export function TunnelDetailsPage({
     return <TunnelPageState label="Loading tunnel details…" />;
   }
 
-  if (!tunnelQuery.data) {
+  const terminalError =
+    tunnelQuery.error instanceof ApiError &&
+    tunnelQuery.error.status >= 400 &&
+    tunnelQuery.error.status < 500;
+  if (!tunnelQuery.data || terminalError) {
     return (
       <main className="mx-auto flex min-h-[55vh] max-w-xl flex-col items-center justify-center px-6 text-center text-white">
         <CircleAlert className="size-5 text-rose-200" />
