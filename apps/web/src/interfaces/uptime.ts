@@ -51,6 +51,7 @@ export interface UptimeStatusPage {
   slug: string;
   title: string;
   description: string;
+  customDomain?: string;
   isPublic: boolean;
   createdAt: string;
   updatedAt: string;

@@ -196,8 +196,8 @@ curl -fsSL https://cli.outpipe.dev | bash
 The CLI and desktop app are separate products. The CLI is a terminal binary for local tunnels, automation, and CI. The desktop app is a Tauri GUI distributed through platform installers; installing one does not install the other.
 
 ```sh
-outpipe login --server https://api.outpipe.dev
-outpipe http 3000
+outpipe login
+outpipe open --port 3000
 ```
 
 ## Design boundary

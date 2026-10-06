@@ -1,11 +1,14 @@
 import { Link } from '@tanstack/react-router';
 import { ArrowLeft, CircleAlert } from 'lucide-react';
 import { Button } from '#/components/ui/button';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '#/components/ui/tabs';
 import { TunnelCaptureControl } from './components/tunnel-capture-control';
 import { TunnelConfigurationForm } from './components/tunnel-configuration-form';
+import { TunnelConnectGuide } from './components/tunnel-connect-guide';
 import { TunnelDetailActions } from './components/tunnel-detail-actions';
 import { TunnelDetailCard } from './components/tunnel-detail-card';
 import { TunnelPageState } from './components/tunnel-page-state';
+import { TunnelRequestsPanel } from './components/tunnel-requests-panel';
 import { TunnelStatusBadge } from './components/tunnel-status-badge';
 import { useTunnel } from './hooks/use-tunnel';
 
@@ -73,11 +76,32 @@ export function TunnelDetailsPage({
         </div>
         <TunnelDetailActions tunnel={tunnel} />
       </header>
-      <section className="pt-2" aria-label="Tunnel configuration">
-        <TunnelDetailCard tunnel={tunnel} />
-        <TunnelConfigurationForm tunnel={tunnel} />
-        <TunnelCaptureControl tunnel={tunnel} />
-      </section>
+      <Tabs defaultValue="overview" className="space-y-6">
+        <TabsList aria-label="Tunnel views">
+          <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="connection">Connection</TabsTrigger>
+          {(tunnel.protocol === 'http' || tunnel.protocol === 'https') && (
+            <TabsTrigger value="requests">Requests</TabsTrigger>
+          )}
+          <TabsTrigger value="settings">Settings</TabsTrigger>
+        </TabsList>
+        <TabsContent value="overview" className="space-y-6">
+          <TunnelConnectGuide tunnel={tunnel} />
+          <TunnelDetailCard tunnel={tunnel} />
+        </TabsContent>
+        <TabsContent value="connection">
+          <TunnelConnectGuide tunnel={tunnel} />
+        </TabsContent>
+        <TabsContent value="requests">
+          <TunnelRequestsPanel tunnel={tunnel} orgSlug={orgSlug} />
+        </TabsContent>
+        <TabsContent value="settings" className="space-y-6">
+          <TunnelConfigurationForm tunnel={tunnel} />
+          {(tunnel.protocol === 'http' || tunnel.protocol === 'https') && (
+            <TunnelCaptureControl tunnel={tunnel} />
+          )}
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

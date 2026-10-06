@@ -6,5 +6,7 @@ export function useTunnel(tunnelID: string) {
     queryKey: ['tunnel', tunnelID],
     queryFn: () => getTunnel(tunnelID),
     enabled: Boolean(tunnelID),
+    refetchInterval: 5000,
+    refetchIntervalInBackground: false,
   });
 }

@@ -1,13 +1,5 @@
 import { Link } from '@tanstack/react-router';
-import {
-  BookOpen,
-  Command,
-  LogOut,
-  Menu,
-  Search,
-  ShieldCheck,
-  X,
-} from 'lucide-react';
+import { BookOpen, LogOut, Menu, Search, ShieldCheck, X } from 'lucide-react';
 import { useState } from 'react';
 import { BrandLockup } from '#/components/layout';
 import { Button } from '#/components/ui/button';
@@ -45,14 +37,15 @@ export function DashboardHeader({
 
   return (
     <>
-      <header className="sticky top-0 z-40 flex h-16 w-full items-center justify-between border-b border-white/10 bg-black/80 px-3 sm:px-6 backdrop-blur-xl">
-        {/* Left Section: Mobile toggle, Brand, and Workspace Switcher */}
+      <header className="sticky top-0 z-40 flex h-16 shrink-0 w-full items-center justify-between border-b border-white/10 bg-black/80 px-3 sm:px-6 backdrop-blur-xl">
         <div className="flex items-center gap-2 sm:gap-4 min-w-0">
           <button
             type="button"
             onClick={() => setMobileOpen(!mobileOpen)}
-            className="flex size-9 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-white/70 hover:bg-white/10 hover:text-white transition md:hidden shrink-0"
+            className="flex size-11 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-white/70 hover:bg-white/10 hover:text-white transition md:hidden shrink-0"
             aria-label="Toggle navigation menu"
+            aria-expanded={mobileOpen}
+            aria-controls="mobile-workspace-navigation"
           >
             {mobileOpen ? (
               <X className="size-5" />
@@ -71,24 +64,20 @@ export function DashboardHeader({
 
           <WorkspaceSwitcher currentOrgSlug={orgSlug} />
         </div>
-
-        {/* Right Section: Search, Docs, Admin Indicator, User & Logout */}
         <div className="flex items-center gap-2 sm:gap-3 shrink-0">
-          {/* Quick Search / Command Palette Button */}
           <button
             type="button"
             onClick={onOpenCommandPalette}
-            className="hidden sm:flex items-center gap-2 rounded-xl border border-white/10 bg-white/3 px-3 py-1.5 text-xs text-white/50 transition hover:border-white/20 hover:bg-white/6 hover:text-white"
-            title="Search sections (⌘K)"
+            aria-label="Search pages"
+            className="flex min-h-11 min-w-11 items-center gap-2 rounded-xl border border-white/10 bg-white/3 px-3 py-1.5 text-xs text-white/50 transition hover:border-white/20 hover:bg-white/6 hover:text-white"
+            title="Search pages (Ctrl+K or ⌘K)"
           >
             <Search className="size-3.5" />
             <span className="hidden md:inline text-[11px]">Jump to...</span>
-            <kbd className="inline-flex items-center gap-0.5 rounded border border-white/10 bg-white/5 px-1 py-0.5 text-[9px] font-mono text-white/40">
-              <Command className="size-2.5" />K
+            <kbd className="hidden sm:inline-flex items-center gap-0.5 rounded border border-white/10 bg-white/5 px-1 py-0.5 text-[9px] font-mono text-white/40">
+              Ctrl/⌘ K
             </kbd>
           </button>
-
-          {/* Docs Shortcut */}
           <Link
             to="/docs/$"
             params={{ _splat: '' }}
@@ -98,20 +87,16 @@ export function DashboardHeader({
             <BookOpen className="size-3.5 text-indigo-300" />
             <span>Docs</span>
           </Link>
-
-          {/* Superadmin Quick Access */}
           {isPlatformAdmin && (
             <Link
               to="/admin"
-              className="flex items-center gap-1.5 rounded-xl border border-purple-400/30 bg-purple-500/10 px-2.5 py-1.5 text-xs font-semibold text-purple-300 transition hover:bg-purple-500/20"
+              className="flex min-h-11 min-w-11 items-center justify-center gap-1.5 rounded-xl border border-purple-400/30 bg-purple-500/10 px-2.5 py-1.5 text-xs font-semibold text-purple-300 transition hover:bg-purple-500/20"
               title="Platform Admin Control Plane"
             >
               <ShieldCheck className="size-3.5" />
               <span className="hidden sm:inline">Admin</span>
             </Link>
           )}
-
-          {/* User Status & Sign Out Button */}
           <div className="flex items-center gap-2 pl-2 border-l border-white/10">
             <div className="hidden xl:flex flex-col text-right">
               <span className="text-xs font-semibold text-white/90 truncate max-w-30">
@@ -125,7 +110,7 @@ export function DashboardHeader({
             <button
               type="button"
               onClick={() => setLogoutDialogOpen(true)}
-              className="flex size-9 items-center justify-center rounded-xl border border-white/10 bg-white/3 text-white/60 hover:border-rose-400/30 hover:bg-rose-500/10 hover:text-rose-300 transition shrink-0"
+              className="flex size-11 items-center justify-center rounded-xl border border-white/10 bg-white/3 text-white/60 hover:border-rose-400/30 hover:bg-rose-500/10 hover:text-rose-300 transition shrink-0"
               title="Sign Out"
               aria-label="Sign Out"
             >
@@ -134,8 +119,6 @@ export function DashboardHeader({
           </div>
         </div>
       </header>
-
-      {/* Logout Confirmation Dialog */}
       <Dialog open={logoutDialogOpen} onOpenChange={setLogoutDialogOpen}>
         <DialogContent className="max-w-md bg-neutral-900 border-white/15 text-white">
           <DialogHeader>

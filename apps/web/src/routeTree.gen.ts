@@ -51,6 +51,7 @@ import { Route as OrgSlugSettingsOrganizationRouteImport } from './routes/$orgSl
 import { Route as OrgSlugSettingsProfileRouteImport } from './routes/$orgSlug/settings/profile'
 import { Route as OrgSlugTunnelsIndexRouteImport } from './routes/$orgSlug/tunnels/index'
 import { Route as OrgSlugTunnelsTunnelIdRouteImport } from './routes/$orgSlug/tunnels/$tunnelId'
+import { Route as OrgSlugUptimeStatusPageRouteImport } from './routes/$orgSlug/uptime_.status-page'
 import { Route as MarketingPluginsIndexRouteImport } from './routes/_marketing/plugins/index'
 import { Route as MarketingPluginsPluginIdRouteImport } from './routes/_marketing/plugins/$pluginId'
 import { Route as AdminOrganizationsIndexRouteImport } from './routes/admin/organizations/index'
@@ -268,6 +269,11 @@ const OrgSlugTunnelsTunnelIdRoute = OrgSlugTunnelsTunnelIdRouteImport.update({
   path: '/tunnels/$tunnelId',
   getParentRoute: () => OrgSlugRoute,
 } as any)
+const OrgSlugUptimeStatusPageRoute = OrgSlugUptimeStatusPageRouteImport.update({
+  id: '/uptime_/status-page',
+  path: '/uptime/status-page',
+  getParentRoute: () => OrgSlugRoute,
+} as any)
 const MarketingPluginsIndexRoute = MarketingPluginsIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -341,6 +347,7 @@ export interface FileRoutesByFullPath {
   '/$orgSlug/settings/organization': typeof OrgSlugSettingsOrganizationRoute
   '/$orgSlug/settings/profile': typeof OrgSlugSettingsProfileRoute
   '/$orgSlug/tunnels/$tunnelId': typeof OrgSlugTunnelsTunnelIdRoute
+  '/$orgSlug/uptime/status-page': typeof OrgSlugUptimeStatusPageRoute
   '/plugins/$pluginId': typeof MarketingPluginsPluginIdRoute
   '/admin/organizations/$organizationID': typeof AdminOrganizationsOrganizationIDRoute
   '/admin/users/$userId': typeof AdminUsersUserIdRoute
@@ -387,6 +394,7 @@ export interface FileRoutesByTo {
   '/$orgSlug/settings/organization': typeof OrgSlugSettingsOrganizationRoute
   '/$orgSlug/settings/profile': typeof OrgSlugSettingsProfileRoute
   '/$orgSlug/tunnels/$tunnelId': typeof OrgSlugTunnelsTunnelIdRoute
+  '/$orgSlug/uptime/status-page': typeof OrgSlugUptimeStatusPageRoute
   '/plugins/$pluginId': typeof MarketingPluginsPluginIdRoute
   '/admin/organizations/$organizationID': typeof AdminOrganizationsOrganizationIDRoute
   '/admin/users/$userId': typeof AdminUsersUserIdRoute
@@ -438,6 +446,7 @@ export interface FileRoutesById {
   '/$orgSlug/settings/organization': typeof OrgSlugSettingsOrganizationRoute
   '/$orgSlug/settings/profile': typeof OrgSlugSettingsProfileRoute
   '/$orgSlug/tunnels/$tunnelId': typeof OrgSlugTunnelsTunnelIdRoute
+  '/$orgSlug/uptime_/status-page': typeof OrgSlugUptimeStatusPageRoute
   '/_marketing/plugins/$pluginId': typeof MarketingPluginsPluginIdRoute
   '/admin/organizations/$organizationID': typeof AdminOrganizationsOrganizationIDRoute
   '/admin/users/$userId': typeof AdminUsersUserIdRoute
@@ -489,6 +498,7 @@ export interface FileRouteTypes {
     | '/$orgSlug/settings/organization'
     | '/$orgSlug/settings/profile'
     | '/$orgSlug/tunnels/$tunnelId'
+    | '/$orgSlug/uptime/status-page'
     | '/plugins/$pluginId'
     | '/admin/organizations/$organizationID'
     | '/admin/users/$userId'
@@ -535,6 +545,7 @@ export interface FileRouteTypes {
     | '/$orgSlug/settings/organization'
     | '/$orgSlug/settings/profile'
     | '/$orgSlug/tunnels/$tunnelId'
+    | '/$orgSlug/uptime/status-page'
     | '/plugins/$pluginId'
     | '/admin/organizations/$organizationID'
     | '/admin/users/$userId'
@@ -585,6 +596,7 @@ export interface FileRouteTypes {
     | '/$orgSlug/settings/organization'
     | '/$orgSlug/settings/profile'
     | '/$orgSlug/tunnels/$tunnelId'
+    | '/$orgSlug/uptime_/status-page'
     | '/_marketing/plugins/$pluginId'
     | '/admin/organizations/$organizationID'
     | '/admin/users/$userId'
@@ -903,6 +915,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof OrgSlugTunnelsTunnelIdRouteImport
       parentRoute: typeof OrgSlugRoute
     }
+    '/$orgSlug/uptime_/status-page': {
+      id: '/$orgSlug/uptime_/status-page'
+      path: '/uptime/status-page'
+      fullPath: '/$orgSlug/uptime/status-page'
+      preLoaderRoute: typeof OrgSlugUptimeStatusPageRouteImport
+      parentRoute: typeof OrgSlugRoute
+    }
     '/_marketing/plugins/': {
       id: '/_marketing/plugins/'
       path: '/'
@@ -965,6 +984,7 @@ interface OrgSlugRouteChildren {
   OrgSlugSettingsOrganizationRoute: typeof OrgSlugSettingsOrganizationRoute
   OrgSlugSettingsProfileRoute: typeof OrgSlugSettingsProfileRoute
   OrgSlugTunnelsTunnelIdRoute: typeof OrgSlugTunnelsTunnelIdRoute
+  OrgSlugUptimeStatusPageRoute: typeof OrgSlugUptimeStatusPageRoute
   OrgSlugSettingsIndexRoute: typeof OrgSlugSettingsIndexRoute
   OrgSlugTunnelsIndexRoute: typeof OrgSlugTunnelsIndexRoute
 }
@@ -986,6 +1006,7 @@ const OrgSlugRouteChildren: OrgSlugRouteChildren = {
   OrgSlugSettingsOrganizationRoute: OrgSlugSettingsOrganizationRoute,
   OrgSlugSettingsProfileRoute: OrgSlugSettingsProfileRoute,
   OrgSlugTunnelsTunnelIdRoute: OrgSlugTunnelsTunnelIdRoute,
+  OrgSlugUptimeStatusPageRoute: OrgSlugUptimeStatusPageRoute,
   OrgSlugSettingsIndexRoute: OrgSlugSettingsIndexRoute,
   OrgSlugTunnelsIndexRoute: OrgSlugTunnelsIndexRoute,
 }

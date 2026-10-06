@@ -118,9 +118,11 @@ export function useUptimeMutations(organizationId: string) {
       title: string;
       description: string;
       is_public: boolean;
+      customDomain?: string;
     }) => updateStatusPageConfig(organizationId, input),
-    onSuccess: () => {
-      queryClient.invalidateQueries({
+    onSuccess: (page) => {
+      queryClient.setQueryData(['uptime-status-page', organizationId], page);
+      return queryClient.invalidateQueries({
         queryKey: ['uptime-status-page', organizationId],
       });
     },

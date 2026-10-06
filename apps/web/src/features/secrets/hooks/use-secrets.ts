@@ -38,6 +38,7 @@ export function useSecretsList(
 ) {
   return useQuery({
     queryKey: ['secrets', organizationId, projectId, environmentId, reveal],
+    gcTime: reveal ? 0 : 300000,
     queryFn: () =>
       getSecrets(
         organizationId as string,

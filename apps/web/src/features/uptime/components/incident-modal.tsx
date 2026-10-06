@@ -16,6 +16,7 @@ import {
   SelectValue,
 } from '#/components/ui/select';
 import { Textarea } from '#/components/ui/textarea';
+import { useSubmitFeedback } from '#/hooks/use-submit-feedback';
 
 interface IncidentModalProps {
   isOpen: boolean;
@@ -40,101 +41,124 @@ export function IncidentModal({
   );
   const [message, setMessage] = useState('');
 
+  const { error, submit } = useSubmitFeedback(isOpen);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!title.trim() || !message.trim()) return;
-    await onSave({
-      title: title.trim(),
-      severity,
-      message: message.trim(),
-    });
+    if (
+      !(await submit(() =>
+        onSave({
+          title: title.trim(),
+          severity,
+          message: message.trim(),
+        }),
+      ))
+    )
+      return;
     setTitle('');
     setMessage('');
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-md border-white/10 bg-zinc-900 text-white">
+    <Dialog
+      open={isOpen}
+      onOpenChange={(open) => {
+        if (!open && !isSaving) onClose();
+      }}
+    >
+      <DialogContent
+        showCloseButton={!isSaving}
+        aria-describedby={undefined}
+        className="max-w-md border-white/10 bg-card text-white"
+      >
         <DialogHeader>
           <DialogTitle className="text-base font-semibold text-white">
             Report New Incident
           </DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4 pt-2">
-          <div className="space-y-1.5">
-            <Label
-              htmlFor="incident-title-input"
-              className="text-xs text-white/70"
-            >
-              Incident Title
-            </Label>
-            <Input
-              id="incident-title-input"
-              type="text"
-              required
-              placeholder="e.g. Latency spikes on US-East API"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              className="border-white/10 bg-white/5 text-xs text-white placeholder-white/30"
-            />
-          </div>
+          <fieldset disabled={isSaving} className="contents space-y-4">
+            {error && (
+              <p role="alert" className="text-sm text-rose-300">
+                Could not save. Your input has been kept; please try again.
+              </p>
+            )}
+            <div className="space-y-1.5">
+              <Label
+                htmlFor="incident-title-input"
+                className="text-xs text-white/70"
+              >
+                Incident Title
+              </Label>
+              <Input
+                id="incident-title-input"
+                type="text"
+                required
+                placeholder="e.g. Latency spikes on US-East API"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                className="border-white/10 bg-white/5 text-xs text-white placeholder-white/30"
+              />
+            </div>
 
-          <div className="space-y-1.5">
-            <Label className="text-xs text-white/70">Severity Level</Label>
-            <Select
-              value={severity}
-              onValueChange={(val) =>
-                setSeverity(val as 'minor' | 'major' | 'critical')
-              }
-            >
-              <SelectTrigger className="w-full border-white/10 bg-zinc-800 text-xs text-white">
-                <SelectValue placeholder="Severity" />
-              </SelectTrigger>
-              <SelectContent className="border-white/10 bg-zinc-900 text-white">
-                <SelectItem value="minor">Minor Degradation</SelectItem>
-                <SelectItem value="major">Major Outage</SelectItem>
-                <SelectItem value="critical">Critical Emergency</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs text-white/70">Severity Level</Label>
+              <Select
+                value={severity}
+                onValueChange={(val) =>
+                  setSeverity(val as 'minor' | 'major' | 'critical')
+                }
+              >
+                <SelectTrigger className="w-full border-white/10 bg-background text-xs text-white">
+                  <SelectValue placeholder="Severity" />
+                </SelectTrigger>
+                <SelectContent className="border-white/10 bg-card text-white">
+                  <SelectItem value="minor">Minor Degradation</SelectItem>
+                  <SelectItem value="major">Major Outage</SelectItem>
+                  <SelectItem value="critical">Critical Emergency</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
 
-          <div className="space-y-1.5">
-            <Label
-              htmlFor="incident-message-input"
-              className="text-xs text-white/70"
-            >
-              Initial Status Message
-            </Label>
-            <Textarea
-              id="incident-message-input"
-              required
-              rows={3}
-              placeholder="Describe what is being investigated..."
-              value={message}
-              onChange={(e) => setMessage(e.target.value)}
-              className="border-white/10 bg-white/5 text-xs text-white placeholder-white/30"
-            />
-          </div>
+            <div className="space-y-1.5">
+              <Label
+                htmlFor="incident-message-input"
+                className="text-xs text-white/70"
+              >
+                Initial Status Message
+              </Label>
+              <Textarea
+                id="incident-message-input"
+                required
+                rows={3}
+                placeholder="Describe what is being investigated..."
+                value={message}
+                onChange={(e) => setMessage(e.target.value)}
+                className="border-white/10 bg-white/5 text-xs text-white placeholder-white/30"
+              />
+            </div>
 
-          <div className="flex justify-end gap-2 pt-2">
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={onClose}
-              className="text-xs border-white/10 bg-white/5 text-white/70 hover:text-white"
-            >
-              Cancel
-            </Button>
-            <Button
-              type="submit"
-              size="sm"
-              disabled={isSaving}
-              className="text-xs bg-rose-600 hover:bg-rose-500 text-white"
-            >
-              {isSaving ? 'Reporting...' : 'Publish Incident'}
-            </Button>
-          </div>
+            <div className="flex justify-end gap-2 pt-2">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={onClose}
+                className="text-xs border-white/10 bg-white/5 text-white/70 hover:text-white"
+              >
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                size="sm"
+                disabled={isSaving}
+                className="text-xs bg-primary hover:bg-primary/90 text-primary-foreground"
+              >
+                {isSaving ? 'Reporting...' : 'Publish Incident'}
+              </Button>
+            </div>
+          </fieldset>
         </form>
       </DialogContent>
     </Dialog>

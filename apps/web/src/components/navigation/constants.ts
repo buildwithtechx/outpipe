@@ -85,6 +85,12 @@ export function getWorkspaceNavGroups(orgSlug: string): NavGroup[] {
           desc: 'Health probes, incidents & status page',
         },
         {
+          label: 'Status page',
+          to: `/${orgSlug}/uptime/status-page`,
+          icon: Globe,
+          desc: 'Preview content and publish service health',
+        },
+        {
           label: 'Secrets Vault',
           to: `/${orgSlug}/secrets`,
           icon: Lock,

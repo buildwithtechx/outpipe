@@ -7,5 +7,5 @@ export const Route = createFileRoute('/$orgSlug/secrets')({
 
 function SecretsRoute() {
   const { orgSlug } = Route.useParams();
-  return <SecretsPage orgSlug={orgSlug} />;
+  return <SecretsPage key={orgSlug} orgSlug={orgSlug} />;
 }

@@ -1,20 +1,13 @@
-import {
-  Copy,
-  Eye,
-  EyeOff,
-  FolderPlus,
-  KeyRound,
-  Lock,
-  Plus,
-  Terminal,
-  Trash2,
-} from 'lucide-react';
+import { Eye, EyeOff, FolderPlus, KeyRound, Lock, Plus } from 'lucide-react';
 import { useState } from 'react';
+import { QueryFeedback } from '#/components/feedback/query-feedback';
 import { Button } from '#/components/ui/button';
+import { CopyCommand } from '#/components/ui/copy-command';
 import { useOrganization } from '#/features/organizations/hooks/use-organization';
 import { AddSecretModal } from './components/add-secret-modal';
 import { EnvironmentModal } from './components/environment-modal';
 import { ProjectModal } from './components/project-modal';
+import { SecretVariablesTable } from './components/secret-variables-table';
 import {
   useEnvironments,
   useProjects,
@@ -23,25 +16,38 @@ import {
 } from './hooks/use-secrets';
 
 export function SecretsPage({ orgSlug }: { orgSlug: string }) {
-  const { organization } = useOrganization(orgSlug);
+  const organizationQuery = useOrganization(orgSlug);
+  const { organization } = organizationQuery;
   const orgId = organization?.id;
 
-  const { data: projects = [], isLoading: loadingProjects } =
-    useProjects(orgId);
+  const projectQuery = useProjects(orgId);
+  const { data: projects = [], isLoading: loadingProjects } = projectQuery;
   const [selectedProjectId, setSelectedProjectId] = useState<string>('');
-  const activeProjectId = selectedProjectId || projects[0]?.id || '';
+  const activeProjectId = projects.some(
+    (project) => project.id === selectedProjectId,
+  )
+    ? selectedProjectId
+    : projects[0]?.id || '';
 
-  const { data: environments = [] } = useEnvironments(orgId, activeProjectId);
+  const environmentQuery = useEnvironments(orgId, activeProjectId);
+  const { data: environments = [] } = environmentQuery;
   const [selectedEnvId, setSelectedEnvId] = useState<string>('');
-  const activeEnvId = selectedEnvId || environments[0]?.id || '';
+  const activeEnvId = environments.some(
+    (environment) => environment.id === selectedEnvId,
+  )
+    ? selectedEnvId
+    : environments[0]?.id || '';
 
-  const [reveal, setReveal] = useState(false);
-  const { data: secrets = [] } = useSecretsList(
+  const [revealContext, setRevealContext] = useState<string | null>(null);
+  const context = `${orgId}:${activeProjectId}:${activeEnvId}`;
+  const reveal = revealContext === context;
+  const secretQuery = useSecretsList(
     orgId,
     activeProjectId,
     activeEnvId,
     reveal,
   );
+  const { data: secrets = [] } = secretQuery;
 
   const mutations = useSecretMutations(orgId || '');
   const [showAddForm, setShowAddForm] = useState(false);
@@ -66,6 +72,8 @@ export function SecretsPage({ orgSlug }: { orgSlug: string }) {
   const handleCreateProject = async (input: { slug: string; name: string }) => {
     const created = await mutations.addProject.mutateAsync(input);
     setSelectedProjectId(created.id);
+    setSelectedEnvId('');
+    setRevealContext(null);
     setShowProjectModal(false);
   };
 
@@ -79,15 +87,32 @@ export function SecretsPage({ orgSlug }: { orgSlug: string }) {
       input,
     });
     setSelectedEnvId(created.id);
+    setRevealContext(null);
     setShowEnvModal(false);
   };
 
-  if (loadingProjects) {
+  if (organizationQuery.isLoading || loadingProjects) {
     return <p className="p-8 text-sm text-white/55">Loading Secrets Vault…</p>;
   }
 
+  if (!orgId || projectQuery.isError)
+    return (
+      <div role="alert" className="space-y-3">
+        <p>Could not load secrets projects.</p>
+        <Button
+          variant="outline"
+          onClick={() => {
+            void organizationQuery.refetch();
+            void projectQuery.refetch();
+          }}
+        >
+          Try again
+        </Button>
+      </div>
+    );
+
   return (
-    <div className="space-y-8 p-6 lg:p-10 max-w-7xl mx-auto text-white">
+    <div className="space-y-8 text-foreground">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/10 pb-6">
         <div>
           <div className="flex items-center gap-2.5">
@@ -118,7 +143,7 @@ export function SecretsPage({ orgSlug }: { orgSlug: string }) {
             <Button
               size="sm"
               onClick={() => setShowAddForm(true)}
-              className="bg-indigo-600 hover:bg-indigo-500 text-xs text-white font-medium"
+              className="bg-primary hover:bg-primary/90 text-xs text-primary-foreground font-medium"
             >
               <Plus className="size-3.5 mr-1.5" />
               Add Secret
@@ -140,7 +165,7 @@ export function SecretsPage({ orgSlug }: { orgSlug: string }) {
           <Button
             size="sm"
             onClick={() => setShowProjectModal(true)}
-            className="mt-4 bg-indigo-600 hover:bg-indigo-500 text-xs"
+            className="mt-4 bg-primary hover:bg-primary/90 text-xs text-primary-foreground"
           >
             Create Project
           </Button>
@@ -157,10 +182,11 @@ export function SecretsPage({ orgSlug }: { orgSlug: string }) {
                   onClick={() => {
                     setSelectedProjectId(proj.id);
                     setSelectedEnvId('');
+                    setRevealContext(null);
                   }}
                   className={`text-xs h-8 ${
                     proj.id === activeProjectId
-                      ? 'bg-indigo-600 hover:bg-indigo-500 text-white'
+                      ? 'bg-primary hover:bg-primary/90 text-primary-foreground'
                       : 'border-white/10 bg-white/5 text-white/70 hover:bg-white/10'
                   }`}
                 >
@@ -176,7 +202,10 @@ export function SecretsPage({ orgSlug }: { orgSlug: string }) {
                   key={env.id}
                   size="sm"
                   variant="outline"
-                  onClick={() => setSelectedEnvId(env.id)}
+                  onClick={() => {
+                    setSelectedEnvId(env.id);
+                    setRevealContext(null);
+                  }}
                   className={`text-xs font-mono h-7 px-2.5 ${
                     env.id === activeEnvId
                       ? 'border-indigo-400/40 bg-indigo-500/20 text-indigo-300'
@@ -189,6 +218,7 @@ export function SecretsPage({ orgSlug }: { orgSlug: string }) {
               <Button
                 variant="outline"
                 size="sm"
+                aria-label="Add environment"
                 onClick={() => setShowEnvModal(true)}
                 className="size-7 p-0 border-dashed border-white/20 text-white/60 hover:text-white"
                 title="Add Environment"
@@ -198,37 +228,26 @@ export function SecretsPage({ orgSlug }: { orgSlug: string }) {
             </div>
           </div>
 
-          <div className="flex items-center justify-between rounded-xl border border-white/10 bg-black/40 px-4 py-2 font-mono text-xs text-white/70">
-            <div className="flex items-center gap-2 overflow-hidden truncate">
-              <Terminal className="size-4 shrink-0 text-indigo-400" />
-              <span className="truncate">
-                outpipe secrets run -p{' '}
-                {projects.find((p) => p.id === activeProjectId)?.slug || 'app'}{' '}
-                -e{' '}
-                {environments.find((e) => e.id === activeEnvId)?.slug ||
-                  'production'}{' '}
-                -- npm run dev
-              </span>
+          <QueryFeedback query={environmentQuery} label="environments">
+            {!environments.length && (
+              <p className="rounded-xl border border-dashed border-border p-4 text-sm text-muted-foreground">
+                Create an environment to add variables.
+              </p>
+            )}
+          </QueryFeedback>
+          {activeProjectId && activeEnvId && (
+            <div className="space-y-2">
+              <CopyCommand
+                text={`outpipe secrets run --project ${activeProjectId} --environment ${activeEnvId} -- npm run dev`}
+                label="Copy secrets CLI command"
+              />
+              <p className="text-xs text-muted-foreground">
+                Set OUTPIPE_TOKEN to a machine token scoped to this environment
+                with secrets:read permission. Secret values stay out of the
+                command.
+              </p>
             </div>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => {
-                const projSlug =
-                  projects.find((p) => p.id === activeProjectId)?.slug || 'app';
-                const envSlug =
-                  environments.find((e) => e.id === activeEnvId)?.slug ||
-                  'production';
-                navigator.clipboard.writeText(
-                  `outpipe secrets run -p '${projSlug.replace(/'/g, "'\\''")}' -e '${envSlug.replace(/'/g, "'\\''")}' -- npm run dev`,
-                );
-              }}
-              className="size-7 p-0 ml-3 shrink-0 text-white/40 hover:text-white hover:bg-transparent"
-              title="Copy CLI command"
-            >
-              <Copy className="size-3.5" />
-            </Button>
-          </div>
+          )}
 
           <div className="flex items-center justify-between">
             <h3 className="text-sm font-semibold text-white/80">
@@ -237,7 +256,9 @@ export function SecretsPage({ orgSlug }: { orgSlug: string }) {
             <Button
               variant="outline"
               size="sm"
-              onClick={() => setReveal(!reveal)}
+              aria-pressed={reveal}
+              disabled={!activeEnvId || (!reveal && secretQuery.isFetching)}
+              onClick={() => setRevealContext(reveal ? null : context)}
               className="border-white/10 bg-white/5 text-xs text-white/80 hover:text-white"
             >
               {reveal ? (
@@ -254,61 +275,15 @@ export function SecretsPage({ orgSlug }: { orgSlug: string }) {
             </Button>
           </div>
 
-          <div className="overflow-hidden rounded-xl border border-white/10 bg-white/2.5">
-            {secrets.length === 0 ? (
-              <div className="p-8 text-center text-xs text-white/50">
-                No secrets in this environment yet. Click &quot;Add Secret&quot;
-                to define one.
-              </div>
-            ) : (
-              <table className="w-full text-left text-xs">
-                <thead>
-                  <tr className="border-b border-white/10 bg-white/5 text-white/60">
-                    <th className="py-2.5 px-4 font-medium">Key</th>
-                    <th className="py-2.5 px-4 font-medium">Value</th>
-                    <th className="py-2.5 px-4 font-medium">Comment</th>
-                    <th className="py-2.5 px-4 text-right font-medium">
-                      Actions
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-white/5 font-mono">
-                  {secrets.map((item) => (
-                    <tr
-                      key={item.id}
-                      className="hover:bg-white/2.5 transition-colors"
-                    >
-                      <td className="py-3 px-4 font-semibold text-indigo-300">
-                        {item.key}
-                      </td>
-                      <td className="py-3 px-4 text-white/90">
-                        {reveal && item.value ? (
-                          item.value
-                        ) : (
-                          <span className="text-white/30 tracking-widest">
-                            ••••••••••••••••
-                          </span>
-                        )}
-                      </td>
-                      <td className="py-3 px-4 font-sans text-white/50">
-                        {item.comment || '—'}
-                      </td>
-                      <td className="py-3 px-4 text-right font-sans">
-                        <button
-                          type="button"
-                          onClick={() => mutations.removeSecret.mutate(item.id)}
-                          className="text-white/40 hover:text-rose-400 transition-colors p-1"
-                          title="Delete secret"
-                        >
-                          <Trash2 className="size-3.5" />
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            )}
-          </div>
+          <QueryFeedback query={secretQuery} label="variables">
+            <SecretVariablesTable
+              secrets={secrets}
+              reveal={reveal}
+              environmentSelected={Boolean(activeEnvId)}
+              deleting={mutations.removeSecret.isPending}
+              onDelete={(id) => mutations.removeSecret.mutateAsync(id)}
+            />
+          </QueryFeedback>
         </div>
       )}
 

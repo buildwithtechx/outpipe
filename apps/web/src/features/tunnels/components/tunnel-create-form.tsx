@@ -47,6 +47,7 @@ export function TunnelCreateForm({
       <CardHeader className="px-5 pt-5 pb-0 sm:px-6 sm:pt-6">
         <CardTitle>Create a tunnel</CardTitle>
         <p className="text-sm text-white/50">
+          Create your endpoint, then connect it from your machine with the CLI.
           The public hostname is assigned automatically.
         </p>
       </CardHeader>
@@ -75,7 +76,14 @@ export function TunnelCreateForm({
               <Select
                 value={request.protocol}
                 onValueChange={(protocol: TunnelProtocol) =>
-                  onChange({ ...request, protocol })
+                  onChange({
+                    ...request,
+                    protocol,
+                    password:
+                      protocol === 'tcp' || protocol === 'udp'
+                        ? undefined
+                        : request.password,
+                  })
                 }
               >
                 <SelectTrigger
@@ -100,13 +108,18 @@ export function TunnelCreateForm({
               <Input
                 id="target-host"
                 required
+                readOnly
+                aria-describedby="target-host-help"
                 value={request.targetHost}
-                onChange={(event) =>
-                  onChange({ ...request, targetHost: event.target.value })
-                }
                 placeholder="localhost"
                 className="h-11 rounded-xl border-white/10 bg-black/40 text-white placeholder:text-white/25"
               />
+              <p
+                id="target-host-help"
+                className="text-xs text-muted-foreground"
+              >
+                The CLI connects to a service on the same machine.
+              </p>
             </div>
             <div className="grid gap-2">
               <Label htmlFor="target-port" className="text-white/70">
@@ -121,7 +134,7 @@ export function TunnelCreateForm({
                 value={request.targetPort ? request.targetPort : ''}
                 onChange={(event) => {
                   const raw = event.target.value;
-                  const parsed = Number.parseInt(raw, 10);
+                  const parsed = Number(raw);
                   onChange({
                     ...request,
                     targetPort: Number.isFinite(parsed) ? parsed : 0,
@@ -131,7 +144,59 @@ export function TunnelCreateForm({
               />
             </div>
           </div>
-          {error && <p className="text-sm text-rose-200">{error}</p>}
+          <details className="rounded-xl border border-border p-4">
+            <summary className="cursor-pointer text-sm">
+              Endpoint options
+            </summary>
+            <div className="mt-4 grid gap-4">
+              <div className="grid gap-2">
+                <Label htmlFor="public-hostname">
+                  Public hostname (optional)
+                </Label>
+                <Input
+                  id="public-hostname"
+                  maxLength={253}
+                  value={request.publicHostname ?? ''}
+                  onChange={(event) =>
+                    onChange({
+                      ...request,
+                      publicHostname: event.target.value.trim(),
+                    })
+                  }
+                  placeholder="preview.example.com"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Leave blank for an automatic address. Custom domains must
+                  belong to this workspace.
+                </p>
+              </div>
+              {(request.protocol === 'http' ||
+                request.protocol === 'https') && (
+                <div className="grid gap-2">
+                  <Label htmlFor="tunnel-password">
+                    Endpoint password (optional)
+                  </Label>
+                  <Input
+                    id="tunnel-password"
+                    type="password"
+                    autoComplete="new-password"
+                    value={request.password ?? ''}
+                    onChange={(event) =>
+                      onChange({ ...request, password: event.target.value })
+                    }
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Require visitors to authenticate before accessing your app.
+                  </p>
+                </div>
+              )}
+            </div>
+          </details>
+          {error && (
+            <p role="alert" className="text-sm text-rose-200">
+              {error}
+            </p>
+          )}
           <Button
             type="submit"
             size="lg"

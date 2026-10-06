@@ -7,5 +7,5 @@ export const Route = createFileRoute('/$orgSlug/uptime')({
 
 function UptimeRoute() {
   const { orgSlug } = Route.useParams();
-  return <UptimePage orgSlug={orgSlug} />;
+  return <UptimePage key={orgSlug} orgSlug={orgSlug} />;
 }

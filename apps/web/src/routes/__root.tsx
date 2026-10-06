@@ -106,12 +106,14 @@ function RootComponent() {
 
 function RootDocument({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en" className="dark product-surface" suppressHydrationWarning>
       <head>
         <HeadContent />
       </head>
       <body>
-        <RootProvider>{children}</RootProvider>
+        <RootProvider theme={{ forcedTheme: 'dark', enableSystem: false }}>
+          {children}
+        </RootProvider>
         <Scripts />
       </body>
     </html>

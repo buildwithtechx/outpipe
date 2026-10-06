@@ -1,4 +1,5 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useNavigate } from '@tanstack/react-router';
 import { CirclePlus, RefreshCw } from 'lucide-react';
 import { useState } from 'react';
 import { Button } from '#/components/ui/button';
@@ -18,6 +19,7 @@ const initialRequest: CreateTunnelRequest = {
 
 export function TunnelsPage({ orgSlug }: { orgSlug: string }) {
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
 
   const [isCreating, setIsCreating] = useState(false);
   const [request, setRequest] = useState<CreateTunnelRequest>(initialRequest);
@@ -27,11 +29,15 @@ export function TunnelsPage({ orgSlug }: { orgSlug: string }) {
 
   const createMutation = useMutation({
     mutationFn: () => createTunnel(organization?.id ?? '', request),
-    onSuccess: async () => {
+    onSuccess: async (tunnel) => {
       setRequest(initialRequest);
       setIsCreating(false);
       await queryClient.invalidateQueries({
         queryKey: ['tunnels', organization?.id],
+      });
+      await navigate({
+        to: '/$orgSlug/tunnels/$tunnelId',
+        params: { orgSlug, tunnelId: tunnel.id },
       });
     },
   });
