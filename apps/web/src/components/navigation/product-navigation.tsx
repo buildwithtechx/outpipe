@@ -10,12 +10,14 @@ export function ProductNavigation({
   collapsed,
   query,
   pathname,
+  onNavigate,
 }: {
   product: NavGroup;
   orgSlug: string;
   collapsed: boolean;
   query: string;
   pathname: string;
+  onNavigate?: () => void;
 }) {
   const active = product.items.some((item) => navItemIsActive(pathname, item));
   const [open, setOpen] = useState(active);
@@ -25,7 +27,7 @@ export function ProductNavigation({
   useEffect(() => {
     try {
       const saved = localStorage.getItem(storageKey);
-      setOpen(active || saved === 'true');
+      setOpen(saved === null ? active : saved === 'true');
     } catch {
       setOpen(active);
     }
@@ -49,10 +51,15 @@ export function ProductNavigation({
   if (collapsed)
     return (
       <Link
+        onClick={onNavigate}
         to={product.items[0]?.to ?? '/select'}
         title={product.name}
         aria-label={product.name}
-        aria-current={active ? 'page' : undefined}
+        aria-current={
+          product.items[0] && navItemIsActive(pathname, product.items[0])
+            ? 'page'
+            : undefined
+        }
         className={`flex h-11 items-center justify-center rounded-lg ${active ? 'bg-accent text-foreground' : 'text-muted-foreground hover:bg-accent'}`}
       >
         {Icon && <Icon className="size-5" />}
@@ -65,7 +72,9 @@ export function ProductNavigation({
         type="button"
         aria-expanded={expanded}
         aria-controls={id}
-        onClick={() => setOpen(!open)}
+        onClick={() => {
+          if (!query) setOpen(!open);
+        }}
         className="flex min-h-11 w-full items-center gap-3 rounded-lg px-3 text-left text-sm font-medium hover:bg-accent"
       >
         {Icon && <Icon className="size-4" />}
@@ -77,6 +86,7 @@ export function ProductNavigation({
       <div id={id} hidden={!expanded} className="space-y-1">
         {items.map((item) => (
           <Link
+            onClick={onNavigate}
             key={item.to}
             to={item.to}
             aria-current={navItemIsActive(pathname, item) ? 'page' : undefined}

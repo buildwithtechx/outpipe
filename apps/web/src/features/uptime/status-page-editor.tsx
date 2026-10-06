@@ -48,7 +48,7 @@ export function StatusPageEditor({ orgSlug }: { orgSlug: string }) {
     (import.meta.env.DEV
       ? 'http://localhost:4322'
       : 'https://status.outpipe.dev');
-  const url = publicStatusUrl(slug, statusBase);
+  const url = publicStatusUrl(slug, statusBase, domain);
   const valid =
     validStatusSlug(slug) &&
     Boolean(title.trim()) &&
@@ -83,11 +83,22 @@ export function StatusPageEditor({ orgSlug }: { orgSlug: string }) {
   }
   if (organizationQuery.isLoading || query.isLoading)
     return <p role="status">Loading status page…</p>;
-  if (!orgId || (query.isError && !missing))
+  if (!orgId && !organizationQuery.isError)
+    return (
+      <p role="alert">Workspace not found. Choose an available workspace.</p>
+    );
+  if (organizationQuery.isError || (query.isError && !missing))
     return (
       <div role="alert">
         <p>Could not load the status page.</p>
-        <Button onClick={() => void query.refetch()} variant="outline">
+        <Button
+          onClick={() =>
+            void (organizationQuery.isError
+              ? organizationQuery.refetch()
+              : query.refetch())
+          }
+          variant="outline"
+        >
           Try again
         </Button>
       </div>

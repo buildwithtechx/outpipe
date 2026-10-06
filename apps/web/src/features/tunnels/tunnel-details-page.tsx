@@ -27,7 +27,7 @@ export function TunnelDetailsPage({
     return <TunnelPageState label="Loading tunnel details…" />;
   }
 
-  if (tunnelQuery.isError || !tunnelQuery.data) {
+  if (!tunnelQuery.data) {
     return (
       <main className="mx-auto flex min-h-[55vh] max-w-xl flex-col items-center justify-center px-6 text-center text-white">
         <CircleAlert className="size-5 text-rose-200" />
@@ -95,7 +95,11 @@ export function TunnelDetailsPage({
         <TabsContent value="requests">
           <TunnelRequestsPanel tunnel={tunnel} orgSlug={orgSlug} />
         </TabsContent>
-        <TabsContent value="settings" className="space-y-6">
+        <TabsContent
+          value="settings"
+          forceMount
+          className="space-y-6 data-[state=inactive]:hidden"
+        >
           <TunnelConfigurationForm tunnel={tunnel} />
           {(tunnel.protocol === 'http' || tunnel.protocol === 'https') && (
             <TunnelCaptureControl tunnel={tunnel} />

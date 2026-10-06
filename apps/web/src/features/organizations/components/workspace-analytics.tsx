@@ -2,6 +2,10 @@ import { useState } from 'react';
 import { Button } from '#/components/ui/button';
 import { useObservabilityStats } from '#/features/observability/hooks/use-observability';
 
+function formatBytes(value: number) {
+  return value < 1024 ? `${value} B` : `${(value / 1024).toFixed(1)} KiB`;
+}
+
 export function WorkspaceAnalytics({
   organizationId,
 }: {
@@ -22,7 +26,7 @@ export function WorkspaceAnalytics({
   const max = Math.max(1, ...points.map((point) => point[metric]));
   const format = (value: number) =>
     metric === 'bytes'
-      ? `${(value / 1024).toFixed(1)} KiB`
+      ? formatBytes(value)
       : new Intl.NumberFormat().format(value);
   return (
     <section
@@ -67,7 +71,7 @@ export function WorkspaceAnalytics({
         <p role="status" className="py-8 text-sm text-muted-foreground">
           Loading traffic…
         </p>
-      ) : query.isError ? (
+      ) : query.isError && !data ? (
         <p role="alert" className="py-8 text-sm text-rose-300">
           Traffic could not be loaded. Use Refresh to try again.
         </p>
@@ -80,10 +84,7 @@ export function WorkspaceAnalytics({
                   'Requests & spans',
                   new Intl.NumberFormat().format(data.totalRequests),
                 ],
-                [
-                  'Captured transfer',
-                  `${(data.totalBytes / 1024).toFixed(1)} KiB`,
-                ],
+                ['Captured transfer', formatBytes(data.totalBytes)],
                 ['P95 latency', `${data.p95LatencyMs} ms`],
               ].map(([label, value]) => (
                 <div

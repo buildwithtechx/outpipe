@@ -33,9 +33,10 @@ export function TunnelCreateForm({
   function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (
-      !request.targetPort ||
+      !Number.isInteger(request.targetPort) ||
       request.targetPort < 1 ||
-      request.targetPort > 65535
+      request.targetPort > 65535 ||
+      (Boolean(request.password) && (request.password?.length ?? 0) < 8)
     ) {
       return;
     }
@@ -179,6 +180,7 @@ export function TunnelCreateForm({
                   <Input
                     id="tunnel-password"
                     type="password"
+                    minLength={8}
                     autoComplete="new-password"
                     value={request.password ?? ''}
                     onChange={(event) =>

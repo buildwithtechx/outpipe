@@ -17,8 +17,14 @@ export function MobileProductNav({
     product.items.some((item) => navItemIsActive(pathname, item)),
   );
   const items =
-    current?.items.slice(0, 3) ??
-    products.flatMap((product) => product.items.slice(0, 1));
+    current?.items
+      .slice()
+      .sort(
+        (a, b) =>
+          Number(navItemIsActive(pathname, b)) -
+          Number(navItemIsActive(pathname, a)),
+      )
+      .slice(0, 3) ?? products.flatMap((product) => product.items.slice(0, 1));
   return (
     <nav
       aria-label={current ? `${current.name} navigation` : 'Product navigation'}
@@ -33,8 +39,10 @@ export function MobileProductNav({
         >
           <item.icon className="size-4" />
           <span className="max-w-full truncate px-1">
-            {products.find((product) => product.items[0]?.to === item.to)
-              ?.name ?? item.label}
+            {current
+              ? item.label
+              : (products.find((product) => product.items[0]?.to === item.to)
+                  ?.name ?? item.label)}
           </span>
         </Link>
       ))}

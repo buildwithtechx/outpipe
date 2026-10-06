@@ -12,8 +12,7 @@ export function tunnelConnectCommand(
   ) {
     throw new Error('Invalid tunnel connection details');
   }
-  const protocol = tunnel.protocol === 'https' ? 'http' : tunnel.protocol;
-  return `outpipe open --port ${tunnel.targetPort} --protocol ${protocol} --tunnel-id ${tunnel.id}`;
+  return `outpipe open --port ${tunnel.targetPort} --protocol ${tunnel.protocol} --tunnel-id ${tunnel.id}`;
 }
 
 export function publicTunnelEndpoint(

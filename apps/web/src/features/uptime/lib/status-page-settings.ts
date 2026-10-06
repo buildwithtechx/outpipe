@@ -11,14 +11,23 @@ export function validStatusDomain(domain: string) {
   );
 }
 
-export function publicStatusUrl(slug: string, base: string) {
-  const url = new URL(base);
-  if (
-    !['http:', 'https:'].includes(url.protocol) ||
-    url.username ||
-    url.password ||
-    /[?#]/.test(base)
-  )
-    throw new Error('Invalid status site URL');
-  return `${url.href.replace(/\/$/, '')}/${encodeURIComponent(slug)}`;
+export function publicStatusUrl(
+  slug: string,
+  base: string,
+  domain = '',
+): string | null {
+  if (!validStatusSlug(slug) || !validStatusDomain(domain)) return null;
+  try {
+    const url = new URL(domain ? `https://${domain}` : base);
+    if (
+      !['http:', 'https:'].includes(url.protocol) ||
+      url.username ||
+      url.password ||
+      (!domain && /[?#]/.test(base))
+    )
+      return null;
+    return `${url.href.replace(/\/$/, '')}/${encodeURIComponent(slug)}`;
+  } catch {
+    return null;
+  }
 }

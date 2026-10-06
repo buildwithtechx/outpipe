@@ -212,7 +212,7 @@ func (r *GormObservabilityRepository) GetStats(ctx context.Context, orgID string
 		bStart := since.Add(time.Duration(i) * bucketDuration)
 		bEnd := bStart.Add(bucketDuration)
 		chartData[i] = models.TimeSeriesDataPoint{
-			Time: bStart.Format("15:04"),
+			Time: bStart.UTC().Format(time.RFC3339),
 		}
 		for _, c := range captures {
 			if c.Timestamp.After(bStart) && c.Timestamp.Before(bEnd) {

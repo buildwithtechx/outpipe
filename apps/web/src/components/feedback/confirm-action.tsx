@@ -13,6 +13,7 @@ export function ConfirmAction({
   title,
   description,
   label,
+  accessibleLabel,
   pending,
   disabled = false,
   onConfirm,
@@ -20,6 +21,7 @@ export function ConfirmAction({
   title: string;
   description: string;
   label: string;
+  accessibleLabel?: string;
   pending: boolean;
   disabled?: boolean;
   onConfirm: () => Promise<unknown>;
@@ -40,6 +42,7 @@ export function ConfirmAction({
       <Button
         type="button"
         variant="outline"
+        aria-label={accessibleLabel}
         disabled={pending || disabled}
         onClick={() => {
           setError(false);

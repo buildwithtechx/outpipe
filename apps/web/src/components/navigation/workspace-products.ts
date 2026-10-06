@@ -1,52 +1,11 @@
-import { Activity, Cable, LineChart, Lock } from 'lucide-react';
-import type { NavGroup } from './constants';
+import { getWorkspaceNavItems, type NavGroup } from './constants';
 
 export function getWorkspaceProducts(orgSlug: string): NavGroup[] {
-  const base = `/${orgSlug}`;
-  return [
-    {
-      name: 'Tunnels',
-      items: [
-        { label: 'Overview', to: base, icon: Cable, exact: true },
-        { label: 'Tunnels', to: `${base}/tunnels`, icon: Cable },
-        { label: 'Requests', to: `${base}/requests`, icon: Activity },
-        { label: 'Agents', to: `${base}/agents`, icon: Activity },
-        { label: 'Domains', to: `${base}/domains`, icon: Cable },
-      ],
-    },
-    {
-      name: 'Observability',
-      items: [
-        {
-          label: 'Traces, logs & captures',
-          to: `${base}/observability`,
-          icon: Activity,
-        },
-      ],
-    },
-    {
-      name: 'Secrets',
-      items: [
-        { label: 'Vaults & environments', to: `${base}/secrets`, icon: Lock },
-      ],
-    },
-    {
-      name: 'Uptime',
-      items: [
-        {
-          label: 'Monitors & incidents',
-          to: `${base}/uptime`,
-          icon: LineChart,
-          exact: true,
-        },
-        {
-          label: 'Status page',
-          to: `${base}/uptime/status-page`,
-          icon: LineChart,
-        },
-      ],
-    },
-  ];
+  const items = getWorkspaceNavItems(orgSlug);
+  return ['Tunnels', 'Observability', 'Secrets', 'Uptime'].map((name) => ({
+    name,
+    items: items.filter((item) => item.product === name),
+  }));
 }
 
 export function navItemIsActive(

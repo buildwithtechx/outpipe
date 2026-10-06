@@ -32,16 +32,10 @@ export function TerminalWindow() {
     if (reducedMotion) return;
     let nextRequest = 8;
     const timer = setInterval(() => {
-      setVisibleRequests((current) => [
-        ...current.slice(1),
-        {
-          request:
-            terminalRequestSequence[
-              nextRequest % terminalRequestSequence.length
-            ],
-          id: nextRequest++,
-        },
-      ]);
+      const id = nextRequest++;
+      const request =
+        terminalRequestSequence[id % terminalRequestSequence.length];
+      setVisibleRequests((current) => [...current.slice(1), { request, id }]);
     }, 1400);
 
     return () => clearInterval(timer);

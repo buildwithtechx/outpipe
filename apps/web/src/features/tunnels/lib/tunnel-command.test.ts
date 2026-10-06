@@ -8,7 +8,7 @@ it('connects an existing tunnel with flags accepted by the CLI', () => {
       protocol: 'https',
       targetPort: 3000,
     }),
-  ).toBe('outpipe open --port 3000 --protocol http --tunnel-id tunnel_123');
+  ).toBe('outpipe open --port 3000 --protocol https --tunnel-id tunnel_123');
   expect(
     tunnelConnectCommand({ id: 'raw-id', protocol: 'udp', targetPort: 65535 }),
   ).toContain('--protocol udp');

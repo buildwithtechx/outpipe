@@ -108,7 +108,7 @@ export function ProjectModal({
                 placeholder="e.g. core-api"
                 value={slug}
                 onChange={(e) => {
-                  setSlugEdited(true);
+                  setSlugEdited(Boolean(e.target.value));
                   setSlug(e.target.value);
                 }}
                 className="border-white/10 bg-white/5 text-xs font-mono text-white placeholder-white/30"

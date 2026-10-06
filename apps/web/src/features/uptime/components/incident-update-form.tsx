@@ -28,6 +28,7 @@ export function IncidentUpdateForm({ incident }: { incident: UptimeIncident }) {
         size="sm"
         onClick={() => {
           setStatus(incident.status);
+          setMessage('');
           setOpen(true);
         }}
       >

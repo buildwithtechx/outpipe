@@ -6,7 +6,12 @@ export function QueryFeedback({
   label,
   children,
 }: {
-  query: { isLoading: boolean; isError: boolean; refetch: () => unknown };
+  query: {
+    isLoading: boolean;
+    isError: boolean;
+    data?: unknown;
+    refetch: () => unknown;
+  };
   label: string;
   children: ReactNode;
 }) {
@@ -16,7 +21,7 @@ export function QueryFeedback({
         Loading {label}...
       </p>
     );
-  if (query.isError)
+  if (query.isError && query.data === undefined)
     return (
       <div
         role="alert"

@@ -93,6 +93,7 @@ export function DashboardSidebar({
             collapsed={compact}
             query={query}
             pathname={pathname}
+            onNavigate={() => setMobileOpen(false)}
           />
         ))}
         <div className="space-y-1 border-t border-border pt-4">
@@ -105,6 +106,7 @@ export function DashboardSidebar({
             )
             .map((item) => (
               <Link
+                onClick={() => setMobileOpen(false)}
                 key={item.to}
                 to={item.to}
                 title={item.label}
@@ -137,6 +139,7 @@ export function DashboardSidebar({
       </nav>
       {!compact && (
         <Link
+          onClick={() => setMobileOpen(false)}
           to="/docs/$"
           params={{ _splat: 'installation' }}
           className="rounded-xl border border-border p-3 text-sm text-muted-foreground hover:text-foreground"

@@ -95,15 +95,24 @@ export function SecretsPage({ orgSlug }: { orgSlug: string }) {
     return <p className="p-8 text-sm text-white/55">Loading Secrets Vault…</p>;
   }
 
-  if (!orgId || projectQuery.isError)
+  if (!orgId && !organizationQuery.isError)
+    return (
+      <p role="alert">Workspace not found. Choose an available workspace.</p>
+    );
+
+  if (organizationQuery.isError || projectQuery.isError)
     return (
       <div role="alert" className="space-y-3">
-        <p>Could not load secrets projects.</p>
+        <p>
+          {organizationQuery.isError
+            ? 'Could not load the workspace.'
+            : 'Could not load secrets projects.'}
+        </p>
         <Button
           variant="outline"
           onClick={() => {
-            void organizationQuery.refetch();
-            void projectQuery.refetch();
+            if (organizationQuery.isError) void organizationQuery.refetch();
+            else if (orgId) void projectQuery.refetch();
           }}
         >
           Try again
@@ -280,7 +289,11 @@ export function SecretsPage({ orgSlug }: { orgSlug: string }) {
               secrets={secrets}
               reveal={reveal}
               environmentSelected={Boolean(activeEnvId)}
-              deleting={mutations.removeSecret.isPending}
+              pendingDeleteId={
+                mutations.removeSecret.isPending
+                  ? mutations.removeSecret.variables
+                  : undefined
+              }
               onDelete={(id) => mutations.removeSecret.mutateAsync(id)}
             />
           </QueryFeedback>

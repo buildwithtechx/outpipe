@@ -1,6 +1,6 @@
 import { useNavigate } from '@tanstack/react-router';
 import { Search } from 'lucide-react';
-import { type KeyboardEvent, useEffect, useRef, useState } from 'react';
+import { type KeyboardEvent, useEffect, useId, useRef, useState } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -26,6 +26,8 @@ export function CommandPalette({
   isPlatformAdmin?: boolean;
 }) {
   const [search, setSearch] = useState('');
+  const [selected, setSelected] = useState(0);
+  const listId = useId();
   const results = useRef<HTMLDivElement>(null);
   const input = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
@@ -40,7 +42,10 @@ export function CommandPalette({
     return () => window.removeEventListener('keydown', hotkey);
   }, [open, onOpenChange]);
   useEffect(() => {
-    if (!open) setSearch('');
+    if (!open) {
+      setSearch('');
+      setSelected(0);
+    }
   }, [open]);
   const items = [
     ...getWorkspaceNavItems(orgSlug),
@@ -62,10 +67,7 @@ export function CommandPalette({
     );
     if (!buttons.length) return;
     event.preventDefault();
-    const index =
-      document.activeElement instanceof HTMLButtonElement
-        ? buttons.indexOf(document.activeElement)
-        : -1;
+    const index = selected;
     const next =
       event.key === 'Home'
         ? 0
@@ -77,7 +79,9 @@ export function CommandPalette({
               : 0
             : (index + (event.key === 'ArrowUp' ? -1 : 1) + buttons.length) %
               buttons.length;
-    buttons[next]?.focus();
+    setSelected(next);
+    input.current?.focus();
+    buttons[next]?.scrollIntoView({ block: 'nearest' });
   }
   function select(to: string) {
     onOpenChange(false);
@@ -105,23 +109,44 @@ export function CommandPalette({
           <Input
             ref={input}
             aria-label="Search pages"
+            role="combobox"
+            aria-expanded={open}
+            aria-controls={listId}
+            aria-autocomplete="list"
+            aria-activedescendant={
+              filtered[selected] ? `${listId}-${selected}` : undefined
+            }
             value={search}
-            onChange={(event) => setSearch(event.target.value)}
+            onChange={(event) => {
+              setSearch(event.target.value);
+              setSelected(0);
+            }}
             placeholder="Search pages…"
             className="pl-9"
             onKeyDown={(event) => {
-              if (event.key === 'Enter' && filtered[0]) select(filtered[0].to);
+              if (event.key === 'Enter' && filtered[selected])
+                select(filtered[selected].to);
             }}
           />
         </div>
-        <div ref={results} className="max-h-80 space-y-1 overflow-y-auto">
-          {filtered.map((item) => (
+        <div
+          id={listId}
+          role="listbox"
+          aria-label="Pages"
+          ref={results}
+          className="max-h-80 space-y-1 overflow-y-auto"
+        >
+          {filtered.map((item, index) => (
             <button
               key={item.to}
               data-command
+              id={`${listId}-${index}`}
+              role="option"
+              aria-selected={selected === index}
+              tabIndex={-1}
               type="button"
               onClick={() => select(item.to)}
-              className="flex min-h-11 w-full items-center gap-3 rounded-xl p-3 text-left text-sm hover:bg-accent focus:bg-accent"
+              className={`flex min-h-11 w-full items-center gap-3 rounded-xl p-3 text-left text-sm hover:bg-accent ${selected === index ? 'bg-accent' : ''}`}
             >
               <item.icon className="size-4 shrink-0 text-muted-foreground" />
               <span>

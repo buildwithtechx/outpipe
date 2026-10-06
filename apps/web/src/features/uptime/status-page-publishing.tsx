@@ -20,11 +20,14 @@ export function StatusPagePublishing({
   saved,
   onChange,
 }: PublishingDraft & {
-  url: string;
+  url: string | null;
   statusBase: string;
   saved?: UptimeStatusPage;
   onChange: (changes: Partial<PublishingDraft>) => void;
 }) {
+  const savedUrl = saved
+    ? publicStatusUrl(saved.slug, statusBase, saved.customDomain)
+    : null;
   return (
     <TabsContent
       value="publishing"
@@ -45,7 +48,14 @@ export function StatusPagePublishing({
           changes its public link.
         </p>
       </div>
-      <CopyCommand text={url} label="Copy status page URL" />
+      {url ? (
+        <CopyCommand text={url} label="Copy status page URL" />
+      ) : (
+        <p role="alert" className="text-sm text-amber-300">
+          A public URL is unavailable. Check the slug, domain and status site
+          URL configuration.
+        </p>
+      )}
       <div className="space-y-2">
         <Label htmlFor="status-domain">Custom domain (optional)</Label>
         <Input
@@ -75,9 +85,9 @@ export function StatusPagePublishing({
           Publish this page for anyone with the link
         </span>
       </label>
-      {saved?.isPublic && (
+      {saved?.isPublic && savedUrl && (
         <a
-          href={publicStatusUrl(saved.slug, statusBase)}
+          href={savedUrl}
           target="_blank"
           rel="noopener noreferrer"
           className="inline-block text-sm text-indigo-200 underline"

@@ -5,13 +5,13 @@ export function SecretVariablesTable({
   secrets,
   reveal,
   environmentSelected,
-  deleting,
+  pendingDeleteId,
   onDelete,
 }: {
   secrets: SecretItem[];
   reveal: boolean;
   environmentSelected: boolean;
-  deleting: boolean;
+  pendingDeleteId?: string;
   onDelete: (id: string) => Promise<unknown>;
 }) {
   return (
@@ -26,7 +26,10 @@ export function SecretVariablesTable({
           define one.
         </div>
       ) : (
-        <table className="w-full text-left text-xs">
+        <table
+          aria-label="Secret variables"
+          className="w-full text-left text-xs"
+        >
           <thead>
             <tr className="border-b border-white/10 bg-white/5 text-white/60">
               <th className="py-2.5 px-4 font-medium">Key</th>
@@ -61,7 +64,8 @@ export function SecretVariablesTable({
                     title={`Delete ${item.key}?`}
                     description="Remove this variable from the selected environment."
                     label="Delete"
-                    pending={deleting}
+                    accessibleLabel={`Delete ${item.key}`}
+                    pending={pendingDeleteId === item.id}
                     onConfirm={() => onDelete(item.id)}
                   />
                 </td>

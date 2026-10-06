@@ -178,6 +178,9 @@
 }
 
 @media (max-width: 600px) {
+  .product-surface [data-slot="tabs-list"] {
+    height: auto;
+  }
   .product-surface :where([data-slot="button"], [data-slot="tabs-trigger"], [data-slot="select-trigger"], [data-slot="input"]) {
     min-height: var(--brand-control-height);
   }

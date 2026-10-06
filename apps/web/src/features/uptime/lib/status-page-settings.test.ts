@@ -41,8 +41,10 @@ it('builds local and hosted URLs while preserving an existing base path', () => 
   expect(publicStatusUrl('service', 'https://status.example.com/pages/')).toBe(
     'https://status.example.com/pages/service',
   );
-  expect(publicStatusUrl('a/b', 'https://status.example.com')).toBe(
-    'https://status.example.com/a%2Fb',
+  expect(publicStatusUrl('a/b', 'https://status.example.com')).toBeNull();
+  expect(publicStatusUrl('..', 'https://status.example.com')).toBeNull();
+  expect(publicStatusUrl('service', 'broken-base', 'status.custom.com')).toBe(
+    'https://status.custom.com/service',
   );
 });
 
@@ -52,5 +54,5 @@ it.each([
   'https://example.com?next=evil',
   'https://example.com#private',
 ])('rejects unsafe status site configuration %s', (base) => {
-  expect(() => publicStatusUrl('service', base)).toThrow();
+  expect(publicStatusUrl('service', base)).toBeNull();
 });

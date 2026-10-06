@@ -24,6 +24,7 @@ export interface NavItem {
   icon: ComponentType<{ className?: string }>;
   exact?: boolean;
   desc?: string;
+  product?: 'Tunnels' | 'Observability' | 'Secrets' | 'Uptime';
 }
 
 export interface NavGroup {
@@ -38,6 +39,7 @@ export function getWorkspaceNavGroups(orgSlug: string): NavGroup[] {
       items: [
         {
           label: 'Overview',
+          product: 'Tunnels',
           to: `/${orgSlug}`,
           icon: Layers,
           exact: true,
@@ -45,24 +47,28 @@ export function getWorkspaceNavGroups(orgSlug: string): NavGroup[] {
         },
         {
           label: 'Tunnels',
+          product: 'Tunnels',
           to: `/${orgSlug}/tunnels`,
           icon: Cable,
           desc: 'Manage active tunnels & ports',
         },
         {
           label: 'Agents',
+          product: 'Tunnels',
           to: `/${orgSlug}/agents`,
           icon: Radio,
           desc: 'Connected Outpipe CLI agents',
         },
         {
           label: 'Custom Domains',
+          product: 'Tunnels',
           to: `/${orgSlug}/domains`,
           icon: Globe,
           desc: 'Custom hostnames & certificates',
         },
         {
           label: 'Live Requests',
+          product: 'Tunnels',
           to: `/${orgSlug}/requests`,
           icon: Activity,
           desc: 'Realtime tunnel traffic stream',
@@ -74,24 +80,29 @@ export function getWorkspaceNavGroups(orgSlug: string): NavGroup[] {
       items: [
         {
           label: 'Observability',
+          product: 'Observability',
           to: `/${orgSlug}/observability`,
           icon: Activity,
           desc: 'Distributed traces, logs & request inspection',
         },
         {
           label: 'Uptime & Status',
+          product: 'Uptime',
+          exact: true,
           to: `/${orgSlug}/uptime`,
           icon: LineChart,
           desc: 'Health probes, incidents & status page',
         },
         {
           label: 'Status page',
+          product: 'Uptime',
           to: `/${orgSlug}/uptime/status-page`,
           icon: Globe,
           desc: 'Preview content and publish service health',
         },
         {
           label: 'Secrets Vault',
+          product: 'Secrets',
           to: `/${orgSlug}/secrets`,
           icon: Lock,
           desc: 'Encrypted environment variables & shares',

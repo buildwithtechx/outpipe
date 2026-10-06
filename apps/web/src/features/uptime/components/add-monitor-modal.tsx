@@ -95,6 +95,7 @@ export function AddMonitorModal({
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4 pt-2">
           <fieldset disabled={isSaving} className="contents space-y-4">
+            <legend className="sr-only">Monitor settings</legend>
             {error && (
               <p role="alert" className="text-sm text-rose-300">
                 Could not save. Your input has been kept; please try again.
