@@ -121,6 +121,7 @@ export function updateStatusPageConfig(
     title: string;
     description: string;
     is_public: boolean;
+    customDomain?: string;
   },
 ) {
   return apiClient
@@ -131,6 +132,7 @@ export function updateStatusPageConfig(
         title: input.title,
         description: input.description,
         published: input.is_public,
+        customDomain: input.customDomain,
       },
     )
     .then((page) => ({ ...page, isPublic: page.published }));

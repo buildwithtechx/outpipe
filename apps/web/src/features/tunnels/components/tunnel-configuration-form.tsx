@@ -10,21 +10,26 @@ export function TunnelConfigurationForm({ tunnel }: { tunnel: Tunnel }) {
   const mutation = useTunnelConfigurationMutation(tunnel.id);
   const [expiresAt, setExpiresAt] = useState(toInputDate(tunnel.expiresAt));
   const [accessPolicy, setAccessPolicy] = useState(tunnel.accessPolicy || '{}');
+  const [dirty, setDirty] = useState(false);
 
   useEffect(() => {
+    if (dirty) return;
     setExpiresAt(toInputDate(tunnel.expiresAt));
     setAccessPolicy(tunnel.accessPolicy || '{}');
-  }, [tunnel.expiresAt, tunnel.accessPolicy]);
+  }, [tunnel.expiresAt, tunnel.accessPolicy, dirty]);
 
   const save = () => {
     try {
       const parsed = JSON.parse(accessPolicy);
       if (!parsed || Array.isArray(parsed) || typeof parsed !== 'object')
         throw new Error();
-      mutation.mutate({
-        accessPolicy: JSON.stringify(parsed),
-        expiresAt: expiresAt ? new Date(expiresAt).toISOString() : undefined,
-      });
+      mutation.mutate(
+        {
+          accessPolicy: JSON.stringify(parsed),
+          expiresAt: expiresAt ? new Date(expiresAt).toISOString() : undefined,
+        },
+        { onSuccess: () => setDirty(false) },
+      );
     } catch {
       mutation.reset();
       window.alert('Access policy must be a JSON object.');
@@ -46,12 +51,14 @@ export function TunnelConfigurationForm({ tunnel }: { tunnel: Tunnel }) {
           <Input
             id="tunnel-expires"
             type="datetime-local"
+            disabled={mutation.isPending}
             value={expiresAt}
             onChange={(event) => {
               if (!mutation.isPending) {
                 mutation.reset();
               }
               setExpiresAt(event.target.value);
+              setDirty(true);
             }}
             className="border-white/10 bg-black text-white"
           />
@@ -65,12 +72,14 @@ export function TunnelConfigurationForm({ tunnel }: { tunnel: Tunnel }) {
           </Label>
           <Textarea
             id="tunnel-policy"
+            disabled={mutation.isPending}
             value={accessPolicy}
             onChange={(event) => {
               if (!mutation.isPending) {
                 mutation.reset();
               }
               setAccessPolicy(event.target.value);
+              setDirty(true);
             }}
             rows={4}
             className="border-white/10 bg-black font-mono text-sm text-white"

@@ -7,5 +7,7 @@ export const Route = createFileRoute('/$orgSlug/tunnels/$tunnelId')({
 
 function TunnelDetailsRoute() {
   const { orgSlug, tunnelId } = Route.useParams();
-  return <TunnelDetailsPage orgSlug={orgSlug} tunnelID={tunnelId} />;
+  return (
+    <TunnelDetailsPage key={tunnelId} orgSlug={orgSlug} tunnelID={tunnelId} />
+  );
 }

@@ -1,3 +1,4 @@
+import { Link } from '@tanstack/react-router';
 import {
   Activity,
   AlertTriangle,
@@ -6,9 +7,9 @@ import {
   Plus,
   RefreshCw,
   Settings,
-  Trash2,
 } from 'lucide-react';
 import { useState } from 'react';
+import { ConfirmAction } from '#/components/feedback/confirm-action';
 import { Badge } from '#/components/ui/badge';
 import { Button } from '#/components/ui/button';
 import { Card } from '#/components/ui/card';
@@ -16,28 +17,27 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '#/components/ui/tabs';
 import { useOrganization } from '#/features/organizations/hooks/use-organization';
 import { AddMonitorModal } from './components/add-monitor-modal';
 import { IncidentModal } from './components/incident-modal';
+import { IncidentUpdateForm } from './components/incident-update-form';
 import { MonitorStatusBadge } from './components/monitor-status-badge';
-import { StatusPageModal } from './components/status-page-modal';
 import {
   useIncidents,
   useMonitors,
-  useStatusPageConfig,
   useUptimeMutations,
 } from './hooks/use-uptime';
 
 export function UptimePage({ orgSlug }: { orgSlug: string }) {
-  const { organization } = useOrganization(orgSlug);
+  const organizationQuery = useOrganization(orgSlug);
+  const { organization } = organizationQuery;
   const orgId = organization?.id;
 
-  const { data: monitors = [], isLoading: loadingMonitors } =
-    useMonitors(orgId);
-  const { data: incidents = [] } = useIncidents(orgId);
-  const { data: statusPage } = useStatusPageConfig(orgId);
+  const monitorQuery = useMonitors(orgId);
+  const { data: monitors = [], isLoading: loadingMonitors } = monitorQuery;
+  const incidentQuery = useIncidents(orgId);
+  const { data: incidents = [] } = incidentQuery;
   const mutations = useUptimeMutations(orgId || '');
 
   const [showAddMonitor, setShowAddMonitor] = useState(false);
   const [showIncidentModal, setShowIncidentModal] = useState(false);
-  const [showStatusModal, setShowStatusModal] = useState(false);
 
   const healthyCount = monitors.filter((m) => m.status === 'up').length;
   const downCount = monitors.filter((m) => m.status === 'down').length;
@@ -66,28 +66,34 @@ export function UptimePage({ orgSlug }: { orgSlug: string }) {
     setShowIncidentModal(false);
   };
 
-  const handleSaveStatusPage = async (input: {
-    slug: string;
-    title: string;
-    description: string;
-    is_public: boolean;
-  }) => {
-    await mutations.saveStatusPage.mutateAsync(input);
-    setShowStatusModal(false);
-  };
-
-  if (loadingMonitors) {
+  if (organizationQuery.isLoading || loadingMonitors) {
     return (
       <p className="p-8 text-sm text-white/55">Loading Uptime Monitors…</p>
     );
   }
 
+  if (!orgId || monitorQuery.isError)
+    return (
+      <div role="alert" className="space-y-3">
+        <p>Could not load uptime monitors.</p>
+        <Button
+          variant="outline"
+          onClick={() => {
+            void organizationQuery.refetch();
+            void monitorQuery.refetch();
+          }}
+        >
+          Try again
+        </Button>
+      </div>
+    );
+
   return (
-    <div className="space-y-8 p-6 lg:p-10 max-w-7xl mx-auto text-white">
+    <div className="space-y-8 text-foreground">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/10 pb-6">
         <div>
           <div className="flex items-center gap-2.5">
-            <div className="flex size-9 items-center justify-center rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400">
+            <div className="flex size-9 items-center justify-center rounded-xl bg-indigo-300/10 border border-indigo-300/20 text-indigo-200">
               <LineChart className="size-5" />
             </div>
             <h1 className="text-2xl font-bold tracking-tight text-white">
@@ -101,13 +107,15 @@ export function UptimePage({ orgSlug }: { orgSlug: string }) {
         </div>
         <div className="flex flex-wrap items-center gap-2.5">
           <Button
+            asChild
             variant="outline"
             size="sm"
-            onClick={() => setShowStatusModal(true)}
             className="border-white/10 bg-white/5 text-xs text-white hover:bg-white/10"
           >
-            <Settings className="mr-1.5 size-3.5" />
-            Status Page Settings
+            <Link to="/$orgSlug/uptime/status-page" params={{ orgSlug }}>
+              <Settings className="mr-1.5 size-3.5" />
+              Manage status page
+            </Link>
           </Button>
           <Button
             variant="outline"
@@ -121,7 +129,7 @@ export function UptimePage({ orgSlug }: { orgSlug: string }) {
           <Button
             size="sm"
             onClick={() => setShowAddMonitor(true)}
-            className="bg-emerald-600 hover:bg-emerald-500 text-xs text-white"
+            className="bg-primary hover:bg-primary/90 text-xs text-primary-foreground"
           >
             <Plus className="mr-1.5 size-3.5" />
             Add Monitor
@@ -231,14 +239,15 @@ export function UptimePage({ orgSlug }: { orgSlug: string }) {
                             <RefreshCw className="size-3 mr-1" />
                             Test
                           </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => mutations.removeMonitor.mutate(m.id)}
-                            className="h-7 text-xs border-rose-500/20 text-rose-400 hover:bg-rose-500/10"
-                          >
-                            <Trash2 className="size-3" />
-                          </Button>
+                          <ConfirmAction
+                            title={`Delete ${m.name}?`}
+                            description="This removes the monitor and its health checks from your workspace and public status page."
+                            label="Delete"
+                            pending={mutations.removeMonitor.isPending}
+                            onConfirm={() =>
+                              mutations.removeMonitor.mutateAsync(m.id)
+                            }
+                          />
                         </td>
                       </tr>
                     );
@@ -250,14 +259,27 @@ export function UptimePage({ orgSlug }: { orgSlug: string }) {
         </TabsContent>
 
         <TabsContent value="incidents" className="mt-0 space-y-4">
-          {incidents.length === 0 ? (
+          {incidentQuery.isError ? (
+            <p role="alert">
+              Could not load incidents.{' '}
+              <Button
+                variant="outline"
+                onClick={() => void incidentQuery.refetch()}
+              >
+                Try again
+              </Button>
+            </p>
+          ) : incidentQuery.isLoading ? (
+            <p role="status">Loading incidents...</p>
+          ) : incidents.length === 0 ? (
             <div className="rounded-xl border border-white/10 bg-white/5 p-12 text-center">
               <CheckCircle2 className="size-10 text-emerald-400/30 mx-auto mb-3" />
               <h3 className="text-sm font-medium text-white">
                 No incidents logged
               </h3>
               <p className="text-xs text-white/50 mt-1">
-                All monitored systems are operational.
+                No incidents have been reported. Check monitors for current
+                service health.
               </p>
             </div>
           ) : (
@@ -281,6 +303,12 @@ export function UptimePage({ orgSlug }: { orgSlug: string }) {
                   <span className="text-xs text-white/40">
                     {new Date(inc.startedAt).toLocaleString()}
                   </span>
+                </div>
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <span className="text-sm capitalize text-muted-foreground">
+                    {inc.status}
+                  </span>
+                  <IncidentUpdateForm incident={inc} />
                 </div>
                 <div className="space-y-1.5 pl-3 border-l-2 border-white/10 text-xs">
                   {(inc.updates ?? []).map((u) => (
@@ -309,16 +337,6 @@ export function UptimePage({ orgSlug }: { orgSlug: string }) {
         onClose={() => setShowIncidentModal(false)}
         onSave={handleCreateIncident}
         isSaving={mutations.addIncident.isPending}
-      />
-      <StatusPageModal
-        isOpen={showStatusModal}
-        onClose={() => setShowStatusModal(false)}
-        initialSlug={statusPage?.slug}
-        initialTitle={statusPage?.title}
-        initialDescription={statusPage?.description}
-        initialIsPublic={statusPage?.isPublic}
-        onSave={handleSaveStatusPage}
-        isSaving={mutations.saveStatusPage.isPending}
       />
     </div>
   );

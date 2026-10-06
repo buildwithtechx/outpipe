@@ -16,6 +16,8 @@ export function useOrganizationTunnels(orgSlug: string) {
     queryKey: ['tunnels', organization?.id],
     queryFn: () => getTunnels(organization?.id ?? ''),
     enabled: Boolean(organization?.id),
+    refetchInterval: 15000,
+    refetchIntervalInBackground: false,
   });
 
   return { organization, organizationsQuery, tunnelsQuery };

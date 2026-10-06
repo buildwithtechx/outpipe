@@ -14,7 +14,13 @@ import (
 func newMachineTunnelCommand(cfg config.CLIConfig) *cobra.Command {
 	port := 3000
 	protocolName := "http"
+	var originTLS client.OriginTLSConfig
 	command := &cobra.Command{Use: "machine-tunnel NAME", Short: "create and connect a tunnel using a scoped machine credential", Args: cobra.ExactArgs(1), RunE: func(cmd *cobra.Command, args []string) error {
+		originClient, err := prepareOriginClient(protocolName, originTLS)
+		if err != nil {
+			return err
+		}
+		defer originClient.CloseIdleConnections()
 		token := cliEnvValue("OUTPIPE_MACHINE_TOKEN")
 		if token == "" {
 			token = cliEnvValue("OUTPIPE_TOKEN")
@@ -43,12 +49,14 @@ func newMachineTunnelCommand(cfg config.CLIConfig) *cobra.Command {
 		ctx, cancel := context.WithDeadline(cmd.Context(), response.ExpiresAt)
 		defer cancel()
 		cfg.APIKey = ""
-		if err := openTunnel(ctx, cfg, port, protocolName, "", "", response.RelayToken, response.Tunnel.ID); err != nil {
+		if err := openTunnel(ctx, cfg, port, protocolName, "", "", response.RelayToken, response.Tunnel.ID, originClient); err != nil {
 			return fmt.Errorf("connect machine tunnel: %w", err)
 		}
 		return nil
 	}}
 	command.Flags().IntVar(&port, "port", port, "local port")
-	command.Flags().StringVar(&protocolName, "protocol", protocolName, "tunnel protocol (http, tcp, udp)")
+	command.Flags().StringVar(&protocolName, "protocol", protocolName, "tunnel protocol (http, https, tcp, udp)")
+	command.Flags().StringVar(&originTLS.CAFile, "origin-ca", "", "PEM CA certificate file for the local HTTPS service")
+	command.Flags().StringVar(&originTLS.ServerName, "origin-server-name", "", "TLS certificate hostname for the local HTTPS service")
 	return command
 }

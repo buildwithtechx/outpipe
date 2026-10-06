@@ -4,6 +4,7 @@ import { Button } from '#/components/ui/button';
 import { TunnelPageState } from '#/features/tunnels/components/tunnel-page-state';
 import { TunnelStatusBadge } from '#/features/tunnels/components/tunnel-status-badge';
 import { useOrganizationTunnels } from '#/features/tunnels/hooks/use-organization-tunnels';
+import { WorkspaceAnalytics } from './components/workspace-analytics';
 
 export function OrganizationOverviewPage({ orgSlug }: { orgSlug: string }) {
   const { organization, organizationsQuery, tunnelsQuery } =
@@ -62,7 +63,7 @@ export function OrganizationOverviewPage({ orgSlug }: { orgSlug: string }) {
             Workspace overview
           </h1>
           <p className="mt-3 max-w-2xl text-sm leading-6 text-white/55 sm:text-base">
-            A quiet view of the services your team has made reachable.
+            Connection health, traffic and the next step for your workspace.
           </p>
         </div>
         <Button
@@ -110,7 +111,8 @@ export function OrganizationOverviewPage({ orgSlug }: { orgSlug: string }) {
               Recent tunnels
             </h2>
             <p className="mt-1 text-sm text-white/45">
-              The latest endpoints configured in this workspace.
+              The latest endpoints configured in this workspace. Open one to
+              connect its agent or inspect traffic.
             </p>
           </div>
           <Link
@@ -147,6 +149,7 @@ export function OrganizationOverviewPage({ orgSlug }: { orgSlug: string }) {
           </div>
         )}
       </section>
+      <WorkspaceAnalytics organizationId={organization.id} />
     </div>
   );
 }

@@ -39,7 +39,7 @@
     "typecheck": "npm run generate-routes && tsc --noEmit -p apps/web/tsconfig.json",
     "typecheck:packages": "npm run build:types --workspace packages/sdk && npm run typecheck --workspace packages/sdk && npm run typecheck --workspace packages/shared && npm run typecheck --workspace packages/hono && npm run typecheck --workspace packages/tanstack-start && npm run typecheck --workspace packages/react && npm run typecheck --workspace packages/vite-plugin && npm run typecheck --workspace packages/next && npm run typecheck --workspace packages/nest && npm run typecheck --workspace packages/express && npm run typecheck --workspace packages/angular",
     "test": "go test ./... && npm run test --workspaces --if-present && npm run test:go-sdk && npm run test:rust-sdk && npm run test:php",
-    "test:product-contracts": "vitest run apps/status/src/api.test.ts apps/web/src/features/observability/services/observability-response.test.ts packages/shared/index.test.ts",
+    "test:product-contracts": "vitest run apps/status/src/api.test.ts apps/web/src/features/observability/services/observability-response.test.ts apps/web/src/features/tunnels/lib/tunnel-command.test.ts apps/web/src/features/uptime/lib/status-page-settings.test.ts apps/web/src/components/navigation/workspace-products.test.ts packages/shared/index.test.ts",
     "test:go-sdk": "cd packages/go && go vet ./... && go test ./...",
     "test:rust-sdk": "cargo fmt --manifest-path packages/rust/Cargo.toml --all -- --check && cargo test --manifest-path packages/rust/Cargo.toml",
     "test:php": "cd packages/php && composer validate --strict --no-check-publish && composer test && composer check",
@@ -56,6 +56,9 @@
     "vitest": "^5.0.3"
   },
   "overrides": {
+    "seroval": "^1.6.7",
+    "source-map-js": "^1.2.2",
+    "postcss-selector-parser": "^7.1.6",
     "esbuild": "0.28.1",
     "postcss": "8.5.24",
     "sharp": "^0.35.4",

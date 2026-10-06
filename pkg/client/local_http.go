@@ -5,14 +5,11 @@ import (
 	"encoding/base64"
 	"io"
 	"net/http"
-	"strings"
-	"time"
-
-	"outpipe.dev/outpipe/internal/infra/httpclient"
 	"outpipe.dev/outpipe/pkg/protocol"
+	"strings"
 )
 
-func (c *RelayConnection) forwardHTTP(ctx context.Context, targetURL string, incoming protocol.HTTPRequest) protocol.HTTPResponse {
+func (c *RelayConnection) forwardHTTP(ctx context.Context, targetURL string, incoming protocol.HTTPRequest, originClient *http.Client) protocol.HTTPResponse {
 	body, err := base64.StdEncoding.DecodeString(incoming.Body)
 
 	if err != nil {
@@ -32,7 +29,7 @@ func (c *RelayConnection) forwardHTTP(ctx context.Context, targetURL string, inc
 		}
 	}
 
-	response, err := httpclient.New(90 * time.Second).Do(request)
+	response, err := originClient.Do(request)
 
 	if err != nil {
 		return protocol.HTTPResponse{Error: err.Error()}

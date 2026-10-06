@@ -13,6 +13,10 @@
   --brand-primary-text: #080b14;
   --brand-radius: 0.625rem;
   --brand-font: "Geom", ui-sans-serif, system-ui, sans-serif;
+  --brand-control-height: 44px;
+  --brand-space: 0.25rem;
+  --brand-duration: 160ms;
+  --brand-radius-surface: 1rem;
 }
 
 .product-header {
@@ -131,8 +135,41 @@
   font-family: inherit;
 }
 
-.product-surface {
+.product-surface.product-surface {
   color-scheme: dark;
+  --background: var(--brand-background);
+  --foreground: var(--brand-text);
+  --card: var(--brand-surface);
+  --card-foreground: var(--brand-text);
+  --popover: var(--brand-raised);
+  --popover-foreground: var(--brand-text);
+  --primary: var(--brand-primary);
+  --primary-foreground: var(--brand-primary-text);
+  --secondary: var(--brand-raised);
+  --secondary-foreground: var(--brand-text);
+  --muted: var(--brand-surface);
+  --muted-foreground: var(--brand-secondary);
+  --accent: var(--brand-raised);
+  --accent-foreground: var(--brand-text);
+  --border: var(--brand-border);
+  --input: var(--brand-border);
+  --ring: var(--brand-accent);
+  --color-fd-background: var(--brand-background);
+  --color-fd-foreground: var(--brand-text);
+  --color-fd-card: var(--brand-surface);
+  --color-fd-card-foreground: var(--brand-text);
+  --color-fd-popover: var(--brand-raised);
+  --color-fd-popover-foreground: var(--brand-text);
+  --color-fd-primary: var(--brand-accent);
+  --color-fd-primary-foreground: var(--brand-primary-text);
+  --color-fd-secondary: var(--brand-raised);
+  --color-fd-secondary-foreground: var(--brand-text);
+  --color-fd-muted: var(--brand-surface);
+  --color-fd-muted-foreground: var(--brand-secondary);
+  --color-fd-accent: var(--brand-raised);
+  --color-fd-accent-foreground: var(--brand-text);
+  --color-fd-ring: var(--brand-accent);
+  --color-fd-border: var(--brand-border);
 }
 
 .product-surface :where(a, button, input, select, textarea):focus-visible {
@@ -141,7 +178,30 @@
 }
 
 @media (max-width: 600px) {
+  .product-surface [data-slot="tabs-list"] {
+    height: auto;
+  }
+  .product-surface :where([data-slot="button"], [data-slot="tabs-trigger"], [data-slot="select-trigger"], [data-slot="input"]) {
+    min-height: var(--brand-control-height);
+  }
+  .product-surface :where([data-slot="button"][data-size^="icon"]) {
+    min-width: var(--brand-control-height);
+  }
   .product-header-inner { padding: 1rem; }
   .product-nav { gap: 0.75rem; font-size: 0.8125rem; }
   .product-label { display: none; }
+}
+
+.product-surface :where([data-slot="dialog-content"]:not(#mobile-workspace-navigation)) {
+  max-height: calc(100dvh - 2rem);
+  overflow-y: auto;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .product-surface *, .product-surface *::before, .product-surface *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

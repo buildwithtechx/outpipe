@@ -25,11 +25,12 @@ func newOpenCommand(cfg config.CLIConfig) *cobra.Command {
 func newTCPCommand(cfg config.CLIConfig) *cobra.Command {
 	command := openTunnelCommand(cfg, "tcp", "open a raw TCP tunnel from a local port")
 	command.Flags().Lookup("protocol").DefValue = "tcp"
-	command.Flags().Lookup("protocol").Usage = "tunnel protocol (tcp, udp, http)"
+	command.Flags().Lookup("protocol").Usage = "tunnel protocol (tcp, udp, http, https)"
 	return command
 }
 
 func openTunnelCommand(cfg config.CLIConfig, name, short string) *cobra.Command {
+	var originTLS client.OriginTLSConfig
 	command := &cobra.Command{
 		Use:   name,
 		Short: short,
@@ -71,23 +72,33 @@ func openTunnelCommand(cfg config.CLIConfig, name, short string) *cobra.Command 
 				return err
 			}
 
-			return openTunnel(cmd.Context(), cfg, port, protocolName, subdomain, password, agentToken, tunnelID)
+			originClient, err := prepareOriginClient(protocolName, originTLS)
+			if err != nil {
+				return err
+			}
+			defer originClient.CloseIdleConnections()
+			return openTunnel(cmd.Context(), cfg, port, protocolName, subdomain, password, agentToken, tunnelID, originClient)
 		},
 	}
 
 	command.Flags().Int("port", 3000, "local port")
-	command.Flags().String("protocol", "http", "tunnel protocol (http, tcp, udp)")
+	command.Flags().String("protocol", "http", "tunnel protocol (http, https, tcp, udp)")
 	command.Flags().String("subdomain", "", "requested subdomain")
 	command.Flags().String("password", cfg.Password, "require this password for HTTP access")
 	command.Flags().String("agent-token", cfg.AgentToken, "agent token for CI/CD usage")
 	command.Flags().String("tunnel-id", "", "resume a managed tunnel")
+	command.Flags().StringVar(&originTLS.CAFile, "origin-ca", "", "PEM CA certificate file for the local HTTPS service")
+	command.Flags().StringVar(&originTLS.ServerName, "origin-server-name", "", "TLS certificate hostname for the local HTTPS service")
 	return command
 }
 
-func openTunnel(ctx context.Context, cfg config.CLIConfig, port int, protocolName, subdomain, password, agentToken, tunnelID string) error {
+func openTunnel(ctx context.Context, cfg config.CLIConfig, port int, protocolName, subdomain, password, agentToken, tunnelID string, originClient *http.Client) error {
 	ctx, stop := signal.NotifyContext(ctx, os.Interrupt, syscall.SIGTERM)
 	defer stop()
 	target := "http://127.0.0.1:" + fmt.Sprint(port)
+	if protocolName == "https" {
+		target = "https://127.0.0.1:" + fmt.Sprint(port)
+	}
 
 	if protocolName == "tcp" || protocolName == "udp" {
 		target = "127.0.0.1:" + fmt.Sprint(port)
@@ -179,7 +190,7 @@ func openTunnel(ctx context.Context, cfg config.CLIConfig, port int, protocolNam
 			}
 
 		}()
-		serveErr := connection.ServeLocal(ctx, target)
+		serveErr := connection.ServeLocalWithHTTPClient(ctx, target, originClient)
 		cancelConnection()
 		ticker.Stop()
 		connection.Close()

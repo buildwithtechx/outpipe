@@ -36,3 +36,16 @@ outpipe open --tunnel-id "$TUNNEL_ID" --port 3000
 For CI, provide `OUTPIPE_AGENT_TOKEN` or pass `--agent-token`. Use
 `OUTPIPE_API_KEY` for management requests such as listing and
 revoking tunnels. Keep both values in the CI secret store.
+
+## Local HTTPS services
+
+Use `--protocol https` for a TLS origin. For a local development CA or a
+certificate issued to `localhost`, supply the CA and certificate hostname:
+
+```sh
+outpipe open --port 3000 --protocol https --origin-ca ./local-ca.pem --origin-server-name localhost
+```
+
+These options also work with `machine-tunnel`. The connection still goes to
+`127.0.0.1`; `--origin-server-name` controls TLS SNI and hostname verification.
+Certificate verification stays enabled, and the custom CA augments system trust.

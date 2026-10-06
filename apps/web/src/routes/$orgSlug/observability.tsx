@@ -7,5 +7,5 @@ export const Route = createFileRoute('/$orgSlug/observability')({
 
 function ObservabilityRoute() {
   const { orgSlug } = Route.useParams();
-  return <ObservabilityPage orgSlug={orgSlug} />;
+  return <ObservabilityPage key={orgSlug} orgSlug={orgSlug} />;
 }

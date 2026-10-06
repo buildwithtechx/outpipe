@@ -1,181 +1,173 @@
 import { Link, useLocation } from '@tanstack/react-router';
-import { Check, Copy, ShieldCheck, Terminal } from 'lucide-react';
-import { useEffect, useState } from 'react';
-import { Badge } from '#/components/ui/badge';
-import { useAuthSession } from '#/features/auth/hooks/use-auth-session';
-import { useOrganization } from '#/features/organizations/hooks/use-organization';
+import { PanelLeftClose, PanelLeftOpen, Search } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import { Button } from '#/components/ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogTitle,
+} from '#/components/ui/dialog';
+import { Input } from '#/components/ui/input';
 import { getWorkspaceNavGroups } from './constants';
-
-interface DashboardSidebarProps {
-  orgSlug: string;
-  mobileOpen: boolean;
-  setMobileOpen: (open: boolean) => void;
-}
+import { ProductNavigation } from './product-navigation';
+import { getWorkspaceProducts, navItemIsActive } from './workspace-products';
 
 export function DashboardSidebar({
   orgSlug,
   mobileOpen,
   setMobileOpen,
-}: DashboardSidebarProps) {
-  const location = useLocation();
-  const { data: session } = useAuthSession();
-  const { organization } = useOrganization(orgSlug);
-  const [copied, setCopied] = useState(false);
-
+}: {
+  orgSlug: string;
+  mobileOpen: boolean;
+  setMobileOpen: (open: boolean) => void;
+}) {
+  const { pathname } = useLocation();
+  const [collapsed, setCollapsed] = useState(false);
+  const [search, setSearch] = useState('');
+  const previousPath = useRef(pathname);
   useEffect(() => {
-    if (!mobileOpen) return;
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        setMobileOpen(false);
-      }
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [mobileOpen, setMobileOpen]);
-
-  const isPlatformAdmin = Boolean(session?.isPlatformAdmin);
-  const navGroups = getWorkspaceNavGroups(orgSlug);
-
-  const copyCliCommand = async () => {
-    await navigator.clipboard.writeText('outpipe http 3000');
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
-
-  const content = (
-    <div className="flex h-full flex-col justify-between p-4 text-white">
-      <div className="space-y-5 overflow-y-auto pr-1">
-        {/* Workspace Quick Card */}
-        {organization && (
-          <div className="flex items-center justify-between gap-2 rounded-2xl border border-white/10 bg-white/2.5 p-3 shadow-xs">
-            <div className="flex items-center gap-2.5 min-w-0">
-              <div className="flex size-8 shrink-0 items-center justify-center rounded-xl bg-indigo-600/20 border border-indigo-400/30 text-indigo-300 font-bold text-xs">
-                {organization.name.slice(0, 2).toUpperCase()}
-              </div>
-              <div className="min-w-0">
-                <h4 className="truncate text-xs font-semibold text-white/90">
-                  {organization.name}
-                </h4>
-                <p className="truncate text-[10px] text-white/40 font-mono">
-                  /{organization.slug}
-                </p>
-              </div>
-            </div>
-            <Badge
-              variant="outline"
-              className="shrink-0 border-emerald-500/30 bg-emerald-500/10 text-[10px] text-emerald-400 py-0.5 px-1.5"
-            >
-              Active
-            </Badge>
-          </div>
-        )}
-
-        {/* Navigation Groups */}
-        <nav className="space-y-4" aria-label="Workspace navigation">
-          {navGroups.map((group) => (
-            <div key={group.name} className="space-y-1">
-              <span className="px-3 text-[10px] uppercase font-bold tracking-wider text-white/35 block">
-                {group.name}
-              </span>
-              <div className="space-y-0.5">
-                {group.items.map((item) => {
-                  const isActive = item.exact
-                    ? location.pathname === item.to ||
-                      location.pathname === `${item.to}/`
-                    : location.pathname.startsWith(item.to);
-                  const Icon = item.icon;
-
-                  return (
-                    <Link
-                      key={item.to}
-                      to={item.to}
-                      onClick={() => setMobileOpen(false)}
-                      className={`flex items-center gap-3 rounded-xl px-3 py-2 text-xs font-medium transition-all ${
-                        isActive
-                          ? 'bg-indigo-600 text-white font-semibold shadow-xs'
-                          : 'text-white/60 hover:bg-white/6 hover:text-white'
-                      }`}
-                    >
-                      <Icon
-                        className={`size-4 shrink-0 transition-colors ${
-                          isActive ? 'text-white' : 'text-white/40'
-                        }`}
-                      />
-                      <span className="truncate">{item.label}</span>
-                    </Link>
-                  );
-                })}
-              </div>
-            </div>
-          ))}
-
-          {/* Superadmin Quick Access in Sidebar */}
-          {isPlatformAdmin && (
-            <div className="pt-3 mt-3 border-t border-white/10 space-y-0.5">
-              <span className="px-3 text-[10px] uppercase font-bold tracking-wider text-purple-400/80 flex items-center gap-1.5">
-                <ShieldCheck className="size-3" /> Superadmin
-              </span>
-              <Link
-                to="/admin"
-                onClick={() => setMobileOpen(false)}
-                className="flex items-center gap-3 rounded-xl px-3 py-2 text-xs font-medium text-purple-300 transition-all hover:bg-purple-500/15 hover:text-purple-200"
-              >
-                <ShieldCheck className="size-4 shrink-0 text-purple-400" />
-                <span className="truncate">Control Plane</span>
-              </Link>
-            </div>
-          )}
-        </nav>
-      </div>
-
-      {/* Footer Quickstart Card */}
-      <div className="pt-4 border-t border-white/10 space-y-2">
-        <div className="rounded-xl border border-white/10 bg-white/2 p-2.5 text-xs">
-          <div className="flex items-center justify-between text-white/50 text-[10px] font-mono mb-1.5">
-            <span className="flex items-center gap-1">
-              <Terminal className="size-3 text-indigo-300" /> Quick Tunnel
-            </span>
-            <button
-              type="button"
-              onClick={copyCliCommand}
-              className="text-white/40 hover:text-white transition flex items-center gap-0.5"
-              title="Copy CLI snippet"
-            >
-              {copied ? (
-                <Check className="size-3 text-emerald-400" />
-              ) : (
-                <Copy className="size-3" />
-              )}
-            </button>
-          </div>
-          <code className="block rounded-lg bg-black/60 border border-white/5 p-1.5 font-mono text-[11px] text-indigo-200 truncate">
-            outpipe http 3000
-          </code>
-        </div>
-      </div>
-    </div>
+    try {
+      setCollapsed(
+        localStorage.getItem('outpipe.sidebar.collapsed') === 'true',
+      );
+    } catch {}
+  }, []);
+  useEffect(() => {
+    if (previousPath.current === pathname) return;
+    previousPath.current = pathname;
+    setMobileOpen(false);
+    setSearch('');
+  }, [pathname, setMobileOpen]);
+  const products = getWorkspaceProducts(orgSlug);
+  const workspace = getWorkspaceNavGroups(orgSlug).find(
+    (group) => group.name === 'Settings & Administration',
   );
-
-  return (
-    <>
-      {/* Desktop Fixed Sidebar */}
-      <aside className="hidden md:flex w-64 border-r border-white/10 bg-neutral-950/70 flex-col justify-between shrink-0 h-full overflow-y-auto">
-        {content}
-      </aside>
-
-      {/* Mobile Drawer Overlay */}
-      {mobileOpen && (
-        <div className="fixed inset-0 z-50 md:hidden flex">
-          <div
-            className="fixed inset-0 bg-black/75 backdrop-blur-sm animate-in fade-in duration-200"
-            onClick={() => setMobileOpen(false)}
-            aria-hidden="true"
+  const query = search.trim().toLowerCase();
+  const compact = collapsed && !mobileOpen;
+  const content = (
+    <div className="flex h-full flex-col gap-5 p-3">
+      <div className="flex items-center justify-between gap-2">
+        {!compact && (
+          <span className="text-xs font-medium text-muted-foreground">
+            Workspace navigation
+          </span>
+        )}
+        <Button
+          className="hidden md:inline-flex"
+          variant="ghost"
+          size="icon"
+          aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+          onClick={() => {
+            const next = !collapsed;
+            setCollapsed(next);
+            try {
+              localStorage.setItem('outpipe.sidebar.collapsed', String(next));
+            } catch {}
+          }}
+        >
+          {collapsed ? <PanelLeftOpen /> : <PanelLeftClose />}
+        </Button>
+      </div>
+      {!compact && (
+        <div className="relative">
+          <Search className="absolute left-3 top-3 size-4 text-muted-foreground" />
+          <Input
+            aria-label="Search navigation"
+            placeholder="Find a page…"
+            value={search}
+            onChange={(event) => setSearch(event.target.value)}
+            className="pl-9"
           />
-          <aside className="relative w-72 max-w-[80vw] bg-neutral-950 border-r border-white/15 flex flex-col justify-between h-full z-10 shadow-2xl overflow-y-auto animate-in slide-in-from-left duration-200">
-            {content}
-          </aside>
         </div>
       )}
+      <nav
+        aria-label="Workspace navigation"
+        className="min-h-0 flex-1 space-y-4 overflow-y-auto"
+      >
+        {products.map((product) => (
+          <ProductNavigation
+            key={orgSlug + product.name}
+            product={product}
+            orgSlug={orgSlug}
+            collapsed={compact}
+            query={query}
+            pathname={pathname}
+            onNavigate={() => setMobileOpen(false)}
+          />
+        ))}
+        <div className="space-y-1 border-t border-border pt-4">
+          {!compact && (
+            <p className="px-3 py-2 text-xs text-muted-foreground">Workspace</p>
+          )}
+          {workspace?.items
+            .filter(
+              (item) => !query || item.label.toLowerCase().includes(query),
+            )
+            .map((item) => (
+              <Link
+                onClick={() => setMobileOpen(false)}
+                key={item.to}
+                to={item.to}
+                title={item.label}
+                aria-label={item.label}
+                aria-current={
+                  navItemIsActive(pathname, item) ? 'page' : undefined
+                }
+                className={`flex min-h-10 items-center gap-3 rounded-lg px-3 text-sm ${navItemIsActive(pathname, item) ? 'bg-accent text-foreground' : 'text-muted-foreground hover:bg-accent hover:text-foreground'}`}
+              >
+                <item.icon className="size-4 shrink-0" />
+                {!compact && item.label}
+              </Link>
+            ))}
+        </div>
+        {query &&
+          !products.some(
+            (product) =>
+              product.name.toLowerCase().includes(query) ||
+              product.items.some((item) =>
+                item.label.toLowerCase().includes(query),
+              ),
+          ) &&
+          !workspace?.items.some((item) =>
+            item.label.toLowerCase().includes(query),
+          ) && (
+            <p role="status" className="p-3 text-sm text-muted-foreground">
+              No matching pages.
+            </p>
+          )}
+      </nav>
+      {!compact && (
+        <Link
+          onClick={() => setMobileOpen(false)}
+          to="/docs/$"
+          params={{ _splat: 'installation' }}
+          className="rounded-xl border border-border p-3 text-sm text-muted-foreground hover:text-foreground"
+        >
+          Install the CLI →
+        </Link>
+      )}
+    </div>
+  );
+  return (
+    <>
+      <aside
+        className={`hidden h-full shrink-0 border-r border-border bg-card md:block ${collapsed ? 'w-20' : 'w-64'}`}
+      >
+        {content}
+      </aside>
+      <Dialog open={mobileOpen} onOpenChange={setMobileOpen}>
+        <DialogContent
+          id="mobile-workspace-navigation"
+          className="inset-y-0 left-0 top-0 h-dvh w-[min(90vw,22rem)] max-w-none translate-x-0 translate-y-0 rounded-none p-0"
+        >
+          <DialogTitle className="sr-only">Workspace navigation</DialogTitle>
+          <DialogDescription className="sr-only">
+            Browse products and workspace settings.
+          </DialogDescription>
+          {content}
+        </DialogContent>
+      </Dialog>
     </>
   );
 }

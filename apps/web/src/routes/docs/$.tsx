@@ -76,7 +76,11 @@ function Page() {
   ) as unknown as ComponentType;
 
   return (
-    <DocsLayout tree={pageTree} nav={{ title: 'Outpipe' }}>
+    <DocsLayout
+      tree={pageTree}
+      nav={{ title: 'Outpipe' }}
+      themeSwitch={{ enabled: false }}
+    >
       <Content />
     </DocsLayout>
   );

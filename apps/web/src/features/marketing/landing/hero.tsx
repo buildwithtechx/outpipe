@@ -1,10 +1,12 @@
 import { Canvas } from '@react-three/fiber';
 import { Link } from '@tanstack/react-router';
-import { ArrowRight, Check, Copy } from 'lucide-react';
-import { AnimatePresence, motion } from 'motion/react';
+import { ArrowRight } from 'lucide-react';
+import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
 import { useEffect, useState } from 'react';
 import { MarketingContainer } from '#/components/layout';
+import { CliInstall } from '#/features/tunnels/components/cli-install';
 import { BeamGroup } from './beam-group';
+import { TerminalWindow } from './terminal-window';
 
 const logs = [
   ['GET', '/api/health', '200'],
@@ -13,36 +15,15 @@ const logs = [
   ['GET', '/api/projects', '200'],
 ];
 
-const terminalRequestSequence = [
-  ['GET', '/api/health', '200', '12ms'],
-  ['POST', '/webhooks', '201', '45ms'],
-  ['GET', '/oauth/callback', '302', '8ms'],
-  ['GET', '/favicon.ico', '304', '2ms'],
-  ['GET', '/api/projects', '200', '24ms'],
-  ['POST', '/api/uploads', '201', '230ms'],
-  ['DELETE', '/api/sessions/123', '204', '35ms'],
-  ['PATCH', '/api/profile', '200', '67ms'],
-  ['POST', '/api/checkout', '500', '120ms'],
-] as const;
-
-function statusColor(status: string) {
-  const code = Number(status);
-
-  if (code >= 500) return 'text-red-300';
-  if (code >= 400) return 'text-orange-300';
-  if (code >= 300) return 'text-amber-300';
-  return 'text-emerald-300';
-}
-
 export function Hero() {
-  const [copied, setCopied] = useState(false);
+  const reducedMotion = useReducedMotion();
   const [hovered, setHovered] = useState(false);
   const [visibleLogs, setVisibleLogs] = useState(
     logs.slice(0, 3).map((log, id) => ({ log, id })),
   );
 
   useEffect(() => {
-    if (!hovered) return;
+    if (!hovered || reducedMotion) return;
     let index = 3;
     const timer = setInterval(() => {
       setVisibleLogs((current) => [
@@ -51,28 +32,22 @@ export function Hero() {
       ]);
     }, 800);
     return () => clearInterval(timer);
-  }, [hovered]);
-
-  async function copyCommand() {
-    await navigator.clipboard.writeText(
-      'curl -fsSL https://cli.outpipe.dev | bash',
-    );
-    setCopied(true);
-    setTimeout(() => setCopied(false), 1800);
-  }
+  }, [hovered, reducedMotion]);
 
   return (
     <section className="relative min-h-screen overflow-hidden bg-black pb-12 pt-28 sm:pb-16 sm:pt-20">
       <div className="pointer-events-none absolute inset-0 z-0 md:translate-x-[-10%]">
-        <Canvas camera={{ position: [0, 0, 15], fov: 45 }}>
-          <color attach="background" args={['#000000']} />
-          <BeamGroup />
-        </Canvas>
+        {!reducedMotion && (
+          <Canvas camera={{ position: [0, 0, 15], fov: 45 }}>
+            <color attach="background" args={['#000000']} />
+            <BeamGroup />
+          </Canvas>
+        )}
       </div>
       <MarketingContainer className="relative z-10 flex flex-col items-center">
         <div className="inline-flex max-w-full items-center gap-2 rounded-full border border-white/10 bg-white/4 px-3 py-1.5 text-center text-[10px] text-white/55 backdrop-blur-xs sm:mt-20 sm:text-xs">
           <span className="size-1.5 shrink-0 rounded-full bg-cyan-300" />
-          Open-source tunnel infrastructure for developers
+          Secure public endpoints for your local apps
         </div>
         <h1 className="mt-6 w-full text-center text-[clamp(1.75rem,6vw,4.5rem)] font-bold leading-[1.1] tracking-[-0.055em] sm:mt-8 sm:leading-[1.02]">
           <span className="block sm:whitespace-nowrap">
@@ -83,7 +58,10 @@ export function Hero() {
               onMouseLeave={() => setHovered(false)}
             >
               <motion.span
-                animate={{ rotate: hovered ? -5 : 0, y: hovered ? -4 : 0 }}
+                animate={{
+                  rotate: hovered && !reducedMotion ? -5 : 0,
+                  y: hovered && !reducedMotion ? -4 : 0,
+                }}
                 transition={{ type: 'spring', stiffness: 300, damping: 20 }}
                 className="relative z-10 inline-block rounded-2xl border border-indigo-300/35 bg-indigo-300/15 px-2 py-1 sm:px-4"
               >
@@ -131,92 +109,19 @@ export function Hero() {
             Get started free{' '}
             <ArrowRight className="size-5 transition-transform group-hover:translate-x-1" />
           </Link>
-          <button
-            type="button"
-            onClick={copyCommand}
-            className="group inline-flex w-full items-center justify-center gap-3 rounded-full border border-white/10 bg-white/4 px-6 py-4 font-mono text-xs text-white/60 transition-colors hover:border-indigo-300/40 hover:bg-white/8 sm:w-auto"
+          <Link
+            to="/docs/$"
+            params={{ _splat: 'installation' }}
+            className="inline-flex min-h-11 items-center rounded-full border border-white/10 px-6 text-sm text-white/70"
           >
-            <span className="text-indigo-300">$</span> curl .../install.sh{' '}
-            {copied ? (
-              <Check className="size-4 text-emerald-300" />
-            ) : (
-              <Copy className="size-4 opacity-0 transition-opacity group-hover:opacity-100" />
-            )}
-          </button>
+            Read the quickstart
+          </Link>
+        </div>
+        <div className="mt-8 w-full max-w-xl rounded-2xl border border-border bg-card p-5 text-left">
+          <CliInstall />
         </div>
         <TerminalWindow />
       </MarketingContainer>
     </section>
-  );
-}
-
-function TerminalWindow() {
-  const [visibleRequests, setVisibleRequests] = useState(() =>
-    terminalRequestSequence.slice(0, 8).map((request, id) => ({ request, id })),
-  );
-
-  useEffect(() => {
-    let nextRequest = 8;
-    const timer = setInterval(() => {
-      setVisibleRequests((current) => [
-        ...current.slice(1),
-        {
-          request:
-            terminalRequestSequence[
-              nextRequest % terminalRequestSequence.length
-            ],
-          id: nextRequest++,
-        },
-      ]);
-    }, 1400);
-
-    return () => clearInterval(timer);
-  }, []);
-
-  return (
-    <div className="mt-10 w-full min-w-0 max-w-5xl overflow-hidden rounded-[1.25rem] border border-white/15 bg-[#090a0c] text-left font-mono text-sm shadow-2xl shadow-indigo-950/50 sm:mt-14">
-      <div className="relative flex items-center gap-2 border-b border-white/10 bg-white/6 px-4 py-4 sm:gap-3 sm:px-6">
-        <span className="size-2.5 shrink-0 rounded-full bg-red-400 sm:size-3" />
-        <span className="size-2.5 shrink-0 rounded-full bg-amber-300 sm:size-3" />
-        <span className="size-2.5 shrink-0 rounded-full bg-emerald-400 sm:size-3" />
-        <span className="ml-2 min-w-0 truncate text-xs text-white/35 sm:absolute sm:inset-x-0 sm:ml-0 sm:text-center sm:text-sm">
-          user@outpipe-cli
-        </span>
-      </div>
-      <div className="grid min-w-0 grid-cols-1 gap-2 px-4 py-6 text-[11px] leading-6 [overflow-wrap:anywhere] sm:px-8 sm:py-8 sm:text-sm">
-        <p className="text-white/85">
-          <span className="text-emerald-300">➜</span>{' '}
-          <span className="text-cyan-300">~</span> outpipe 3000
-        </p>
-        <p className="text-cyan-300">Connecting to Outpipe...</p>
-        <p className="text-emerald-300">Linked to local port 3000</p>
-        <p className="text-fuchsia-300">
-          Tunnel ready: https://quiet-moon.outpipe.app
-        </p>
-        <p className="text-amber-300">
-          Keep this process running to keep the tunnel active.
-        </p>
-        <div className="mt-3 grid gap-2 text-white/45">
-          <AnimatePresence initial={false} mode="popLayout">
-            {visibleRequests.map(({ request, id }) => (
-              <motion.div
-                key={id}
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -8 }}
-                className="grid grid-cols-[3rem_minmax(0,1fr)_2rem_2.75rem] items-center gap-2 sm:grid-cols-[4.5rem_minmax(0,1fr)_3.5rem_3.5rem] sm:gap-3"
-              >
-                <span>{request[0]}</span>
-                <span className="truncate text-white/65">{request[1]}</span>
-                <span className={`text-right ${statusColor(request[2])}`}>
-                  {request[2]}
-                </span>
-                <span className="text-right text-white/30">{request[3]}</span>
-              </motion.div>
-            ))}
-          </AnimatePresence>
-        </div>
-      </div>
-    </div>
   );
 }

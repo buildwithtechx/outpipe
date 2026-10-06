@@ -15,6 +15,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '#/components/ui/select';
+import { useSubmitFeedback } from '#/hooks/use-submit-feedback';
 
 interface AddMonitorModalProps {
   isOpen: boolean;
@@ -47,199 +48,224 @@ export function AddMonitorModal({
   const [bodyRegex, setBodyRegex] = useState('');
   const [maxLatencyMs, setMaxLatencyMs] = useState(0);
 
+  const { error, submit } = useSubmitFeedback(isOpen);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim() || !target.trim()) return;
-    await onSave({
-      name: name.trim(),
-      type,
-      target: target.trim(),
-      interval_seconds: Number(intervalSeconds) || 60,
-      timeout_seconds: Number(timeoutSeconds) || 10,
-      expected_status_code:
-        type === 'tcp' || type === 'icmp'
-          ? undefined
-          : Number(expectedCode) || 200,
-      body_regex: type === 'http' || type === 'https' ? bodyRegex : undefined,
-      max_latency_ms: maxLatencyMs || undefined,
-    });
+    if (
+      !(await submit(() =>
+        onSave({
+          name: name.trim(),
+          type,
+          target: target.trim(),
+          interval_seconds: Number(intervalSeconds) || 60,
+          timeout_seconds: Number(timeoutSeconds) || 10,
+          expected_status_code:
+            type === 'tcp' || type === 'icmp'
+              ? undefined
+              : Number(expectedCode) || 200,
+          body_regex:
+            type === 'http' || type === 'https' ? bodyRegex : undefined,
+          max_latency_ms: maxLatencyMs || undefined,
+        }),
+      ))
+    )
+      return;
     setName('');
     setTarget('');
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-md border-white/10 bg-zinc-900 text-white">
+    <Dialog
+      open={isOpen}
+      onOpenChange={(open) => {
+        if (!open && !isSaving) onClose();
+      }}
+    >
+      <DialogContent
+        showCloseButton={!isSaving}
+        aria-describedby={undefined}
+        className="max-w-md border-white/10 bg-card text-white"
+      >
         <DialogHeader>
           <DialogTitle className="text-base font-semibold text-white">
             Add Uptime Monitor
           </DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4 pt-2">
-          <div className="space-y-1.5">
-            <Label
-              htmlFor="monitor-name-input"
-              className="text-xs text-white/70"
-            >
-              Monitor Name
-            </Label>
-            <Input
-              id="monitor-name-input"
-              type="text"
-              required
-              placeholder="e.g. Production API Gateway"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              className="border-white/10 bg-white/5 text-xs text-white placeholder-white/30"
-            />
-          </div>
-
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1.5">
-              <Label className="text-xs text-white/70">Probe Protocol</Label>
-              <Select
-                value={type}
-                onValueChange={(val) =>
-                  setType(val as 'http' | 'https' | 'tcp' | 'icmp')
-                }
-              >
-                <SelectTrigger className="w-full border-white/10 bg-zinc-800 text-xs text-white">
-                  <SelectValue placeholder="Protocol" />
-                </SelectTrigger>
-                <SelectContent className="border-white/10 bg-zinc-900 text-white">
-                  <SelectItem value="https">HTTPS</SelectItem>
-                  <SelectItem value="http">HTTP</SelectItem>
-                  <SelectItem value="icmp">ICMP</SelectItem>
-                  <SelectItem value="tcp">TCP Port</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+          <fieldset disabled={isSaving} className="contents space-y-4">
+            <legend className="sr-only">Monitor settings</legend>
+            {error && (
+              <p role="alert" className="text-sm text-rose-300">
+                Could not save. Your input has been kept; please try again.
+              </p>
+            )}
             <div className="space-y-1.5">
               <Label
-                htmlFor="monitor-interval-input"
+                htmlFor="monitor-name-input"
                 className="text-xs text-white/70"
               >
-                Interval (sec)
+                Monitor Name
               </Label>
               <Input
-                id="monitor-interval-input"
-                type="number"
-                min={10}
-                max={86400}
-                value={intervalSeconds}
-                onChange={(e) => setIntervalSeconds(Number(e.target.value))}
-                className="border-white/10 bg-white/5 text-xs text-white"
+                id="monitor-name-input"
+                type="text"
+                required
+                placeholder="e.g. Production API Gateway"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                className="border-white/10 bg-white/5 text-xs text-white placeholder-white/30"
               />
             </div>
-          </div>
 
-          <div className="space-y-1.5">
-            <Label
-              htmlFor="monitor-target-input"
-              className="text-xs text-white/70"
-            >
-              Target Endpoint / Host:Port
-            </Label>
-            <Input
-              id="monitor-target-input"
-              type="text"
-              required
-              placeholder={
-                type === 'tcp'
-                  ? 'example.com:443'
-                  : type === 'icmp'
-                    ? 'example.com'
-                    : `${type}://api.example.com/health`
-              }
-              value={target}
-              onChange={(e) => setTarget(e.target.value)}
-              className="border-white/10 bg-white/5 text-xs font-mono text-white placeholder-white/30"
-            />
-          </div>
-
-          {(type === 'http' || type === 'https') && (
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
-                <Label
-                  htmlFor="monitor-status-code-input"
-                  className="text-xs text-white/70"
+                <Label className="text-xs text-white/70">Probe Protocol</Label>
+                <Select
+                  value={type}
+                  onValueChange={(val) =>
+                    setType(val as 'http' | 'https' | 'tcp' | 'icmp')
+                  }
                 >
-                  Expected Status Code
-                </Label>
-                <Input
-                  id="monitor-status-code-input"
-                  type="number"
-                  value={expectedCode}
-                  onChange={(e) => setExpectedCode(Number(e.target.value))}
-                  className="border-white/10 bg-white/5 text-xs text-white"
-                />
+                  <SelectTrigger className="w-full border-white/10 bg-background text-xs text-white">
+                    <SelectValue placeholder="Protocol" />
+                  </SelectTrigger>
+                  <SelectContent className="border-white/10 bg-card text-white">
+                    <SelectItem value="https">HTTPS</SelectItem>
+                    <SelectItem value="http">HTTP</SelectItem>
+                    <SelectItem value="icmp">ICMP</SelectItem>
+                    <SelectItem value="tcp">TCP Port</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
               <div className="space-y-1.5">
                 <Label
-                  htmlFor="monitor-timeout-input"
+                  htmlFor="monitor-interval-input"
                   className="text-xs text-white/70"
                 >
-                  Timeout (sec)
+                  Interval (sec)
                 </Label>
                 <Input
-                  id="monitor-timeout-input"
+                  id="monitor-interval-input"
                   type="number"
-                  min={1}
-                  max={60}
-                  value={timeoutSeconds}
-                  onChange={(e) => setTimeoutSeconds(Number(e.target.value))}
+                  min={10}
+                  max={86400}
+                  value={intervalSeconds}
+                  onChange={(e) => setIntervalSeconds(Number(e.target.value))}
                   className="border-white/10 bg-white/5 text-xs text-white"
                 />
               </div>
             </div>
-          )}
 
-          {(type === 'http' || type === 'https') && (
             <div className="space-y-1.5">
-              <Label htmlFor="monitor-body-regex">Body matches regex</Label>
+              <Label
+                htmlFor="monitor-target-input"
+                className="text-xs text-white/70"
+              >
+                Target Endpoint / Host:Port
+              </Label>
               <Input
-                id="monitor-body-regex"
-                value={bodyRegex}
-                maxLength={1024}
-                onChange={(event) => setBodyRegex(event.target.value)}
-                placeholder="Optional response assertion"
-              />
-            </div>
-          )}
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1.5">
-              <Label htmlFor="monitor-latency">Maximum latency (ms)</Label>
-              <Input
-                id="monitor-latency"
-                type="number"
-                min={0}
-                max={60000}
-                value={maxLatencyMs}
-                onChange={(event) =>
-                  setMaxLatencyMs(Number(event.target.value))
+                id="monitor-target-input"
+                type="text"
+                required
+                placeholder={
+                  type === 'tcp'
+                    ? 'example.com:443'
+                    : type === 'icmp'
+                      ? 'example.com'
+                      : `${type}://api.example.com/health`
                 }
+                value={target}
+                onChange={(e) => setTarget(e.target.value)}
+                className="border-white/10 bg-white/5 text-xs font-mono text-white placeholder-white/30"
               />
             </div>
-          </div>
-          <div className="flex justify-end gap-2 pt-2">
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={onClose}
-              className="text-xs border-white/10 bg-white/5 text-white/70 hover:text-white"
-            >
-              Cancel
-            </Button>
-            <Button
-              type="submit"
-              size="sm"
-              disabled={isSaving}
-              className="text-xs bg-indigo-600 hover:bg-indigo-500 text-white"
-            >
-              {isSaving ? 'Creating...' : 'Create Monitor'}
-            </Button>
-          </div>
+
+            {(type === 'http' || type === 'https') && (
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <Label
+                    htmlFor="monitor-status-code-input"
+                    className="text-xs text-white/70"
+                  >
+                    Expected Status Code
+                  </Label>
+                  <Input
+                    id="monitor-status-code-input"
+                    type="number"
+                    value={expectedCode}
+                    onChange={(e) => setExpectedCode(Number(e.target.value))}
+                    className="border-white/10 bg-white/5 text-xs text-white"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label
+                    htmlFor="monitor-timeout-input"
+                    className="text-xs text-white/70"
+                  >
+                    Timeout (sec)
+                  </Label>
+                  <Input
+                    id="monitor-timeout-input"
+                    type="number"
+                    min={1}
+                    max={60}
+                    value={timeoutSeconds}
+                    onChange={(e) => setTimeoutSeconds(Number(e.target.value))}
+                    className="border-white/10 bg-white/5 text-xs text-white"
+                  />
+                </div>
+              </div>
+            )}
+
+            {(type === 'http' || type === 'https') && (
+              <div className="space-y-1.5">
+                <Label htmlFor="monitor-body-regex">Body matches regex</Label>
+                <Input
+                  id="monitor-body-regex"
+                  value={bodyRegex}
+                  maxLength={1024}
+                  onChange={(event) => setBodyRegex(event.target.value)}
+                  placeholder="Optional response assertion"
+                />
+              </div>
+            )}
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label htmlFor="monitor-latency">Maximum latency (ms)</Label>
+                <Input
+                  id="monitor-latency"
+                  type="number"
+                  min={0}
+                  max={60000}
+                  value={maxLatencyMs}
+                  onChange={(event) =>
+                    setMaxLatencyMs(Number(event.target.value))
+                  }
+                />
+              </div>
+            </div>
+            <div className="flex justify-end gap-2 pt-2">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={onClose}
+                className="text-xs border-white/10 bg-white/5 text-white/70 hover:text-white"
+              >
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                size="sm"
+                disabled={isSaving}
+                className="text-xs bg-primary hover:bg-primary/90 text-primary-foreground"
+              >
+                {isSaving ? 'Creating...' : 'Create Monitor'}
+              </Button>
+            </div>
+          </fieldset>
         </form>
       </DialogContent>
     </Dialog>
