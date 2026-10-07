@@ -4,14 +4,13 @@ import {
   createRootRouteWithContext,
   HeadContent,
   Outlet,
-  Scripts,
 } from '@tanstack/react-router';
 import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools';
 import { RootProvider } from 'fumadocs-ui/provider/tanstack';
 import PostHogProvider from '#/integrations/posthog/provider';
 import TanStackQueryDevtools from '#/integrations/tanstack-query/devtools';
+import { TanStackQueryProvider } from '#/integrations/tanstack-query/root-provider';
 import { createSeo, siteName } from '#/lib/seo';
-import appCss from '#/styles.css?url';
 
 interface MyRouterContext {
   queryClient: QueryClient;
@@ -51,10 +50,6 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
           type: 'image/x-icon',
         },
         {
-          rel: 'stylesheet',
-          href: appCss,
-        },
-        {
           rel: 'icon',
           href: '/favicon.svg',
           type: 'image/svg+xml',
@@ -84,38 +79,25 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
 
 function RootComponent() {
   return (
-    <RootDocument>
-      <PostHogProvider>
-        <Outlet />
-        <TanStackDevtools
-          config={{
-            position: 'bottom-right',
-          }}
-          plugins={[
-            {
-              name: 'Tanstack Router',
-              render: <TanStackRouterDevtoolsPanel />,
-            },
-            TanStackQueryDevtools,
-          ]}
-        />
-      </PostHogProvider>
-    </RootDocument>
-  );
-}
-
-function RootDocument({ children }: { children: React.ReactNode }) {
-  return (
-    <html lang="en" className="dark product-surface" suppressHydrationWarning>
-      <head>
-        <HeadContent />
-      </head>
-      <body>
-        <RootProvider theme={{ forcedTheme: 'dark', enableSystem: false }}>
-          {children}
-        </RootProvider>
-        <Scripts />
-      </body>
-    </html>
+    <TanStackQueryProvider>
+      <RootProvider theme={{ forcedTheme: 'dark', enableSystem: false }}>
+        <PostHogProvider>
+          <HeadContent />
+          <Outlet />
+          <TanStackDevtools
+            config={{
+              position: 'bottom-right',
+            }}
+            plugins={[
+              {
+                name: 'Tanstack Router',
+                render: <TanStackRouterDevtoolsPanel />,
+              },
+              TanStackQueryDevtools,
+            ]}
+          />
+        </PostHogProvider>
+      </RootProvider>
+    </TanStackQueryProvider>
   );
 }

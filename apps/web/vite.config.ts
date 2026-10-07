@@ -1,20 +1,25 @@
-import { cloudflare } from '@cloudflare/vite-plugin';
+import { fileURLToPath } from 'node:url';
 import babel from '@rolldown/plugin-babel';
 import tailwindcss from '@tailwindcss/vite';
 import { devtools } from '@tanstack/devtools-vite';
-import { tanstackStart } from '@tanstack/react-start/plugin/vite';
+import { tanstackRouter } from '@tanstack/router-plugin/vite';
 import viteReact, { reactCompilerPreset } from '@vitejs/plugin-react';
 import mdx from 'fumadocs-mdx/vite';
 import { defineConfig } from 'vite';
 
+const srcDir = fileURLToPath(new URL('./src', import.meta.url));
+
 const config = defineConfig({
-  resolve: { tsconfigPaths: true },
+  resolve: {
+    alias: {
+      '#': srcDir,
+    },
+  },
   plugins: [
-    cloudflare({ viteEnvironment: { name: 'ssr' } }),
-    mdx(),
     devtools(),
+    mdx(),
     tailwindcss(),
-    tanstackStart(),
+    tanstackRouter({ target: 'react', autoCodeSplitting: true }),
     viteReact(),
     babel({ presets: [reactCompilerPreset()] }),
   ],

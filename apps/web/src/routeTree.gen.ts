@@ -43,7 +43,6 @@ import { Route as AdminChartsRouteImport } from './routes/admin/charts'
 import { Route as AdminSubscriptionsRouteImport } from './routes/admin/subscriptions'
 import { Route as AdminTunnelsRouteImport } from './routes/admin/tunnels'
 import { Route as AdminUsageRouteImport } from './routes/admin/usage'
-import { Route as ApiSearchRouteImport } from './routes/api/search'
 import { Route as CliLoginRouteImport } from './routes/cli/login'
 import { Route as DocsSplatRouteImport } from './routes/docs/$'
 import { Route as OrgSlugSettingsIndexRouteImport } from './routes/$orgSlug/settings/index'
@@ -228,11 +227,6 @@ const AdminUsageRoute = AdminUsageRouteImport.update({
   path: '/usage',
   getParentRoute: () => AdminRoute,
 } as any)
-const ApiSearchRoute = ApiSearchRouteImport.update({
-  id: '/api/search',
-  path: '/api/search',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const CliLoginRoute = CliLoginRouteImport.update({
   id: '/cli/login',
   path: '/cli/login',
@@ -339,7 +333,6 @@ export interface FileRoutesByFullPath {
   '/admin/subscriptions': typeof AdminSubscriptionsRoute
   '/admin/tunnels': typeof AdminTunnelsRoute
   '/admin/usage': typeof AdminUsageRoute
-  '/api/search': typeof ApiSearchRoute
   '/cli/login': typeof CliLoginRoute
   '/docs/$': typeof DocsSplatRoute
   '/$orgSlug/': typeof OrgSlugIndexRoute
@@ -385,7 +378,6 @@ export interface FileRoutesByTo {
   '/admin/subscriptions': typeof AdminSubscriptionsRoute
   '/admin/tunnels': typeof AdminTunnelsRoute
   '/admin/usage': typeof AdminUsageRoute
-  '/api/search': typeof ApiSearchRoute
   '/cli/login': typeof CliLoginRoute
   '/docs/$': typeof DocsSplatRoute
   '/$orgSlug': typeof OrgSlugIndexRoute
@@ -437,7 +429,6 @@ export interface FileRoutesById {
   '/admin/subscriptions': typeof AdminSubscriptionsRoute
   '/admin/tunnels': typeof AdminTunnelsRoute
   '/admin/usage': typeof AdminUsageRoute
-  '/api/search': typeof ApiSearchRoute
   '/cli/login': typeof CliLoginRoute
   '/docs/$': typeof DocsSplatRoute
   '/$orgSlug/': typeof OrgSlugIndexRoute
@@ -490,7 +481,6 @@ export interface FileRouteTypes {
     | '/admin/subscriptions'
     | '/admin/tunnels'
     | '/admin/usage'
-    | '/api/search'
     | '/cli/login'
     | '/docs/$'
     | '/$orgSlug/'
@@ -536,7 +526,6 @@ export interface FileRouteTypes {
     | '/admin/subscriptions'
     | '/admin/tunnels'
     | '/admin/usage'
-    | '/api/search'
     | '/cli/login'
     | '/docs/$'
     | '/$orgSlug'
@@ -587,7 +576,6 @@ export interface FileRouteTypes {
     | '/admin/subscriptions'
     | '/admin/tunnels'
     | '/admin/usage'
-    | '/api/search'
     | '/cli/login'
     | '/docs/$'
     | '/$orgSlug/'
@@ -614,7 +602,6 @@ export interface RootRouteChildren {
   LoginRoute: typeof LoginRoute
   SelectRoute: typeof SelectRoute
   SignupRoute: typeof SignupRoute
-  ApiSearchRoute: typeof ApiSearchRoute
   CliLoginRoute: typeof CliLoginRoute
   DocsSplatRoute: typeof DocsSplatRoute
 }
@@ -859,13 +846,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminUsageRouteImport
       parentRoute: typeof AdminRoute
     }
-    '/api/search': {
-      id: '/api/search'
-      path: '/api/search'
-      fullPath: '/api/search'
-      preLoaderRoute: typeof ApiSearchRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/cli/login': {
       id: '/cli/login'
       path: '/cli/login'
@@ -1090,19 +1070,9 @@ const rootRouteChildren: RootRouteChildren = {
   LoginRoute: LoginRoute,
   SelectRoute: SelectRoute,
   SignupRoute: SignupRoute,
-  ApiSearchRoute: ApiSearchRoute,
   CliLoginRoute: CliLoginRoute,
   DocsSplatRoute: DocsSplatRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { createStart } from '@tanstack/react-start'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-  }
-}
