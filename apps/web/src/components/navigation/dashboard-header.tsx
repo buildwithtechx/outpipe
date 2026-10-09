@@ -13,6 +13,7 @@ import {
 } from '#/components/ui/dialog';
 import { useAuthSession } from '#/features/auth/hooks/use-auth-session';
 import { useLogout } from '#/features/auth/hooks/use-logout';
+import { docsUrl } from '#/lib/docs';
 import { WorkspaceSwitcher } from './workspace-switcher';
 
 interface DashboardHeaderProps {
@@ -78,15 +79,14 @@ export function DashboardHeader({
               Ctrl/⌘ K
             </kbd>
           </button>
-          <Link
-            to="/docs/$"
-            params={{ _splat: '' }}
+          <a
+            href={docsUrl()}
             className="hidden lg:flex items-center gap-1.5 rounded-xl border border-white/10 bg-white/2 px-2.5 py-1.5 text-xs text-white/60 transition hover:border-white/20 hover:bg-white/5 hover:text-white"
             title="Read Documentation"
           >
             <BookOpen className="size-3.5 text-indigo-300" />
             <span>Docs</span>
-          </Link>
+          </a>
           {isPlatformAdmin && (
             <Link
               to="/admin"

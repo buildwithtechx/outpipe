@@ -9,6 +9,7 @@ import {
   DialogTitle,
 } from '#/components/ui/dialog';
 import { Input } from '#/components/ui/input';
+import { docsUrl } from '#/lib/docs';
 import { getWorkspaceNavGroups } from './constants';
 import { ProductNavigation } from './product-navigation';
 import { getWorkspaceProducts, navItemIsActive } from './workspace-products';
@@ -138,14 +139,13 @@ export function DashboardSidebar({
           )}
       </nav>
       {!compact && (
-        <Link
+        <a
+          href={docsUrl('installation')}
           onClick={() => setMobileOpen(false)}
-          to="/docs/$"
-          params={{ _splat: 'installation' }}
           className="rounded-xl border border-border p-3 text-sm text-muted-foreground hover:text-foreground"
         >
           Install the CLI →
-        </Link>
+        </a>
       )}
     </div>
   );

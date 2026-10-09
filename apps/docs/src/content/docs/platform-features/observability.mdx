@@ -1,0 +1,29 @@
+---
+title: Observability
+description: Inspect tunnel traffic, usage, and operational health.
+---
+
+The relay exposes operational metrics for active connections, active tunnels,
+frames, bytes, and errors. The API exposes organization usage events and
+aggregated snapshots for authorized members.
+
+HTTP request events record sanitized operational fields:
+
+- HTTP method and URL path without the query string
+- response status code
+- request duration
+- response bytes
+- client address when available
+- organization and tunnel identifiers
+
+Request bodies, response bodies, authorization headers, and passwords are not
+stored in analytics. Usage aggregation counts request events and errors, while
+the cron worker applies the retention period associated with the organization’s
+plan.
+
+Use the API usage endpoints from an authenticated organization session:
+
+```text
+GET /api/v1/organizations/:organizationID/usage/events
+GET /api/v1/organizations/:organizationID/usage/snapshot
+```

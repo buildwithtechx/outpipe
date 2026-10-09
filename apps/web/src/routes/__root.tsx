@@ -6,7 +6,6 @@ import {
   Outlet,
 } from '@tanstack/react-router';
 import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools';
-import { RootProvider } from 'fumadocs-ui/provider/tanstack';
 import PostHogProvider from '#/integrations/posthog/provider';
 import TanStackQueryDevtools from '#/integrations/tanstack-query/devtools';
 import { TanStackQueryProvider } from '#/integrations/tanstack-query/root-provider';
@@ -80,24 +79,22 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
 function RootComponent() {
   return (
     <TanStackQueryProvider>
-      <RootProvider theme={{ forcedTheme: 'dark', enableSystem: false }}>
-        <PostHogProvider>
-          <HeadContent />
-          <Outlet />
-          <TanStackDevtools
-            config={{
-              position: 'bottom-right',
-            }}
-            plugins={[
-              {
-                name: 'Tanstack Router',
-                render: <TanStackRouterDevtoolsPanel />,
-              },
-              TanStackQueryDevtools,
-            ]}
-          />
-        </PostHogProvider>
-      </RootProvider>
+      <PostHogProvider>
+        <HeadContent />
+        <Outlet />
+        <TanStackDevtools
+          config={{
+            position: 'bottom-right',
+          }}
+          plugins={[
+            {
+              name: 'Tanstack Router',
+              render: <TanStackRouterDevtoolsPanel />,
+            },
+            TanStackQueryDevtools,
+          ]}
+        />
+      </PostHogProvider>
     </TanStackQueryProvider>
   );
 }

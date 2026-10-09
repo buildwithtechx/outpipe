@@ -17,6 +17,7 @@ import {
   Zap,
 } from 'lucide-react';
 import type { ComponentType } from 'react';
+import { docsUrl } from '#/lib/docs';
 
 export interface NavItem {
   label: string;
@@ -224,7 +225,7 @@ export const ADMIN_NAV_ITEMS: NavItem[] = [
 export const EXTERNAL_NAV_ITEMS: NavItem[] = [
   {
     label: 'Documentation',
-    to: '/docs/$',
+    to: docsUrl(),
     icon: BookOpen,
     desc: 'Guides, CLI manual & architecture',
   },

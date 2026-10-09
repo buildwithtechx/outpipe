@@ -7,6 +7,7 @@ export const env = createEnv({
   client: {
     VITE_OUTPIPE_APP_TITLE: z.string().min(1).optional(),
     VITE_OUTPIPE_SITE_URL: z.url().optional(),
+    VITE_OUTPIPE_DOCS_URL: z.url().optional(),
     VITE_OUTPIPE_STATUS_URL: z.url().optional(),
     VITE_OUTPIPE_SERVER_URL: z.url().optional(),
     VITE_OUTPIPE_API_BASE_URL: z.url().optional(),

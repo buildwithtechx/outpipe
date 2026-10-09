@@ -1,0 +1,219 @@
+---
+title: Tunnel Protocol
+description: The versioned wire contract shared by Outpipe clients and relays.
+---
+
+Outpipe uses a versioned JSON message protocol over a persistent
+WebSocket connection. The Go CLI, relay, desktop bridge, and TypeScript SDK
+all use the same envelope and message types.
+
+The source of truth is [`protocol/schema/messages.json`](https://github.com/buildwithtechx/outpipe/blob/main/protocol/schema/messages.json).
+Generated Go and TypeScript bindings are kept in the repository so consumers
+do not need to recreate message shapes by hand.
+
+## Message envelope
+
+Every message has the same outer structure:
+
+```json
+{
+  "version": 1,
+  "type": "open_tunnel",
+  "request_id": "req_open_01",
+  "payload": {}
+}
+```
+
+| Field | Required | Purpose |
+| --- | --- | --- |
+| `version` | Yes | Protocol version used by the envelope. |
+| `type` | Yes | The operation or data-plane event. |
+| `request_id` | No | Correlates a request with its acknowledgement or error. |
+| `payload` | No | Message-specific JSON data. |
+
+Binary data is represented as base64 in JSON payloads. Implementations must
+enforce the configured frame limit before decoding or forwarding a message.
+The current generated Go constants define a 16 MiB default frame limit and a
+32 MiB absolute maximum.
+
+## Connection handshake
+
+A client must complete negotiation and authentication before opening a tunnel
+or sending application traffic.
+
+```text
+client -> relay: version_negotiate
+relay  -> client: version_negotiate_ack
+client -> relay: auth
+relay  -> client: auth_response
+client -> relay: open_tunnel
+relay  -> client: open_tunnel_ack
+```
+
+### 1. Negotiate a version
+
+The client sends the range it understands. The relay selects the highest
+compatible version within that range.
+
+```json
+{
+  "version": 1,
+  "type": "version_negotiate",
+  "request_id": "req_version_01",
+  "payload": {
+    "min_version": 1,
+    "max_version": 1,
+    "client_name": "outpipe",
+    "client_version": "0.1.0"
+  }
+}
+```
+
+If there is no overlap, the relay returns an error and closes the session.
+Clients must not silently downgrade or guess a version.
+
+### 2. Authenticate the session
+
+The client sends a short-lived or revocable credential. The relay validates it
+with the control plane and binds the session to the returned organization and
+capabilities.
+
+```json
+{
+  "version": 1,
+  "type": "auth",
+  "request_id": "req_auth_01",
+  "payload": {
+    "token": "session-or-api-credential",
+    "agent_id": "client_abc",
+    "requested_capabilities": ["http", "tcp"]
+  }
+}
+```
+
+The `auth_response` is the relay’s authorization boundary. A failed response
+must not expose organization data or allow tunnel creation.
+
+## Opening and closing a tunnel
+
+After authentication, the client requests a tunnel using a local port and a
+supported protocol.
+
+```json
+{
+  "version": 1,
+  "type": "open_tunnel",
+  "request_id": "req_open_01",
+  "payload": {
+    "token": "tunnel-credential",
+    "local_port": 3000,
+    "protocol": "http",
+    "subdomain": "preview"
+  }
+}
+```
+
+The relay validates the credential, organization entitlement, protocol, port,
+hostname, password policy, and connection limits before returning:
+
+```json
+{
+  "version": 1,
+  "type": "open_tunnel_ack",
+  "request_id": "req_open_01",
+  "payload": {
+    "tunnel_id": "tun_01",
+    "public_url": "https://preview.outpipe.app"
+  }
+}
+```
+
+Closing is explicit and idempotent. A client sends `close_tunnel` when it
+stops intentionally; the relay also closes the tunnel after expiry, revocation,
+authentication failure, or an unrecoverable transport error.
+
+## Data-plane messages
+
+The message type follows the traffic being forwarded:
+
+| Type | Use |
+| --- | --- |
+| `http_request` | Public HTTP request sent toward the local service. |
+| `http_response` | Local HTTP response returned to the relay. |
+| `tcp_data` | Bytes for a TCP connection. |
+| `tcp_close` | Closes a TCP connection and carries an optional reason. |
+| `udp_data` | A datagram with packet and source information. |
+| `udp_response` | A datagram returned to the public side. |
+| `data` | Generic stream data identified by tunnel and stream IDs. |
+
+Every stream identifier must be scoped to its tunnel and session. The relay
+must reject frames for unknown, closed, or organization-incompatible streams.
+
+## Heartbeats and flow control
+
+The client and relay exchange `heartbeat` messages containing a Unix timestamp.
+Missing heartbeats cause the connection to be marked stale and eventually
+closed. Reconnection creates a new authenticated session; credentials are not
+assumed to remain valid forever.
+
+Long-lived or high-bandwidth streams use `flow_control` messages:
+
+```json
+{
+  "version": 1,
+  "type": "flow_control",
+  "request_id": "req_flow_01",
+  "payload": {
+    "stream_id": "stream_01",
+    "action": "pause",
+    "window_size": 0
+  }
+}
+```
+
+When a buffer or entitlement limit is reached, the receiver pauses the stream
+instead of allocating unbounded memory. The sender resumes only after the
+receiver advertises capacity again.
+
+## Errors and connection rules
+
+Errors use a stable machine-readable code and a human-readable message:
+
+```json
+{
+  "version": 1,
+  "type": "error",
+  "request_id": "req_open_01",
+  "payload": {
+    "code": "tunnel_limit_exceeded",
+    "message": "The organization has reached its tunnel limit."
+  }
+}
+```
+
+- Validate the envelope, version, type, and payload before dispatching.
+- Reject unknown message types and malformed payloads.
+- Never log tokens, passwords, request bodies, or raw tunnel payloads.
+- Correlate acknowledgements and errors with `request_id`.
+- Close the session after authentication or protocol violations.
+- Release streams, reservations, presence, and usage counters on disconnect.
+- Keep protocol changes backward-compatible or introduce a new version.
+
+## Conformance
+
+Protocol fixtures live in `protocol/fixtures/conformance_fixtures.json`.
+Implementations should run the fixtures against both the Go and TypeScript
+codecs. When the schema changes, regenerate bindings and add valid and invalid
+fixtures before updating the protocol version.
+
+Use the generated packages in application code:
+
+```go
+import "outpipe.dev/outpipe/pkg/protocol"
+
+message, err := protocol.Decode(frame)
+```
+
+The TypeScript bindings are used internally by `@outpipe/sdk` and its
+framework adapters. Application code should use the SDK rather than depend on
+the protocol package directly.

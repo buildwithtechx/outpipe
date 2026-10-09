@@ -8,12 +8,11 @@
   },
   "scripts": {
     "dev": "vite --port 3000",
-    "generate-routes": "tsr generate && fumadocs-mdx",
-    "build": "fumadocs-mdx && vite build",
+    "generate-routes": "tsr generate",
+    "build": "vite build",
     "preview": "vite preview",
     "deploy": "npm run build && wrangler deploy",
-    "typecheck": "fumadocs-mdx && tsc --noEmit",
-    "postinstall": "fumadocs-mdx"
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@outpipe/shared": "0.1.1",
@@ -36,9 +35,6 @@
     "canvas-confetti": "^1.9.4",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
-    "fumadocs-core": "^16.15.12",
-    "fumadocs-mdx": "^15.4.3",
-    "fumadocs-ui": "^16.15.12",
     "html-to-image": "^1.11.13",
     "lucide-react": "^1.47.0",
     "motion": "^13.4.0",

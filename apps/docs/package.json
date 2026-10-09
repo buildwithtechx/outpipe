@@ -1,0 +1,21 @@
+{
+  "name": "@outpipe/docs",
+  "version": "0.1.1",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "astro dev --port 4323",
+    "build": "astro build",
+    "typecheck": "tsc --noEmit",
+    "preview": "astro preview --port 4323"
+  },
+  "dependencies": {
+    "@astrojs/starlight": "^0.42.5",
+    "@outpipe/shared": "0.1.1",
+    "astro": "^7.3.5"
+  },
+  "devDependencies": {
+    "@types/node": "^22.13.9",
+    "typescript": "^5.7.3"
+  }
+}

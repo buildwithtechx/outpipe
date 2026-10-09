@@ -85,8 +85,7 @@ export function CommandPalette({
   }
   function select(to: string) {
     onOpenChange(false);
-    if (to.startsWith('/docs'))
-      void navigate({ to: '/docs/$', params: { _splat: '' } });
+    if (to.startsWith('http')) window.open(to, '_blank', 'noopener,noreferrer');
     else void navigate({ to });
   }
   return (

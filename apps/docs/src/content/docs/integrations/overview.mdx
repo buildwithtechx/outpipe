@@ -1,0 +1,43 @@
+---
+title: Integration overview
+description: Pick the client package that matches your application.
+---
+
+All TypeScript integrations use the same framework-neutral SDK. Framework
+packages add lifecycle helpers without creating a second protocol or client.
+
+For Go, Rust, PHP, and Angular, use the language-native package for management
+API access while keeping the same versioned authentication and tunnel model.
+
+| Package | Use it for |
+| --- | --- |
+| `@outpipe/sdk` | Node.js and browser client operations |
+| `@outpipe/react` | React provider and hooks |
+| `@outpipe/vite-plugin` | Vite development workflows |
+| `@outpipe/next` | Next.js server and route integration |
+| `@outpipe/nest` | NestJS module and service integration |
+| `@outpipe/express` | Express middleware integration |
+| `github.com/buildwithtechx/outpipe/packages/go` | Go API client and relay helpers |
+| `outpipe` | Rust API client and protocol types |
+| `outpipe/outpipe-php` | PHP API client for Laravel and PHP applications |
+| `@outpipe/angular` | Angular injectable API service and providers |
+
+The protocol bindings and Tauri bridge are internal implementation packages.
+They are bundled or consumed by the applications and are not installed
+directly by end users.
+
+Use the SDK directly when you need full control. Choose an adapter when your
+framework already owns application startup and shutdown.
+
+## Common lifecycle
+
+Every adapter follows the same lifecycle:
+
+1. Construct a relay connection with a relay URL and agent token.
+2. Negotiate the protocol and authenticate the client.
+3. Open a tunnel with a local port, protocol, and optional subdomain.
+4. Keep the connection alive with heartbeats and reconnect when enabled.
+5. Close the tunnel and connection during application shutdown.
+
+The adapter changes how this lifecycle is attached to a framework; it does not
+change the wire protocol or authorization rules.

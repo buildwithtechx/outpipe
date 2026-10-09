@@ -1,0 +1,61 @@
+---
+title: Outpipe
+description: Secure public access for local and private services.
+---
+
+Outpipe creates an encrypted path between a local service and a public
+endpoint. It is an independent product: you can use the hosted service,
+self-host the server components, or build on the protocol and SDKs without
+using Outpipe.
+
+## Why Outpipe
+
+- **Independent by design:** Use the hosted service, self-host the server, or connect your own tools without installing Outpipe.
+- **One protocol:** The CLI, desktop client, TypeScript SDK, and framework adapters share the same versioned relay protocol.
+- **Built for real workflows:** Protect previews, receive webhooks, test OAuth callbacks, and run tunnels inside CI jobs.
+- **Operationally visible:** Track connections, bandwidth, request outcomes, and retention through the API and dashboard.
+
+## How a request travels
+
+1. A client authenticates with the Tunnel API.
+2. The client opens a protocol session with the relay.
+3. The relay associates the session with a tunnel and its organization.
+4. A request arriving at the public endpoint is forwarded through the session.
+5. The local client sends the request to the selected local target and streams the response back.
+
+## Start here
+
+import { CardGrid, LinkCard } from '@astrojs/starlight/components';
+
+<CardGrid>
+  <LinkCard
+    title="Installation"
+    href="/getting-started/installation"
+    description="Install the CLI or desktop app and verify your connection."
+  />
+  <LinkCard
+    title="Open a tunnel"
+    href="/getting-started/first-tunnel"
+    description="Expose your first local HTTP or TCP service."
+  />
+  <LinkCard
+    title="Protect your tunnel"
+    href="/platform-features/password-protection"
+    description="Add password protection before sharing a preview or webhook endpoint."
+  />
+  <LinkCard
+    title="Use it in CI/CD"
+    href="/platform-features/ci-cd"
+    description="Run non-interactive preview tunnels in automated pipelines."
+  />
+  <LinkCard
+    title="Explore the SDKs"
+    href="/integrations/overview"
+    description="Integrate tunnel lifecycle into your application stack."
+  />
+  <LinkCard
+    title="Understand the architecture"
+    href="/reference/architecture"
+    description="See how the API, relay, clients, and storage work together."
+  />
+</CardGrid>

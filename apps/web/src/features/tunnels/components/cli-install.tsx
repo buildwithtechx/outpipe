@@ -1,7 +1,7 @@
-import { Link } from '@tanstack/react-router';
 import { useState } from 'react';
 import { CopyCommand } from '#/components/ui/copy-command';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '#/components/ui/tabs';
+import { docsUrl } from '#/lib/docs';
 
 export function CliInstall() {
   const [platform, setPlatform] = useState('unix');
@@ -35,13 +35,12 @@ export function CliInstall() {
           Download Windows CLI ↗
         </a>
       </TabsContent>
-      <Link
-        to="/docs/$"
-        params={{ _splat: 'installation' }}
+      <a
+        href={docsUrl('installation')}
         className="mt-3 inline-block text-xs text-muted-foreground underline"
       >
         Installation guide
-      </Link>
+      </a>
     </Tabs>
   );
 }

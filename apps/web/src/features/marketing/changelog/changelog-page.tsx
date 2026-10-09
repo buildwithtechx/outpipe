@@ -1,7 +1,7 @@
-import { Link } from '@tanstack/react-router';
 import { ArrowRight, Bug, History, Sparkles, Zap } from 'lucide-react';
 import { motion } from 'motion/react';
 import { MarketingContainer } from '#/components/layout';
+import { docsUrl } from '#/lib/docs';
 
 const releases = [
   {
@@ -126,13 +126,12 @@ export function ChangelogPage() {
               Read the code, open an issue, or suggest the next improvement.
             </p>
           </div>
-          <Link
-            to="/docs/$"
-            params={{ _splat: '' }}
+          <a
+            href={docsUrl()}
             className="inline-flex shrink-0 items-center gap-2 rounded-full bg-white px-5 py-3 text-sm font-bold text-black"
           >
             Read the docs <ArrowRight className="size-4" />
-          </Link>
+          </a>
         </div>
       </MarketingContainer>
     </section>

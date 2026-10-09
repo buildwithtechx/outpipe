@@ -1,0 +1,31 @@
+---
+title: PHP SDK
+description: Connect Laravel and PHP applications to the Outpipe API.
+---
+
+Install the Composer package:
+
+```sh
+composer require outpipe/outpipe-php
+```
+
+Create the client in a service or application boundary. Do not expose the API
+key to browser-rendered templates.
+
+```php
+<?php
+
+use Outpipe\Client\OutpipeClient;
+
+$client = new OutpipeClient(
+    'https://api.outpipe.dev',
+    getenv('OUTPIPE_API_KEY'),
+);
+
+$tunnels = $client->tunnels(getenv('OUTPIPE_ORG_ID'));
+```
+
+Laravel applications can use the package's service provider or bind the client
+as a singleton. Symfony and CakePHP applications can instantiate the
+framework-neutral Composer client in their service containers. Use the CLI or
+a relay process for a persistent local tunnel.

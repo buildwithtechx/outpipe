@@ -18,6 +18,7 @@ import {
 import { BrandLockup } from '#/components/layout/brand-lockup';
 import { MarketingContainer } from '#/components/layout/marketing-container';
 import { useGitHubStars } from '#/hooks/use-github-stars';
+import { docsUrl } from '#/lib/docs';
 import { formatGitHubStarCount, githubRepositoryUrl } from '#/lib/github';
 
 const mobileLinks = [
@@ -78,20 +79,18 @@ export function MarketingHeader() {
           >
             <div className="grid grid-cols-[150px_1fr] gap-6">
               <div className="flex flex-col gap-1 border-r border-white/10 pr-5">
-                <Link
-                  to="/docs/$"
-                  params={{ _splat: '' }}
+                <a
+                  href={docsUrl()}
                   className="rounded-lg px-3 py-2 text-sm text-white/70 transition-colors hover:bg-indigo-300/10 hover:text-indigo-300"
                 >
                   Getting started
-                </Link>
-                <Link
-                  to="/docs/$"
-                  params={{ _splat: 'cli' }}
+                </a>
+                <a
+                  href={docsUrl('cli')}
                   className="rounded-lg px-3 py-2 text-sm text-white/70 transition-colors hover:bg-indigo-300/10 hover:text-indigo-300"
                 >
                   CLI reference
-                </Link>
+                </a>
                 <Link
                   to="/plugins"
                   className="rounded-lg px-3 py-2 text-sm text-white/70 transition-colors hover:bg-indigo-300/10 hover:text-indigo-300"
@@ -220,14 +219,13 @@ export function MarketingHeader() {
             className="mx-auto flex max-w-7xl flex-col gap-1"
             aria-label="Mobile navigation"
           >
-            <Link
-              to="/docs/$"
-              params={{ _splat: '' }}
+            <a
+              href={docsUrl()}
               onClick={() => setOpen(false)}
               className="rounded-lg px-3 py-3 text-sm text-white/70 transition-colors hover:bg-indigo-300/10 hover:text-indigo-300"
             >
               Documentation
-            </Link>
+            </a>
             {mobileLinks.map((link) => (
               <Link
                 key={link.label}

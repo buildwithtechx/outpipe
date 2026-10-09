@@ -1,26 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url><loc>https://outpipe.dev/</loc></url>
-  <url><loc>https://outpipe.dev/docs</loc></url>
-  <url><loc>https://outpipe.dev/docs/getting-started/installation</loc></url>
-  <url><loc>https://outpipe.dev/docs/getting-started/first-tunnel</loc></url>
-  <url><loc>https://outpipe.dev/docs/getting-started/authentication</loc></url>
-  <url><loc>https://outpipe.dev/docs/concepts/tunnels</loc></url>
-  <url><loc>https://outpipe.dev/docs/concepts/protocol</loc></url>
-  <url><loc>https://outpipe.dev/docs/platform-features/password-protection</loc></url>
-  <url><loc>https://outpipe.dev/docs/platform-features/ci-cd</loc></url>
-  <url><loc>https://outpipe.dev/docs/platform-features/observability</loc></url>
-  <url><loc>https://outpipe.dev/docs/integrations/overview</loc></url>
-  <url><loc>https://outpipe.dev/docs/integrations/sdk</loc></url>
-  <url><loc>https://outpipe.dev/docs/integrations/react</loc></url>
-  <url><loc>https://outpipe.dev/docs/integrations/vite</loc></url>
-  <url><loc>https://outpipe.dev/docs/integrations/next</loc></url>
-  <url><loc>https://outpipe.dev/docs/integrations/nest</loc></url>
-  <url><loc>https://outpipe.dev/docs/integrations/express</loc></url>
-  <url><loc>https://outpipe.dev/docs/integrations/go</loc></url>
-  <url><loc>https://outpipe.dev/docs/integrations/rust</loc></url>
-  <url><loc>https://outpipe.dev/docs/integrations/php</loc></url>
-  <url><loc>https://outpipe.dev/docs/integrations/angular</loc></url>
   <url><loc>https://outpipe.dev/plugins</loc></url>
   <url><loc>https://outpipe.dev/plugins/sdk</loc></url>
   <url><loc>https://outpipe.dev/plugins/react</loc></url>
@@ -32,6 +12,4 @@
   <url><loc>https://outpipe.dev/plugins/rust</loc></url>
   <url><loc>https://outpipe.dev/plugins/php</loc></url>
   <url><loc>https://outpipe.dev/plugins/angular</loc></url>
-  <url><loc>https://outpipe.dev/docs/reference/architecture</loc></url>
-  <url><loc>https://outpipe.dev/docs/reference/cli</loc></url>
 </urlset>

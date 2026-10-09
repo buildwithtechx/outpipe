@@ -1,0 +1,42 @@
+---
+title: Opening a Tunnel
+description: Expose a local HTTP service through a public endpoint.
+---
+
+Start a local application on port `3000`, then open an HTTP tunnel:
+
+```sh
+outpipe http --port 3000
+```
+
+The CLI authenticates, connects to the relay, prints the assigned public URL,
+and forwards requests to `127.0.0.1:3000`.
+
+## TCP services
+
+For a raw TCP service, use:
+
+```sh
+outpipe tcp --port 5432
+```
+
+You can request a subdomain when the account and plan allow it:
+
+```sh
+outpipe open --port 3000 --protocol http --subdomain demo
+```
+
+Press `Ctrl-C` to close the local session. The client sends heartbeats while
+connected and reconnects when the relay connection is interrupted.
+
+## Protect an HTTP tunnel
+
+Add a password of at least eight characters:
+
+```sh
+outpipe http --port 3000 --password "$TUNNEL_PASSWORD"
+```
+
+Visitors receive an HTTP Basic Authentication prompt. The username is ignored;
+the password is checked by the relay before a request reaches your local
+service.

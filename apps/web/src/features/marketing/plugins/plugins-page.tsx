@@ -1,6 +1,7 @@
 import { Link } from '@tanstack/react-router';
 import { ArrowRight, PackageCheck } from 'lucide-react';
 import { MarketingContainer } from '#/components/layout';
+import { docsUrl } from '#/lib/docs';
 import { pluginDefinitions } from './plugin-data';
 
 export function PluginsPage() {
@@ -70,14 +71,13 @@ export function PluginsPage() {
             Framework adapters include the core SDK as a dependency. Install
             only the integration your project needs.
           </p>
-          <Link
-            to="/docs/$"
-            params={{ _splat: 'integrations/overview' }}
+          <a
+            href={docsUrl('integrations/overview')}
             className="mt-6 inline-flex flex-wrap items-center justify-center gap-2 text-sm font-medium text-indigo-300 transition-colors hover:text-indigo-200"
           >
             Read the integration overview
             <ArrowRight className="size-4" />
-          </Link>
+          </a>
         </div>
       </MarketingContainer>
     </section>

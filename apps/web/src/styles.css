@@ -1,49 +1,8 @@
 @import "@outpipe/shared/brand.css";
 @import "tailwindcss";
-@import "fumadocs-ui/css/neutral.css";
-@import "fumadocs-ui/css/preset.css";
 @import "tw-animate-css";
 
 @custom-variant dark (&:is(.dark *));
-
-:root,
-.dark {
-  --color-fd-background: oklch(0.985 0.002 285.823);
-  --color-fd-foreground: oklch(0.141 0.005 285.823);
-  --color-fd-card: oklch(1 0 0);
-  --color-fd-card-foreground: oklch(0.141 0.005 285.823);
-  --color-fd-popover: oklch(1 0 0);
-  --color-fd-popover-foreground: oklch(0.141 0.005 285.823);
-  --color-fd-primary: oklch(0.55 0.2 264);
-  --color-fd-primary-foreground: oklch(0.985 0 0);
-  --color-fd-secondary: oklch(0.967 0.001 286.375);
-  --color-fd-secondary-foreground: oklch(0.21 0.006 285.885);
-  --color-fd-muted: oklch(0.967 0.001 286.375);
-  --color-fd-muted-foreground: oklch(0.552 0.016 285.938);
-  --color-fd-accent: oklch(0.94 0.03 264);
-  --color-fd-accent-foreground: oklch(0.21 0.006 285.885);
-  --color-fd-border: oklch(0.92 0.004 286.32);
-  --color-fd-ring: oklch(0.55 0.2 264);
-}
-
-.dark {
-  --color-fd-background: oklch(0.105 0.005 285.823);
-  --color-fd-foreground: oklch(0.985 0 0);
-  --color-fd-card: oklch(0.145 0.006 285.885);
-  --color-fd-card-foreground: oklch(0.985 0 0);
-  --color-fd-popover: oklch(0.17 0.006 285.885);
-  --color-fd-popover-foreground: oklch(0.985 0 0);
-  --color-fd-primary: oklch(0.68 0.18 264);
-  --color-fd-primary-foreground: oklch(0.14 0.005 285.823);
-  --color-fd-secondary: oklch(0.19 0.006 286.033);
-  --color-fd-secondary-foreground: oklch(0.985 0 0);
-  --color-fd-muted: oklch(0.19 0.006 286.033);
-  --color-fd-muted-foreground: oklch(0.705 0.015 286.067);
-  --color-fd-accent: oklch(0.24 0.04 264);
-  --color-fd-accent-foreground: oklch(0.985 0 0);
-  --color-fd-border: oklch(0.27 0.006 286.033);
-  --color-fd-ring: oklch(0.68 0.18 264);
-}
 
 :root {
   --background: oklch(1 0 0);
@@ -176,8 +135,8 @@
   }
 
   .dark body {
-    background-color: var(--color-fd-background);
-    color: var(--color-fd-foreground);
+    background-color: var(--background);
+    color: var(--foreground);
   }
 
   button:not(:disabled),
@@ -193,55 +152,6 @@
 
 .safe-area-pb {
   padding-bottom: env(safe-area-inset-bottom, 0);
-}
-
-.prose {
-  --tw-prose-body: var(--color-fd-foreground);
-  --tw-prose-headings: var(--color-fd-foreground);
-  --tw-prose-lead: var(--color-fd-muted-foreground);
-  --tw-prose-links: var(--color-fd-primary);
-  --tw-prose-bold: var(--color-fd-foreground);
-  --tw-prose-counters: var(--color-fd-muted-foreground);
-  --tw-prose-bullets: var(--color-fd-muted-foreground);
-  --tw-prose-hr: var(--color-fd-border);
-  --tw-prose-quotes: var(--color-fd-foreground);
-  --tw-prose-quote-borders: var(--color-fd-primary);
-  --tw-prose-captions: var(--color-fd-muted-foreground);
-  --tw-prose-code: var(--color-fd-foreground);
-  --tw-prose-pre-code: var(--color-fd-foreground);
-  --tw-prose-pre-bg: var(--color-fd-card);
-  --tw-prose-th-borders: var(--color-fd-border);
-  --tw-prose-td-borders: var(--color-fd-border);
-}
-
-#nd-sidebar > [data-radix-scroll-area-root] {
-  min-height: 0;
-  flex: 1 1 0%;
-  width: 100%;
-}
-
-#nd-sidebar [data-radix-scroll-area-viewport] {
-  min-height: 0;
-  padding: 0.75rem;
-}
-
-#nd-sidebar [data-radix-scroll-area-viewport] a,
-#nd-sidebar [data-radix-scroll-area-viewport] button {
-  min-height: 2.125rem;
-  padding-block: 0.375rem;
-  font-size: 0.875rem;
-}
-
-figure.shiki button[data-checked] {
-  width: auto;
-  gap: 0.375rem;
-  padding-inline: 0.5rem;
-}
-
-figure.shiki button[data-checked]::after {
-  content: "Copied";
-  font-size: 0.6875rem;
-  font-weight: 500;
 }
 
 .scrollbar-hide {

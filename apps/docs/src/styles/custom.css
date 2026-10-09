@@ -1,0 +1,18 @@
+@import url('https://fonts.googleapis.com/css2?family=Geom:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400;1,600&display=swap');
+
+:root {
+  --sl-font: 'Geom', ui-sans-serif, system-ui, sans-serif;
+  --sl-color-accent-low: #1e1b4b;
+  --sl-color-accent: #a5b4fc;
+  --sl-color-accent-high: #c7d2fe;
+  --sl-color-white: #fafafa;
+  --sl-color-gray-1: #f4f4f5;
+  --sl-color-gray-6: #0a0a0a;
+}
+
+:root[data-theme='dark'] {
+  --sl-color-bg: #000;
+  --sl-color-bg-nav: #0a0a0a;
+  --sl-color-bg-sidebar: #0a0a0a;
+  --sl-color-hairline: rgba(255, 255, 255, 0.1);
+}

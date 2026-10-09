@@ -2,6 +2,7 @@ import { Link } from '@tanstack/react-router';
 import { ArrowRight } from 'lucide-react';
 import { motion } from 'motion/react';
 import { MarketingContainer } from '#/components/layout';
+import { docsUrl } from '#/lib/docs';
 import type { PluginDefinition } from './plugin-data';
 
 export function PluginCodeSection({ plugin }: { plugin: PluginDefinition }) {
@@ -35,17 +36,16 @@ export function PluginCodeSection({ plugin }: { plugin: PluginDefinition }) {
             >
               Get started
             </Link>
-            <Link
-              to="/docs/$"
-              params={{
-                _splat: plugin.docsSlug.startsWith('integrations/')
+            <a
+              href={docsUrl(
+                plugin.docsSlug.startsWith('integrations/')
                   ? plugin.docsSlug
                   : `integrations/${plugin.docsSlug}`,
-              }}
+              )}
               className="inline-flex items-center gap-2 text-sm text-white/55 hover:text-white"
             >
               Documentation <ArrowRight className="size-4" />
-            </Link>
+            </a>
           </div>
         </motion.div>
         <motion.div

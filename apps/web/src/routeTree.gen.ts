@@ -44,7 +44,6 @@ import { Route as AdminSubscriptionsRouteImport } from './routes/admin/subscript
 import { Route as AdminTunnelsRouteImport } from './routes/admin/tunnels'
 import { Route as AdminUsageRouteImport } from './routes/admin/usage'
 import { Route as CliLoginRouteImport } from './routes/cli/login'
-import { Route as DocsSplatRouteImport } from './routes/docs/$'
 import { Route as OrgSlugSettingsIndexRouteImport } from './routes/$orgSlug/settings/index'
 import { Route as OrgSlugSettingsOrganizationRouteImport } from './routes/$orgSlug/settings/organization'
 import { Route as OrgSlugSettingsProfileRouteImport } from './routes/$orgSlug/settings/profile'
@@ -232,11 +231,6 @@ const CliLoginRoute = CliLoginRouteImport.update({
   path: '/cli/login',
   getParentRoute: () => rootRouteImport,
 } as any)
-const DocsSplatRoute = DocsSplatRouteImport.update({
-  id: '/docs/$',
-  path: '/docs/$',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const OrgSlugSettingsIndexRoute = OrgSlugSettingsIndexRouteImport.update({
   id: '/settings/',
   path: '/settings/',
@@ -334,7 +328,6 @@ export interface FileRoutesByFullPath {
   '/admin/tunnels': typeof AdminTunnelsRoute
   '/admin/usage': typeof AdminUsageRoute
   '/cli/login': typeof CliLoginRoute
-  '/docs/$': typeof DocsSplatRoute
   '/$orgSlug/': typeof OrgSlugIndexRoute
   '/admin/': typeof AdminIndexRoute
   '/$orgSlug/settings/organization': typeof OrgSlugSettingsOrganizationRoute
@@ -379,7 +372,6 @@ export interface FileRoutesByTo {
   '/admin/tunnels': typeof AdminTunnelsRoute
   '/admin/usage': typeof AdminUsageRoute
   '/cli/login': typeof CliLoginRoute
-  '/docs/$': typeof DocsSplatRoute
   '/$orgSlug': typeof OrgSlugIndexRoute
   '/': typeof MarketingIndexRoute
   '/admin': typeof AdminIndexRoute
@@ -430,7 +422,6 @@ export interface FileRoutesById {
   '/admin/tunnels': typeof AdminTunnelsRoute
   '/admin/usage': typeof AdminUsageRoute
   '/cli/login': typeof CliLoginRoute
-  '/docs/$': typeof DocsSplatRoute
   '/$orgSlug/': typeof OrgSlugIndexRoute
   '/_marketing/': typeof MarketingIndexRoute
   '/admin/': typeof AdminIndexRoute
@@ -482,7 +473,6 @@ export interface FileRouteTypes {
     | '/admin/tunnels'
     | '/admin/usage'
     | '/cli/login'
-    | '/docs/$'
     | '/$orgSlug/'
     | '/admin/'
     | '/$orgSlug/settings/organization'
@@ -527,7 +517,6 @@ export interface FileRouteTypes {
     | '/admin/tunnels'
     | '/admin/usage'
     | '/cli/login'
-    | '/docs/$'
     | '/$orgSlug'
     | '/'
     | '/admin'
@@ -577,7 +566,6 @@ export interface FileRouteTypes {
     | '/admin/tunnels'
     | '/admin/usage'
     | '/cli/login'
-    | '/docs/$'
     | '/$orgSlug/'
     | '/_marketing/'
     | '/admin/'
@@ -603,7 +591,6 @@ export interface RootRouteChildren {
   SelectRoute: typeof SelectRoute
   SignupRoute: typeof SignupRoute
   CliLoginRoute: typeof CliLoginRoute
-  DocsSplatRoute: typeof DocsSplatRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -853,13 +840,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CliLoginRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/docs/$': {
-      id: '/docs/$'
-      path: '/docs/$'
-      fullPath: '/docs/$'
-      preLoaderRoute: typeof DocsSplatRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/$orgSlug/settings/': {
       id: '/$orgSlug/settings/'
       path: '/settings'
@@ -1071,7 +1051,6 @@ const rootRouteChildren: RootRouteChildren = {
   SelectRoute: SelectRoute,
   SignupRoute: SignupRoute,
   CliLoginRoute: CliLoginRoute,
-  DocsSplatRoute: DocsSplatRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

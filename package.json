@@ -9,17 +9,19 @@
     "packages/*"
   ],
   "scripts": {
-    "dev": "concurrently -k -n api,tunnel,web,status,secrets-share -c blue,cyan,magenta,green,yellow \"npm run dev:api\" \"npm run dev:tunnel\" \"npm run dev:web\" \"npm run dev:status\" \"npm run dev:secrets-share\"",
+    "dev": "concurrently -k -n api,tunnel,web,status,secrets-share,docs -c blue,cyan,magenta,green,yellow,gray \"npm run dev:api\" \"npm run dev:tunnel\" \"npm run dev:web\" \"npm run dev:status\" \"npm run dev:secrets-share\" \"npm run dev:docs\"",
     "dev:api": "cross-env OUTPIPE_PORT=8080 air -c .air/server.toml",
     "dev:tunnel": "cross-env OUTPIPE_PORT=8081 air -c .air/tunnel.toml",
     "dev:cron": "air -c .air/cron.toml",
     "dev:check": "air -c .air/check.toml",
     "dev:cli": "air -c .air/cli.toml",
-    "build": "npm run build:packages && npm run build:web && npm run build:secrets-share && npm run build:status && npm run build:api && npm run build:tunnel && npm run build:cron && npm run build:check && npm run build:cli && npm run build:go-sdk && npm run build:rust-sdk && npm run check:php && npm run build:desktop",
+    "build": "npm run build:packages && npm run build:web && npm run build:docs && npm run build:secrets-share && npm run build:status && npm run build:api && npm run build:tunnel && npm run build:cron && npm run build:check && npm run build:cli && npm run build:go-sdk && npm run build:rust-sdk && npm run check:php && npm run build:desktop",
     "build:web": "npm run generate-routes && npm run build --workspace apps/web",
     "build:secrets-share": "npm run build --workspace apps/secrets-share",
     "build:status": "npm run build --workspace apps/status",
+    "build:docs": "npm run build --workspace apps/docs",
     "dev:web": "npm run dev --workspace apps/web",
+    "dev:docs": "npm run dev --workspace apps/docs",
     "dev:secrets-share": "npm run dev --workspace apps/secrets-share",
     "dev:status": "npm run dev --workspace apps/status",
     "dev:desktop": "npm run dev --workspace apps/desktop",
@@ -44,7 +46,7 @@
     "test:rust-sdk": "cargo fmt --manifest-path packages/rust/Cargo.toml --all -- --check && cargo test --manifest-path packages/rust/Cargo.toml",
     "test:php": "cd packages/php && composer validate --strict --no-check-publish && composer test && composer check",
     "check:php": "cd packages/php && composer validate --strict --no-check-publish && composer check",
-    "clean": "rm -rf bin apps/web/dist apps/desktop/src-tauri/target"
+    "clean": "rm -rf bin apps/web/dist apps/docs/dist apps/desktop/src-tauri/target"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.5.15",

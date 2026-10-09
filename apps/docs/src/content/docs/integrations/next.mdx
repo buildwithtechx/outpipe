@@ -1,0 +1,29 @@
+---
+title: Next.js integration
+description: Attach tunnel lifecycle to a Next.js server process.
+---
+
+Install the adapter:
+
+```sh
+npm install @outpipe/next
+```
+
+Create the tunnel from a server-side startup path, not a browser component:
+
+```ts
+import { createNextTunnel } from '@outpipe/next';
+
+const tunnel = createNextTunnel({
+  relayUrl: process.env.OUTPIPE_RELAY_URL!,
+  agentToken: process.env.OUTPIPE_AGENT_TOKEN!,
+  localPort: 3000,
+  subdomain: process.env.OUTPIPE_SUBDOMAIN,
+  password: process.env.TUNNEL_PASSWORD,
+});
+
+await tunnel.start();
+```
+
+Keep credentials in server-only environment variables. Do not expose the
+agent token through `NEXT_PUBLIC_*` variables or client bundles.

@@ -5,6 +5,7 @@ import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
 import { useEffect, useState } from 'react';
 import { MarketingContainer } from '#/components/layout';
 import { CliInstall } from '#/features/tunnels/components/cli-install';
+import { docsUrl } from '#/lib/docs';
 import { BeamGroup } from './beam-group';
 import { TerminalWindow } from './terminal-window';
 
@@ -109,13 +110,12 @@ export function Hero() {
             Get started free{' '}
             <ArrowRight className="size-5 transition-transform group-hover:translate-x-1" />
           </Link>
-          <Link
-            to="/docs/$"
-            params={{ _splat: 'installation' }}
+          <a
+            href={docsUrl('installation')}
             className="inline-flex min-h-11 items-center rounded-full border border-white/10 px-6 text-sm text-white/70"
           >
             Read the quickstart
-          </Link>
+          </a>
         </div>
         <div className="mt-8 w-full max-w-xl rounded-2xl border border-border bg-card p-5 text-left">
           <CliInstall />

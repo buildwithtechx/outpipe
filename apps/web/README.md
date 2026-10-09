@@ -33,9 +33,9 @@ npm run deploy
 - Client environment variables live in `src/env.ts` and use the `VITE_` prefix.
 - Shared query state goes through the singleton `queryClient` in
   `src/integrations/tanstack-query/root-provider.tsx`.
-- Docs content lives in `content/docs/` and is bundled client-side with
-  `fumadocs-mdx`; the docs route loader reads pages directly, no server
-  functions involved.
+- Documentation lives in the `apps/docs` Astro Starlight app. This app links
+  out to it via `docsUrl()` in `src/lib/docs.ts`, which reads
+  `VITE_OUTPIPE_DOCS_URL` (defaults to `http://localhost:4323`).
 
 ## Env
 

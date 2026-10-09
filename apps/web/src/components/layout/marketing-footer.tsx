@@ -10,6 +10,7 @@ import {
   SiRust,
   SiVite,
 } from 'react-icons/si';
+import { docsUrl } from '#/lib/docs';
 import { MarketingContainer } from './marketing-container';
 
 export function MarketingFooter() {
@@ -38,21 +39,19 @@ export function MarketingFooter() {
             <FooterLink to="/report-bug">Report a bug</FooterLink>
           </FooterGroup>
           <FooterGroup title="Developers">
-            <Link
-              to="/docs/$"
-              params={{ _splat: '' }}
+            <a
+              href={docsUrl()}
               className="text-sm text-white/45 transition-colors hover:text-indigo-300"
             >
               Documentation
-            </Link>
+            </a>
             <FooterLink to="/plugins">Plugins</FooterLink>
-            <Link
-              to="/docs/$"
-              params={{ _splat: 'cli' }}
+            <a
+              href={docsUrl('cli')}
               className="text-sm text-white/45 transition-colors hover:text-indigo-300"
             >
               CLI reference
-            </Link>
+            </a>
           </FooterGroup>
           <FooterGroup title="Integrations">
             <FooterPlugin to="/plugins/react" icon={SiReact}>

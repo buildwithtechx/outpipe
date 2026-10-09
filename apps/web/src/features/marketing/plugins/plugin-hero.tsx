@@ -4,6 +4,7 @@ import { ArrowRight, Check, Copy } from 'lucide-react';
 import { motion, useMotionValue, useSpring, useTransform } from 'motion/react';
 import { useRef, useState } from 'react';
 import { MarketingContainer } from '#/components/layout';
+import { docsUrl } from '#/lib/docs';
 import { PluginBeam } from './plugin-beam';
 import type { PluginDefinition } from './plugin-data';
 
@@ -172,13 +173,12 @@ export function PluginHero({ plugin }: { plugin: PluginDefinition }) {
               Start building{' '}
               <ArrowRight className="size-4 transition-transform group-hover:translate-x-1" />
             </Link>
-            <Link
-              to="/docs/$"
-              params={{ _splat: `integrations/${plugin.docsSlug}` }}
+            <a
+              href={docsUrl(`integrations/${plugin.docsSlug}`)}
               className="rounded-full border border-white/15 px-7 py-4 text-center text-sm text-white/70 hover:bg-white/5"
             >
               Documentation
-            </Link>
+            </a>
           </div>
           <button
             type="button"

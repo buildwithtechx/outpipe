@@ -1,0 +1,38 @@
+---
+title: React integration
+description: Manage a tunnel with a provider and React hooks.
+---
+
+Install the React adapter and SDK:
+
+```sh
+npm install @outpipe/react
+```
+
+Wrap the part of the application that owns the tunnel:
+
+```tsx
+import { TunnelProvider, useTunnel } from '@outpipe/react';
+
+function PreviewControls() {
+  const { status, tunnel, connect, openTunnel, closeTunnel } = useTunnel();
+
+  return (
+    <button onClick={() => openTunnel({ local_port: 3000, protocol: 'http' })}>
+      {status} {tunnel?.public_url ?? 'Open preview'}
+    </button>
+  );
+}
+
+export function Preview() {
+  return (
+    <TunnelProvider options={{ relayUrl, agentToken }}>
+      <PreviewControls />
+    </TunnelProvider>
+  );
+}
+```
+
+The provider closes the relay connection when it unmounts. Keep the provider
+above controls that need tunnel state and avoid creating a new options object
+on every render.
