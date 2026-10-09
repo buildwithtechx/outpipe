@@ -2,6 +2,7 @@ import starlight from '@astrojs/starlight';
 import { defineConfig } from 'astro/config';
 
 export default defineConfig({
+  site: 'https://docs.outpipe.dev',
   integrations: [
     starlight({
       title: 'Outpipe Docs',
