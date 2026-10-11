@@ -74,6 +74,9 @@ func TestAIAgentHandlerListThreads(t *testing.T) {
 	if body["configured"] != true {
 		t.Errorf("expected configured: true, got %v", body["configured"])
 	}
+	if body["availableProviders"] == nil {
+		t.Errorf("expected availableProviders in response")
+	}
 }
 
 func TestAIAgentHandlerChatStream(t *testing.T) {

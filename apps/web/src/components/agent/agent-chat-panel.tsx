@@ -61,9 +61,34 @@ export function AgentChatPanel({ onClose }: AgentChatPanelProps) {
               <span className="font-semibold text-xs text-white">
                 Troubleshooting Agent
               </span>
-              <span className="rounded bg-white/10 px-1.5 py-0.5 text-[10px] font-mono text-white/60">
-                {state.provider}
-              </span>
+              {state.availableProviders &&
+              state.availableProviders.length > 1 ? (
+                <select
+                  value={state.provider}
+                  onChange={(e) =>
+                    dispatch({
+                      type: 'set-provider',
+                      provider: e.target.value,
+                    })
+                  }
+                  className="rounded bg-white/10 border border-white/10 px-1.5 py-0.5 text-[10px] font-mono text-white/80 focus:outline-none focus:border-indigo-500 cursor-pointer"
+                  title="Select AI Provider"
+                >
+                  {state.availableProviders.map((p) => (
+                    <option
+                      key={p}
+                      value={p}
+                      className="bg-zinc-900 text-white"
+                    >
+                      {p}
+                    </option>
+                  ))}
+                </select>
+              ) : (
+                <span className="rounded bg-white/10 px-1.5 py-0.5 text-[10px] font-mono text-white/60">
+                  {state.provider}
+                </span>
+              )}
             </div>
           </div>
         </div>

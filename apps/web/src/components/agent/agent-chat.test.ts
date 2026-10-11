@@ -1,12 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { readAgentConfig } from '#/lib/agent/config';
-import type { AgentStreamEvent } from '#/lib/agent/protocol';
-import { MockAgentProvider } from '#/lib/agent/providers/mock-provider';
 import {
   type AgentThread,
   agentChatReducer,
   initialAgentChatState,
 } from './agent-chat-data';
+import { createAgentSseParser } from './agent-chat-transport';
 
 describe('Agent Chat Reducer & Provider', () => {
   it('handles open and close actions', () => {
@@ -91,45 +89,39 @@ describe('Agent Chat Reducer & Provider', () => {
     expect(state.threads[0].messages[1].status).toBe('complete');
   });
 
-  it('runs MockAgentProvider and emits steps, evidence, and finish', async () => {
-    const provider = new MockAgentProvider();
-    const emittedEvents: AgentStreamEvent[] = [];
-    const controller = new AbortController();
-
-    const result = await provider.investigate({
-      prompt: 'Check tunnel errors',
-      sourceRequestId: 'req-test-99',
-      history: [],
-      signal: controller.signal,
-      emit: (e) => {
-        emittedEvents.push(e);
-      },
+  it('updates provider, model and availableProviders from backend config', () => {
+    let state = agentChatReducer(initialAgentChatState, {
+      type: 'set-provider',
+      provider: 'openai',
+      model: 'gpt-4o-mini',
+      availableProviders: ['mock', 'openai', 'anthropic'],
     });
 
-    expect(result.text).toContain('HTTP 503');
-    expect(result.steps.length).toBeGreaterThanOrEqual(3);
-    expect(result.evidence.length).toBeGreaterThanOrEqual(2);
-    expect(emittedEvents.some((e) => e.type === 'step')).toBe(true);
-    expect(emittedEvents.some((e) => e.type === 'evidence')).toBe(true);
-    expect(emittedEvents.some((e) => e.type === 'text')).toBe(true);
+    expect(state.provider).toBe('openai');
+    expect(state.model).toBe('gpt-4o-mini');
+    expect(state.availableProviders).toEqual(['mock', 'openai', 'anthropic']);
+
+    state = agentChatReducer(state, {
+      type: 'set-provider',
+      provider: 'anthropic',
+    });
+    expect(state.provider).toBe('anthropic');
+    expect(state.model).toBe('gpt-4o-mini');
+    expect(state.availableProviders).toEqual(['mock', 'openai', 'anthropic']);
   });
 
-  it('reads pluggable configuration defaults correctly', () => {
-    const config = readAgentConfig({});
-    expect(config.provider).toBe('mock');
-    expect(config.configured).toBe(true);
+  it('parses SSE chunks correctly in createAgentSseParser', () => {
+    const events: unknown[] = [];
+    const parser = createAgentSseParser((data) => events.push(data));
 
-    const openaiConfig = readAgentConfig({
-      OPENAI_API_KEY: 'sk-test-123',
-    });
-    expect(openaiConfig.provider).toBe('openai');
-    expect(openaiConfig.configured).toBe(true);
+    parser.push('data: {"type":"text","delta":"Hello "}\n\n');
+    parser.push('data: {"type":"text","delta":"world"}\n\n');
+    parser.push('data: {"type":"finish","status":"complete"}\n\n');
+    parser.finish();
 
-    const xaiConfig = readAgentConfig({
-      DEFAULT_AGENT_PROVIDER: 'xai',
-      XAI_API_KEY: 'xai-test-key',
-    });
-    expect(xaiConfig.provider).toBe('xai');
-    expect(xaiConfig.model).toBe('grok-4.7');
+    expect(events.length).toBe(3);
+    expect(events[0]).toEqual({ type: 'text', delta: 'Hello ' });
+    expect(events[1]).toEqual({ type: 'text', delta: 'world' });
+    expect(events[2]).toEqual({ type: 'finish', status: 'complete' });
   });
 });

@@ -58,7 +58,8 @@ type AIStreamEvent struct {
 }
 
 type AIAgentConfig struct {
-	Provider string `json:"provider"`
-	Model    string `json:"model"`
-	Enabled  bool   `json:"enabled"`
+	Provider           string   `json:"provider"`
+	Model              string   `json:"model"`
+	Enabled            bool     `json:"enabled"`
+	AvailableProviders []string `json:"availableProviders"`
 }

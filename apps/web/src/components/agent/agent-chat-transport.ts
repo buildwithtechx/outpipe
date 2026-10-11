@@ -80,6 +80,8 @@ export async function streamAgentChatServer({
   threadId,
   message,
   sourceRequestId,
+  provider,
+  model,
   signal,
   onEvent,
 }: {
@@ -87,6 +89,8 @@ export async function streamAgentChatServer({
   threadId: string;
   message: string;
   sourceRequestId?: string | null;
+  provider?: string;
+  model?: string;
   signal?: AbortSignal;
   onEvent: (event: AgentStreamEvent) => void;
 }): Promise<boolean> {
@@ -104,6 +108,8 @@ export async function streamAgentChatServer({
       threadId,
       message,
       sourceRequestId: sourceRequestId || undefined,
+      provider: provider || undefined,
+      model: model || undefined,
     }),
     signal,
   });

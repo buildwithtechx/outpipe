@@ -32,6 +32,7 @@ export interface AgentChatState {
   historyOpen: boolean;
   provider: string;
   model: string;
+  availableProviders: string[];
 }
 
 export type AgentChatAction =
@@ -62,15 +63,21 @@ export type AgentChatAction =
     }
   | { type: 'load'; threads: AgentThread[] }
   | { type: 'delete'; threadId: string }
-  | { type: 'set-provider'; provider: string; model: string };
+  | {
+      type: 'set-provider';
+      provider: string;
+      model?: string;
+      availableProviders?: string[];
+    };
 
 export const initialAgentChatState: AgentChatState = {
   threads: [],
   activeThreadId: null,
   panelOpen: false,
   historyOpen: false,
-  provider: 'mock',
-  model: 'outpipe-heuristic-engine-v1',
+  provider: 'default',
+  model: '',
+  availableProviders: [],
 };
 
 export function agentChatReducer(
@@ -237,7 +244,11 @@ export function agentChatReducer(
       return {
         ...state,
         provider: action.provider,
-        model: action.model,
+        model: action.model !== undefined ? action.model : state.model,
+        availableProviders:
+          action.availableProviders !== undefined
+            ? action.availableProviders
+            : state.availableProviders,
       };
 
     default:

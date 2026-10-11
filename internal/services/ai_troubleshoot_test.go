@@ -55,6 +55,9 @@ func TestAIAgentServiceGetConfig(t *testing.T) {
 	if cfg.Provider == "" {
 		t.Errorf("expected default provider to be set")
 	}
+	if len(cfg.AvailableProviders) == 0 {
+		t.Errorf("expected at least mock provider in available providers")
+	}
 }
 
 func TestAIAgentServiceInvestigateStream(t *testing.T) {

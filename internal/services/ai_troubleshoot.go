@@ -52,6 +52,18 @@ func (s *AIAgentService) DeleteThread(ctx context.Context, orgID, threadID strin
 }
 
 func (s *AIAgentService) GetConfig() models.AIAgentConfig {
+	var available []string
+	available = append(available, "mock")
+	if os.Getenv("OPENAI_API_KEY") != "" {
+		available = append(available, "openai")
+	}
+	if os.Getenv("XAI_API_KEY") != "" {
+		available = append(available, "xai")
+	}
+	if os.Getenv("ANTHROPIC_API_KEY") != "" {
+		available = append(available, "anthropic")
+	}
+
 	provider := strings.ToLower(strings.TrimSpace(os.Getenv("DEFAULT_AGENT_PROVIDER")))
 	if provider == "" {
 		provider = strings.ToLower(strings.TrimSpace(os.Getenv("AGENT_PROVIDER")))
@@ -80,7 +92,12 @@ func (s *AIAgentService) GetConfig() models.AIAgentConfig {
 			model = "outpipe-heuristic-engine-v1"
 		}
 	}
-	return models.AIAgentConfig{Provider: provider, Model: model, Enabled: true}
+	return models.AIAgentConfig{
+		Provider:           provider,
+		Model:              model,
+		Enabled:            true,
+		AvailableProviders: available,
+	}
 }
 
 func (s *AIAgentService) InvestigateStream(ctx context.Context, orgID, userID string, req models.AIChatRequest, emit func(models.AIStreamEvent) error) error {

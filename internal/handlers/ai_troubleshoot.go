@@ -35,10 +35,11 @@ func (h *AIAgentHandler) ListThreads(c *fiber.Ctx) error {
 	}
 	cfg := h.svc.GetConfig()
 	return c.JSON(fiber.Map{
-		"threads":    threads,
-		"configured": cfg.Enabled,
-		"provider":   cfg.Provider,
-		"model":      cfg.Model,
+		"threads":            threads,
+		"configured":         cfg.Enabled,
+		"provider":           cfg.Provider,
+		"model":              cfg.Model,
+		"availableProviders": cfg.AvailableProviders,
 	})
 }
 

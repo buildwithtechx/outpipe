@@ -15,10 +15,6 @@ export const env = createEnv({
     VITE_OUTPIPE_POSTHOG_HOST: z.url().optional(),
     VITE_UNIFIED_SIDEBAR: z.string().optional(),
     VITE_SHARE_PUBLIC_ORIGIN: z.url().optional(),
-    VITE_DEFAULT_AGENT_PROVIDER: z
-      .enum(['openai', 'xai', 'anthropic', 'mock'])
-      .optional(),
-    VITE_AGENT_MODEL: z.string().optional(),
   },
 
   runtimeEnv: import.meta.env,

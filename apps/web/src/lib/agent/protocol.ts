@@ -89,6 +89,8 @@ export interface AgentChatRequest {
   assistantId: string;
   message: string;
   sourceRequestId?: string;
+  provider?: string;
+  model?: string;
 }
 
 export type AgentStreamEvent =
@@ -107,4 +109,5 @@ export interface AgentThreadListResponse {
   configured: boolean;
   provider: string;
   model: string | null;
+  availableProviders?: string[];
 }

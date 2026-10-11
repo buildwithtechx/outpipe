@@ -6,8 +6,7 @@ import {
   useReducer,
   useRef,
 } from 'react';
-import { readAgentConfig } from '#/lib/agent/config';
-import { runAgentInvestigation } from '#/lib/agent/runtime';
+import type { AgentSavedMessage, AgentSavedThread } from '#/lib/agent/protocol';
 import {
   deleteStoredThread,
   listStoredThreads,
@@ -40,15 +39,9 @@ export function AgentChatProvider({
   const [state, dispatch] = useReducer(agentChatReducer, initialAgentChatState);
   const activeControllers = useRef<Map<string, AbortController>>(new Map());
 
-  // Load configuration and existing saved threads on mount
+  // Load existing saved threads and sync with backend on mount
   useEffect(() => {
-    const config = readAgentConfig();
-    dispatch({
-      type: 'set-provider',
-      provider: config.provider,
-      model: config.model,
-    });
-
+    let cancelled = false;
     const stored = listStoredThreads(organizationId);
     if (stored.length > 0) {
       const threads: AgentThread[] = stored.map((t) => ({
@@ -58,6 +51,41 @@ export function AgentChatProvider({
       }));
       dispatch({ type: 'load', threads });
     }
+
+    const baseURL = getApiBaseURL();
+    fetch(`${baseURL}/api/v1/organizations/${organizationId}/agent/threads`, {
+      credentials: 'include',
+    })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (cancelled || !data) return;
+        if (data.provider) {
+          dispatch({
+            type: 'set-provider',
+            provider: data.provider,
+            model: data.model || '',
+            availableProviders: data.availableProviders || [],
+          });
+        }
+        if (Array.isArray(data.threads) && data.threads.length > 0) {
+          const threads: AgentThread[] = data.threads.map(
+            (t: AgentSavedThread) => ({
+              ...t,
+              messages: (t.messages || []).map((m: AgentSavedMessage) => ({
+                ...m,
+                localStreaming: false,
+              })),
+              draft: '',
+            }),
+          );
+          dispatch({ type: 'load', threads });
+        }
+      })
+      .catch(() => undefined);
+
+    return () => {
+      cancelled = true;
+    };
   }, [organizationId]);
 
   // Persist updated threads to local storage
@@ -126,42 +154,30 @@ export function AgentChatProvider({
       });
 
       try {
-        let serverHandled = false;
-        try {
-          serverHandled = await streamAgentChatServer({
-            organizationId,
-            threadId: currentThread.id,
-            message: prompt,
-            sourceRequestId: currentThread.sourceRequestId,
-            signal: controller.signal,
-            onEvent: (event) => {
-              dispatch({
-                type: 'stream',
-                threadId: currentThread.id,
-                assistantId,
-                event,
-              });
-            },
-          });
-        } catch (serverErr) {
-          if (controller.signal.aborted) throw serverErr;
-          serverHandled = false;
-        }
+        const handled = await streamAgentChatServer({
+          organizationId,
+          threadId: currentThread.id,
+          message: prompt,
+          sourceRequestId: currentThread.sourceRequestId,
+          provider: state.provider,
+          model: state.model,
+          signal: controller.signal,
+          onEvent: (event) => {
+            dispatch({
+              type: 'stream',
+              threadId: currentThread.id,
+              assistantId,
+              event,
+            });
+          },
+        });
 
-        if (!serverHandled && !controller.signal.aborted) {
-          await runAgentInvestigation({
-            prompt,
-            sourceRequestId: currentThread.sourceRequestId,
-            history: currentThread.messages,
-            signal: controller.signal,
-            emit: (event) => {
-              dispatch({
-                type: 'stream',
-                threadId: currentThread.id,
-                assistantId,
-                event,
-              });
-            },
+        if (!handled && !controller.signal.aborted) {
+          dispatch({
+            type: 'failed',
+            threadId: currentThread.id,
+            assistantId,
+            error: 'AI troubleshooting service is unavailable.',
           });
         }
       } catch (err) {
@@ -179,7 +195,14 @@ export function AgentChatProvider({
         activeControllers.current.delete(currentThread.id);
       }
     },
-    [state.threads, state.activeThreadId, startThread, organizationId],
+    [
+      state.threads,
+      state.activeThreadId,
+      state.provider,
+      state.model,
+      startThread,
+      organizationId,
+    ],
   );
 
   const handleDeleteThread = useCallback(
