@@ -306,7 +306,7 @@ func main() {
 		log.Printf("job status: name=%s state=%s runs=%d failures=%d lastError=%s", status.Name, status.State, status.RunCount, status.FailureCount, status.LastError)
 	}
 
-	if os.Getenv("OUTPIPE_CRON_METRICS") == "1" {
+	if cfg.Metrics || os.Getenv("OUTPIPE_CRON_METRICS") == "1" {
 		fmt.Println(exporter.ExportPrometheus())
 	}
 }

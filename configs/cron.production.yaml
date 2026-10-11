@@ -1,0 +1,38 @@
+app:
+  port: "8080"
+  internal_listen_address: "127.0.0.1:9090"
+  name: "outpipe-cron"
+  environment: "production"
+  log_level: "info"
+  shutdown_timeout: 30s
+  allowed_origins: "https://app.outpipe.dev,https://outpipe.dev"
+  cors_origin: "https://app.outpipe.dev"
+  public_api_url: "https://api.outpipe.dev"
+  dashboard_url: "https://app.outpipe.dev"
+  require_tls: true
+
+database:
+  max_conns: 10
+  max_lifetime: 30m
+  max_idle_time: 5m
+
+redis:
+  host: "redis"
+  port: "6379"
+  db: 0
+
+service:
+  internal_api_url: "http://127.0.0.1:9090"
+
+backup:
+  directory: "/var/backups/outpipe"
+  keep: 30
+  pg_dump_path: "pg_dump"
+  pg_restore_path: "pg_restore"
+
+mail:
+  from_address: "noreply@outpipe.dev"
+  support: "support@outpipe.dev"
+  zepto_url: "https://api.zeptomail.com/v1.1/email"
+
+metrics: true

@@ -1,0 +1,27 @@
+app:
+  port: "8082"
+  internal_listen_address: "127.0.0.1:9090"
+  name: "outpipe-check"
+  environment: "development"
+  log_level: "info"
+  shutdown_timeout: 10s
+  allowed_origins: "http://localhost:3000,http://localhost:3001"
+  cors_origin: "http://localhost:3000"
+  public_api_url: "http://localhost:8080"
+  dashboard_url: "http://localhost:3000"
+  require_tls: false
+
+service:
+  internal_api_url: "http://127.0.0.1:9090"
+
+database:
+  max_conns: 5
+  max_lifetime: 30m
+  max_idle_time: 5m
+
+redis:
+  host: "localhost"
+  port: "6379"
+  db: 0
+
+relay_url: "http://127.0.0.1:8081"

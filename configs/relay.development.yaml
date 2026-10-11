@@ -1,0 +1,36 @@
+app:
+  port: "8081"
+  internal_listen_address: "127.0.0.1:9090"
+  name: "outpipe-relay"
+  environment: "development"
+  log_level: "debug"
+  shutdown_timeout: 10s
+  allowed_origins: "http://localhost:3000,http://localhost:3001"
+  cors_origin: "http://localhost:3000"
+  public_api_url: "http://localhost:8080"
+  dashboard_url: "http://localhost:3000"
+  require_tls: false
+
+relay_id: "relay-local"
+
+redis:
+  host: "localhost"
+  port: "6379"
+  db: 0
+
+tunnel:
+  domain: "outpipe.localhost"
+  token_ttl: 24h
+  max_connections: 1000
+  max_tunnels: 1000
+  max_bytes: 0
+  max_bandwidth: 0
+  heartbeat_interval: 20s
+  read_timeout: 90s
+  drain_timeout: 10s
+  agent_inactivity_timeout: 90s
+  max_frame_bytes: 16777216
+  require_tls: false
+
+service:
+  internal_api_url: "http://127.0.0.1:9090"

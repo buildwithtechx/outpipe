@@ -1,0 +1,38 @@
+app:
+  port: "8081"
+  internal_listen_address: "127.0.0.1:9090"
+  name: "outpipe-relay"
+  environment: "production"
+  log_level: "info"
+  shutdown_timeout: 15s
+  allowed_origins: "https://app.outpipe.dev,https://outpipe.dev"
+  cors_origin: "https://app.outpipe.dev"
+  public_api_url: "https://api.outpipe.dev"
+  dashboard_url: "https://app.outpipe.dev"
+  require_tls: true
+  tls_cert_file: "/etc/outpipe/certs/fullchain.pem"
+  tls_key_file: "/etc/outpipe/certs/privkey.pem"
+
+relay_id: "relay-primary"
+
+redis:
+  host: "redis"
+  port: "6379"
+  db: 0
+
+tunnel:
+  domain: "outpipe.app"
+  token_ttl: 24h
+  max_connections: 50000
+  max_tunnels: 50000
+  max_bytes: 0
+  max_bandwidth: 0
+  heartbeat_interval: 20s
+  read_timeout: 90s
+  drain_timeout: 15s
+  agent_inactivity_timeout: 90s
+  max_frame_bytes: 16777216
+  require_tls: true
+
+service:
+  internal_api_url: "http://127.0.0.1:9090"

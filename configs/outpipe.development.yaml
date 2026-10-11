@@ -1,0 +1,81 @@
+app:
+  port: "8080"
+  internal_listen_address: "127.0.0.1:9090"
+  name: "outpipe"
+  environment: "development"
+  log_level: "debug"
+  shutdown_timeout: 10s
+  allowed_origins: "http://localhost:3000,http://localhost:3001"
+  cors_origin: "http://localhost:3000"
+  public_api_url: "http://localhost:8080"
+  dashboard_url: "http://localhost:3000"
+  require_tls: false
+  acme_enabled: false
+  acme_email: "admin@outpipe.dev"
+  acme_directory: "https://acme-staging-v02.api.letsencrypt.org/directory"
+  certificate_cache_dir: ".data/acme"
+
+database:
+  max_conns: 50
+  max_lifetime: 30m
+  max_idle_time: 5m
+
+redis:
+  host: "localhost"
+  port: "6379"
+  db: 0
+
+tunnel:
+  domain: "outpipe.app"
+  token_ttl: 24h
+  max_connections: 1000
+  max_tunnels: 1000
+  max_bytes: 0
+  max_bandwidth: 0
+  heartbeat_interval: 20s
+  read_timeout: 90s
+  drain_timeout: 10s
+  agent_inactivity_timeout: 90s
+  max_frame_bytes: 16777216
+  require_tls: false
+
+auth:
+  session_ttl: 720h
+  device_login_ttl: 10m
+  invitation_ttl: 168h
+  oauth_state_ttl: 10m
+  cookie_name: "outpipe_session"
+  cookie_secure: false
+  cookie_domain: ""
+
+billing:
+  grace_period: 72h
+  polar_server: "sandbox"
+  polar_base_url: "https://sandbox-api.polar.sh"
+  polar_product_link: "prod_link_dev"
+  polar_product_route: "prod_route_dev"
+  polar_product_edge: "prod_edge_dev"
+  polar_product_link_yearly: "prod_link_yearly_dev"
+  polar_product_route_yearly: "prod_route_yearly_dev"
+  polar_product_edge_yearly: "prod_edge_yearly_dev"
+  paystack_base_url: "https://api.paystack.co"
+
+mail:
+  from_address: "noreply@localhost"
+  support: "support@outpipe.dev"
+  zepto_url: "https://api.zeptomail.com/v1.1/email"
+
+analytics:
+  tinybird_url: "https://api.europe-west2.gcp.tinybird.co"
+  tinybird_datasource: "outpipe_telemetry"
+  clickhouse_url: "http://localhost:8123"
+  clickhouse_user: "default"
+  clickhouse_database: "default"
+  clickhouse_table: "outpipe_telemetry"
+
+service:
+  internal_api_url: "http://127.0.0.1:9090"
+
+agent:
+  default_provider: "mock"
+  model: "outpipe-heuristic-engine-v1"

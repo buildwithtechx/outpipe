@@ -17,7 +17,7 @@ import (
 func LoadAPI() (APIConfig, error) {
 	var cfg APIConfig
 
-	if err := parse(&cfg); err != nil {
+	if err := parse(&cfg, "outpipe"); err != nil {
 		return APIConfig{}, err
 	}
 
@@ -31,7 +31,7 @@ func LoadAPI() (APIConfig, error) {
 func LoadRelay() (RelayConfig, error) {
 	var cfg RelayConfig
 
-	if err := parse(&cfg); err != nil {
+	if err := parse(&cfg, "relay"); err != nil {
 		return RelayConfig{}, err
 	}
 
@@ -46,7 +46,7 @@ func LoadRelay() (RelayConfig, error) {
 func LoadCron() (CronConfig, error) {
 	var cfg CronConfig
 
-	if err := parse(&cfg); err != nil {
+	if err := parse(&cfg, "cron", "outpipe"); err != nil {
 		return CronConfig{}, err
 	}
 
@@ -60,7 +60,7 @@ func LoadCron() (CronConfig, error) {
 func LoadCheck() (CheckConfig, error) {
 	var cfg CheckConfig
 
-	if err := parse(&cfg); err != nil {
+	if err := parse(&cfg, "check", "outpipe"); err != nil {
 		return CheckConfig{}, err
 	}
 
@@ -152,13 +152,23 @@ func migrateCLIFile(cfg *CLIConfig) CLIConfig {
 	return *cfg
 }
 
-func parse[T any](cfg *T) error {
+func parse[T any](cfg *T, defaultPaths ...string) error {
+	if err := env.Parse(cfg); err != nil {
+		return fmt.Errorf("parse defaults: %w", err)
+	}
+
+	if err := loadYAMLConfig(cfg, defaultPaths...); err != nil {
+		return err
+	}
+
 	if err := godotenv.Load(); err != nil && !errors.Is(err, os.ErrNotExist) {
 		return fmt.Errorf("load .env: %w", err)
 	}
 
-	if err := env.Parse(cfg); err != nil {
-		return fmt.Errorf("parse environment: %w", err)
+	if err := env.ParseWithOptions(cfg, env.Options{
+		DefaultValueTagName: "-",
+	}); err != nil {
+		return fmt.Errorf("parse environment overrides: %w", err)
 	}
 
 	return nil

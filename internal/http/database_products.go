@@ -41,7 +41,7 @@ func productServices(db *gorm.DB, cfg config.APIConfig) (*services.SecretService
 	if err != nil {
 		return nil, nil, nil, nil, nil, err
 	}
-	aiService, err := services.NewAIAgentService(aiRepo, obsService)
+	aiService, err := services.NewAIAgentService(aiRepo, obsService, cfg.Agent)
 	if err != nil {
 		return nil, nil, nil, nil, nil, err
 	}

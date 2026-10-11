@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"outpipe.dev/outpipe/internal/config"
 	"outpipe.dev/outpipe/internal/models"
 	"outpipe.dev/outpipe/internal/repositories"
 )
@@ -19,13 +20,18 @@ import (
 type AIAgentService struct {
 	repo repositories.AIAgentRepository
 	obs  *ObservabilityService
+	cfg  config.AgentConfig
 }
 
-func NewAIAgentService(repo repositories.AIAgentRepository, obs *ObservabilityService) (*AIAgentService, error) {
+func NewAIAgentService(repo repositories.AIAgentRepository, obs *ObservabilityService, cfgs ...config.AgentConfig) (*AIAgentService, error) {
 	if repo == nil {
 		return nil, fmt.Errorf("ai agent repository is required")
 	}
-	return &AIAgentService{repo: repo, obs: obs}, nil
+	svc := &AIAgentService{repo: repo, obs: obs}
+	if len(cfgs) > 0 {
+		svc.cfg = cfgs[0]
+	}
+	return svc, nil
 }
 
 func (s *AIAgentService) ListThreads(ctx context.Context, orgID, userID string) ([]models.AIAgentThread, error) {
@@ -51,35 +57,54 @@ func (s *AIAgentService) DeleteThread(ctx context.Context, orgID, threadID strin
 	return nil
 }
 
+func (s *AIAgentService) providerKey(provider string) string {
+	switch provider {
+	case "openai":
+		return s.firstNonEmpty(s.cfg.OpenAIKey, os.Getenv("OPENAI_API_KEY"))
+	case "xai":
+		return s.firstNonEmpty(s.cfg.XAIKey, os.Getenv("XAI_API_KEY"))
+	case "anthropic":
+		return s.firstNonEmpty(s.cfg.AnthropicKey, os.Getenv("ANTHROPIC_API_KEY"))
+	default:
+		return ""
+	}
+}
+
+func (s *AIAgentService) firstNonEmpty(vals ...string) string {
+	for _, v := range vals {
+		if strings.TrimSpace(v) != "" {
+			return strings.TrimSpace(v)
+		}
+	}
+	return ""
+}
+
 func (s *AIAgentService) GetConfig() models.AIAgentConfig {
-	var available []string
-	available = append(available, "mock")
-	if os.Getenv("OPENAI_API_KEY") != "" {
+	openAIKey, xaiKey, anthropicKey := s.providerKey("openai"), s.providerKey("xai"), s.providerKey("anthropic")
+	available := []string{"mock"}
+	if openAIKey != "" {
 		available = append(available, "openai")
 	}
-	if os.Getenv("XAI_API_KEY") != "" {
+	if xaiKey != "" {
 		available = append(available, "xai")
 	}
-	if os.Getenv("ANTHROPIC_API_KEY") != "" {
+	if anthropicKey != "" {
 		available = append(available, "anthropic")
 	}
 
-	provider := strings.ToLower(strings.TrimSpace(os.Getenv("DEFAULT_AGENT_PROVIDER")))
+	provider := strings.ToLower(s.firstNonEmpty(s.cfg.DefaultProvider, os.Getenv("DEFAULT_AGENT_PROVIDER"), os.Getenv("AGENT_PROVIDER")))
 	if provider == "" {
-		provider = strings.ToLower(strings.TrimSpace(os.Getenv("AGENT_PROVIDER")))
-	}
-	if provider == "" {
-		if os.Getenv("OPENAI_API_KEY") != "" {
+		if openAIKey != "" {
 			provider = "openai"
-		} else if os.Getenv("XAI_API_KEY") != "" {
+		} else if xaiKey != "" {
 			provider = "xai"
-		} else if os.Getenv("ANTHROPIC_API_KEY") != "" {
+		} else if anthropicKey != "" {
 			provider = "anthropic"
 		} else {
 			provider = "mock"
 		}
 	}
-	model := os.Getenv("AGENT_MODEL")
+	model := s.firstNonEmpty(s.cfg.Model, os.Getenv("AGENT_MODEL"))
 	if model == "" {
 		switch provider {
 		case "openai":
@@ -179,13 +204,13 @@ func (s *AIAgentService) InvestigateStream(ctx context.Context, orgID, userID st
 
 	switch provider {
 	case "openai":
-		if key := os.Getenv("OPENAI_API_KEY"); key != "" {
+		if key := s.providerKey("openai"); key != "" {
 			fullResponse, execErr = s.streamOpenAI(ctx, key, cfg.Model, req.Message, emit)
 		} else {
 			fullResponse, execErr = s.streamMock(ctx, req, emit)
 		}
 	case "xai":
-		if key := os.Getenv("XAI_API_KEY"); key != "" {
+		if key := s.providerKey("xai"); key != "" {
 			fullResponse, execErr = s.streamOpenAICompat(ctx, "https://api.x.ai/v1/chat/completions", key, cfg.Model, req.Message, emit)
 		} else {
 			fullResponse, execErr = s.streamMock(ctx, req, emit)
