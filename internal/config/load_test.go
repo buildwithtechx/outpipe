@@ -250,4 +250,3 @@ func TestLoadCheckFromYAMLDevelopment(t *testing.T) {
 		t.Fatalf("expected port 8082 from yaml, got %s", cfg.App.Port)
 	}
 }
-

@@ -4,13 +4,13 @@ import "time"
 
 type AIAgentThread struct {
 	Base
-	OrganizationID   string            `json:"organizationId" gorm:"type:uuid;not null;index"`
-	UserID           string            `json:"userId" gorm:"type:uuid;not null;index"`
-	Title            string            `json:"title" gorm:"type:varchar(255);not null"`
-	SourceResourceID string            `json:"sourceResourceId,omitempty" gorm:"type:varchar(255)"`
-	Messages         []AIAgentMessage  `json:"messages,omitempty" gorm:"foreignKey:ThreadID;constraint:OnDelete:CASCADE"`
-	CreatedAt        time.Time         `json:"createdAt" gorm:"not null"`
-	UpdatedAt        time.Time         `json:"updatedAt" gorm:"not null"`
+	OrganizationID   string           `json:"organizationId" gorm:"type:uuid;not null;index"`
+	UserID           string           `json:"userId" gorm:"type:uuid;not null;index"`
+	Title            string           `json:"title" gorm:"type:varchar(255);not null"`
+	SourceResourceID string           `json:"sourceResourceId,omitempty" gorm:"type:varchar(255)"`
+	Messages         []AIAgentMessage `json:"messages,omitempty" gorm:"foreignKey:ThreadID;constraint:OnDelete:CASCADE"`
+	CreatedAt        time.Time        `json:"createdAt" gorm:"not null"`
+	UpdatedAt        time.Time        `json:"updatedAt" gorm:"not null"`
 }
 
 type AIAgentMessage struct {
