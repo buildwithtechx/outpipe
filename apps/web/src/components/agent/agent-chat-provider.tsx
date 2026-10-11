@@ -13,6 +13,7 @@ import {
   listStoredThreads,
   saveStoredThread,
 } from '#/lib/agent/store';
+import { getApiBaseURL } from '#/lib/api-client';
 import {
   AgentActionsContext,
   type AgentChatActions,
@@ -25,6 +26,7 @@ import {
   agentChatReducer,
   initialAgentChatState,
 } from './agent-chat-data';
+import { streamAgentChatServer } from './agent-chat-transport';
 
 export interface AgentChatProviderProps {
   organizationId: string;
@@ -124,20 +126,44 @@ export function AgentChatProvider({
       });
 
       try {
-        await runAgentInvestigation({
-          prompt,
-          sourceRequestId: currentThread.sourceRequestId,
-          history: currentThread.messages,
-          signal: controller.signal,
-          emit: (event) => {
-            dispatch({
-              type: 'stream',
-              threadId: currentThread.id,
-              assistantId,
-              event,
-            });
-          },
-        });
+        let serverHandled = false;
+        try {
+          serverHandled = await streamAgentChatServer({
+            organizationId,
+            threadId: currentThread.id,
+            message: prompt,
+            sourceRequestId: currentThread.sourceRequestId,
+            signal: controller.signal,
+            onEvent: (event) => {
+              dispatch({
+                type: 'stream',
+                threadId: currentThread.id,
+                assistantId,
+                event,
+              });
+            },
+          });
+        } catch (serverErr) {
+          if (controller.signal.aborted) throw serverErr;
+          serverHandled = false;
+        }
+
+        if (!serverHandled && !controller.signal.aborted) {
+          await runAgentInvestigation({
+            prompt,
+            sourceRequestId: currentThread.sourceRequestId,
+            history: currentThread.messages,
+            signal: controller.signal,
+            emit: (event) => {
+              dispatch({
+                type: 'stream',
+                threadId: currentThread.id,
+                assistantId,
+                event,
+              });
+            },
+          });
+        }
       } catch (err) {
         if (!controller.signal.aborted) {
           const msg =
@@ -153,13 +179,21 @@ export function AgentChatProvider({
         activeControllers.current.delete(currentThread.id);
       }
     },
-    [state.threads, state.activeThreadId, startThread],
+    [state.threads, state.activeThreadId, startThread, organizationId],
   );
 
   const handleDeleteThread = useCallback(
     (threadId: string) => {
       stopInvestigation(threadId);
       deleteStoredThread(organizationId, threadId);
+      const baseURL = getApiBaseURL();
+      fetch(
+        `${baseURL}/api/v1/organizations/${organizationId}/agent/threads/${threadId}`,
+        {
+          method: 'DELETE',
+          credentials: 'include',
+        },
+      ).catch(() => undefined);
       dispatch({ type: 'delete', threadId });
     },
     [organizationId, stopInvestigation],

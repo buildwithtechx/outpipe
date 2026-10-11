@@ -102,7 +102,7 @@ type AuthConfig struct {
 
 type DatabaseConfig struct {
 	URL         string        `env:"DATABASE_URL" envDefault:"postgres://outpipe:outpipe@localhost:5432/outpipe?sslmode=disable"`
-	MaxConns    int           `env:"DATABASE_MAX_CONNS" envDefault:"25"`
+	MaxConns    int           `env:"DATABASE_MAX_CONNS" envDefault:"50"`
 	MaxLifetime time.Duration `env:"DB_CONN_MAX_LIFETIME" envDefault:"30m"`
 	MaxIdleTime time.Duration `env:"DB_CONN_MAX_IDLE_TIME" envDefault:"5m"`
 }

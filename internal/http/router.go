@@ -204,6 +204,12 @@ func RegisterRoutes(app *fiber.App, handlers Handlers, options RouterOptions) er
 		protected.Post("/organizations/:organizationID/observability/replay", organizationRoleRequired(handlers.organizationService, models.MemberRoleAdmin), handlers.Observability.ReplayRequest)
 	}
 
+	if handlers.AIAgent != nil {
+		protected.Get("/organizations/:organizationID/agent/threads", organizationRoleRequired(handlers.organizationService, models.MemberRoleViewer), handlers.AIAgent.ListThreads)
+		protected.Delete("/organizations/:organizationID/agent/threads/:threadID", organizationRoleRequired(handlers.organizationService, models.MemberRoleViewer), handlers.AIAgent.DeleteThread)
+		protected.Post("/organizations/:organizationID/agent/chat", writeLimiter, organizationRoleRequired(handlers.organizationService, models.MemberRoleViewer), handlers.AIAgent.ChatStream)
+	}
+
 	admin := protected.Group("/admin", platformAdminRequired(handlers.authService))
 	admin.Get("/overview", handlers.Admin.Overview)
 	admin.Get("/users", handlers.Admin.Users)
