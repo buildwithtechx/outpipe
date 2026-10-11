@@ -15,10 +15,12 @@ RUN CGO_ENABLED=0 go build -ldflags="-s -w -X main.version=${VERSION}" -o /out/a
 # Run as a non-root user.
 FROM alpine:3.22
 
-RUN addgroup -S outpipe && adduser -S -G outpipe outpipe
+RUN apk --no-cache add ca-certificates tzdata && \
+    addgroup -S outpipe && adduser -S -G outpipe outpipe
 
 WORKDIR /app
 COPY --from=build /out/api /app/api
+COPY --from=build /workspace/configs /app/configs
 
 USER outpipe
 

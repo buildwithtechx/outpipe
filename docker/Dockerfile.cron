@@ -15,10 +15,13 @@ RUN CGO_ENABLED=0 go build -ldflags="-s -w -X main.version=${VERSION}" -o /out/c
 # Run this image from a scheduler, not as a public service.
 FROM alpine:3.22
 
-RUN addgroup -S outpipe && adduser -S -G outpipe outpipe
+RUN apk --no-cache add ca-certificates tzdata postgresql16-client && \
+    addgroup -S outpipe && adduser -S -G outpipe outpipe && \
+    mkdir -p /var/backups/outpipe && chown -R outpipe:outpipe /var/backups/outpipe
 
 WORKDIR /app
 COPY --from=build /out/cron /app/cron
+COPY --from=build /workspace/configs /app/configs
 
 USER outpipe
 

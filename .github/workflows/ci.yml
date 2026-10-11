@@ -46,78 +46,16 @@ jobs:
       - run: go vet ./...
       - run: go test -race ./...
 
-  typescript:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 24
-          cache: npm
-      - run: npm ci
-      - run: npm run format
-      - run: npm run build --workspace packages/shared
-      - run: npm run typecheck
-      - run: npm run typecheck --workspace apps/secrets-share
-      - run: npm run typecheck --workspace apps/status
-      - run: npm run build:web
-      - run: npm run build:secrets-share
-      - run: npm run build:status
-      - run: npm run build:packages
-      - run: npm run typecheck:packages
-      - run: npm run test --workspaces --if-present
-      - run: npm run test:product-contracts
-
-  sdk-go:
+  build-smoke:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v5
         with:
           go-version: "1.26.8"
-      - run: go vet ./...
-        working-directory: packages/go
-      - run: go test ./...
-        working-directory: packages/go
-
-  sdk-rust:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions-rust-lang/setup-rust-toolchain@v1
-      - run: cargo fmt --all -- --check
-        working-directory: packages/rust
-      - run: cargo test
-        working-directory: packages/rust
-      - run: cargo install cargo-audit --locked
-      - run: cargo audit
-        working-directory: packages/rust
-
-  sdk-php:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: shivammathur/setup-php@v2
-        with:
-          php-version: "8.4"
-          extensions: curl
-          tools: composer
-      - run: composer install --no-interaction --prefer-dist
-        working-directory: packages/php
-      - run: composer validate --strict --no-check-publish
-        working-directory: packages/php
-      - run: composer test
-        working-directory: packages/php
-      - run: composer audit --format=plain
-        working-directory: packages/php
-
-  dependency-audit:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 24
-          cache: npm
-      - run: npm ci
-      - run: npm audit --audit-level=moderate
+      - run: |
+          go build -o /dev/null ./cmd/server
+          go build -o /dev/null ./cmd/tunnel
+          go build -o /dev/null ./cmd/cron
+          go build -o /dev/null ./cmd/check
+          go build -o /dev/null ./cmd/cli

@@ -74,18 +74,18 @@ services:
       api: { condition: service_healthy }
       redis: { condition: service_healthy }
 
-  web:
-    image: node:24
-    working_dir: /workspace
-    command: npm run dev --workspace apps/web -- --host 0.0.0.0
+  cron:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.cron
     environment:
-      VITE_OUTPIPE_API_BASE_URL: http://localhost:18080
-    ports:
-      - "13000:3000"
-    volumes:
-      - ..:/workspace:Z
+      OUTPIPE_DATABASE_URL: postgres://outpipe:outpipe@postgres:5432/outpipe?sslmode=disable
+      OUTPIPE_REDIS_HOST: redis
+      OUTPIPE_INTERNAL_API_URL: http://api:9090
+      OUTPIPE_INTERNAL_API_SECRET: local-internal-secret
     depends_on:
       api: { condition: service_healthy }
+      postgres: { condition: service_healthy }
 
 volumes:
   outpipe-postgres:
