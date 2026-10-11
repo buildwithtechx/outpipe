@@ -1,5 +1,6 @@
 import { Activity, ArrowRightLeft, Eye, Layers } from 'lucide-react';
 import { useState } from 'react';
+import { useAgentChat } from '#/components/agent/agent-chat-context';
 import { QueryFeedback } from '#/components/feedback/query-feedback';
 import { Button } from '#/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '#/components/ui/tabs';
@@ -19,6 +20,7 @@ import {
 } from './hooks/use-observability';
 
 export function ObservabilityPage({ orgSlug }: { orgSlug: string }) {
+  const { startThread } = useAgentChat();
   const organizationQuery = useOrganization(orgSlug);
   const { organization } = organizationQuery;
   const orgId = organization?.id;
@@ -273,6 +275,19 @@ export function ObservabilityPage({ orgSlug }: { orgSlug: string }) {
         capture={inspectedCapture}
         onClose={() => setInspectedCapture(null)}
         onReplay={handleOpenReplay}
+        onAskAgent={(cap) => {
+          setInspectedCapture(null);
+          startThread({
+            kind: 'request',
+            label: `${cap.method} ${cap.path} (HTTP ${cap.statusCode})`,
+            sourceHref: `/observability?id=${cap.id}`,
+            requestId: cap.id,
+            method: cap.method,
+            path: cap.path,
+            statusCode: cap.statusCode,
+            durationMs: cap.durationMs,
+          });
+        }}
       />
 
       <ReplayDialog

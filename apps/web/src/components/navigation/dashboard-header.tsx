@@ -1,6 +1,15 @@
 import { Link } from '@tanstack/react-router';
-import { BookOpen, LogOut, Menu, Search, ShieldCheck, X } from 'lucide-react';
+import {
+  BookOpen,
+  LogOut,
+  Menu,
+  Search,
+  ShieldCheck,
+  Sparkles,
+  X,
+} from 'lucide-react';
 import { useState } from 'react';
+import { useAgentChat } from '#/components/agent/agent-chat-context';
 import { BrandLockup } from '#/components/layout';
 import { Button } from '#/components/ui/button';
 import {
@@ -30,6 +39,7 @@ export function DashboardHeader({
   onOpenCommandPalette,
 }: DashboardHeaderProps) {
   const { data: session } = useAuthSession();
+  const { openAgent } = useAgentChat();
   const [logoutDialogOpen, setLogoutDialogOpen] = useState(false);
   const logoutMutation = useLogout();
 
@@ -87,6 +97,16 @@ export function DashboardHeader({
             <BookOpen className="size-3.5 text-indigo-300" />
             <span>Docs</span>
           </a>
+          <button
+            type="button"
+            onClick={openAgent}
+            aria-label="Open Troubleshooting Agent"
+            className="flex min-h-11 items-center gap-1.5 rounded-xl border border-indigo-500/30 bg-indigo-500/10 px-2.5 py-1.5 text-xs font-medium text-indigo-300 transition hover:border-indigo-500/50 hover:bg-indigo-500/20 hover:text-white"
+            title="Troubleshooting AI Agent"
+          >
+            <Sparkles className="size-3.5" />
+            <span className="hidden md:inline">Troubleshoot</span>
+          </button>
           {isPlatformAdmin && (
             <Link
               to="/admin"

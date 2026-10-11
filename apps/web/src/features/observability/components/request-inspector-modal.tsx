@@ -1,4 +1,6 @@
+import { Sparkles } from 'lucide-react';
 import { useState } from 'react';
+import { RequestExplanation } from '#/components/observability/request-explanation';
 import { Badge } from '#/components/ui/badge';
 import { Button } from '#/components/ui/button';
 import {
@@ -14,14 +16,17 @@ interface RequestInspectorModalProps {
   capture: RequestCapture | null;
   onClose: () => void;
   onReplay: (capture: RequestCapture) => void;
+  onAskAgent?: (capture: RequestCapture) => void;
 }
 
 export function RequestInspectorModal({
   capture,
   onClose,
   onReplay,
+  onAskAgent,
 }: RequestInspectorModalProps) {
   const [copied, setCopied] = useState(false);
+  const [activeTab, setActiveTab] = useState('request');
 
   if (!capture) return null;
 
@@ -82,17 +87,29 @@ export function RequestInspectorModal({
               </strong>
             </span>
           </div>
-          <Button
-            size="sm"
-            onClick={() => onReplay(capture)}
-            className="bg-indigo-600 hover:bg-indigo-500 text-xs h-7 text-white"
-          >
-            Replay Request
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => setActiveTab('explanation')}
+              className="border-indigo-500/30 bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-300 text-xs h-7 flex items-center gap-1"
+            >
+              <Sparkles className="size-3" />
+              <span>Explain</span>
+            </Button>
+            <Button
+              size="sm"
+              onClick={() => onReplay(capture)}
+              className="bg-indigo-600 hover:bg-indigo-500 text-xs h-7 text-white"
+            >
+              Replay Request
+            </Button>
+          </div>
         </div>
 
         <Tabs
-          defaultValue="request"
+          value={activeTab}
+          onValueChange={setActiveTab}
           className="flex-1 overflow-hidden flex flex-col mt-2"
         >
           <TabsList className="w-full justify-start border-b border-white/10 rounded-none bg-transparent p-0 h-auto">
@@ -107,6 +124,13 @@ export function RequestInspectorModal({
               className="rounded-none border-b-2 border-transparent data-[state=active]:border-indigo-500 data-[state=active]:bg-transparent data-[state=active]:text-white text-white/50 text-xs pb-2"
             >
               Response Headers & Body
+            </TabsTrigger>
+            <TabsTrigger
+              value="explanation"
+              className="rounded-none border-b-2 border-transparent data-[state=active]:border-indigo-500 data-[state=active]:bg-transparent data-[state=active]:text-white text-white/50 text-xs pb-2 flex items-center gap-1.5"
+            >
+              <Sparkles className="size-3 text-indigo-400" />
+              <span>Diagnostic Preview</span>
             </TabsTrigger>
           </TabsList>
 
@@ -168,6 +192,20 @@ export function RequestInspectorModal({
                 {capture.responseBody || '(Empty body)'}
               </pre>
             </div>
+          </TabsContent>
+
+          <TabsContent
+            value="explanation"
+            className="flex-1 overflow-y-auto space-y-4 pt-3 pr-1"
+          >
+            <RequestExplanation
+              capture={capture}
+              onAskAgent={() => onAskAgent?.(capture)}
+              onInspectEvidence={(target) => {
+                if (target === 'response') setActiveTab('response');
+                else setActiveTab('request');
+              }}
+            />
           </TabsContent>
         </Tabs>
       </DialogContent>
