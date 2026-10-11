@@ -2,43 +2,32 @@
 
 ## Project boundary
 
-Outpipe is an independent tunneling product. Its core must work without Outpipe and must not import Outpipe models, routes, authentication, or database packages.
+Outpipe is an independent tunneling engine. Its core provides the tunnel server (`cmd/server`), tunnel relay client (`cmd/tunnel`), cron worker (`cmd/cron`), health check worker (`cmd/check`), and developer CLI (`cmd/cli`).
 
-Outpipe integration belongs under `integrations/outpipe/` and communicates through the public tunnel API.
+Frontend web and desktop applications live in the separate `outpipe-frontend` repository.
+Multi-language client SDKs live in the separate `outpipe-sdks` repository.
 
 ## Code style
 
 - Keep files under 350 lines.
-- Keep one component per TypeScript file.
-- Use kebab-case for TypeScript files and snake_case for Go files.
-- Use named exports in TypeScript.
-- Avoid comments, GoDoc, and JSDoc unless required by a tool or language directive.
+- Use snake_case for Go files.
+- Avoid comments and GoDoc unless required by a tool or language directive.
 - Always check and wrap Go errors with useful context.
 - Add JSON tags to exported Go struct fields.
 - Use `modernc.org/sqlite` for SQLite and the official Docker client where needed.
 - Avoid global mutable state and `init()` functions.
+- Format all Go files with standard `gofmt`.
 
 ## Go architecture
 
-- `internal/models/` contains domain models and DTOs.
-- `internal/repositories/` contains persistence implementations.
-- `internal/services/` contains business logic and integrations.
-- `internal/handlers/` contains HTTP controllers.
-- `internal/http/` contains server, routes, and middleware wiring.
-- `internal/engine/` contains relay, proxy, routing, and runtime engines.
-- `pkg/` contains intentionally reusable public packages.
-- `cmd/` contains binary entrypoints.
-
-## Dashboard and desktop
-
-- Dashboard routes live in `apps/web/src/routes/`.
-- Dashboard components live in `apps/web/src/components/` and domain feature folders.
-- Dashboard hooks live in `apps/web/src/hooks/`.
-- Dashboard utilities live in `apps/web/src/lib/`.
-- Do not edit generated route files by hand.
-- Keep Tauri native code in `apps/desktop/src-tauri/`.
-- Keep tunnel networking and data-plane logic in Go rather than duplicating it in Tauri or TypeScript.
-- Use Biome for TypeScript formatting. Never use Prettier.
+- `internal/models/`: Domain models and DTOs.
+- `internal/repositories/`: Persistence implementations (Postgres, Timescale, SQLite, Redis).
+- `internal/services/`: Business logic, tunnel lifecycle, and background orchestration.
+- `internal/handlers/`: HTTP/WS controllers.
+- `internal/http/`: Server wiring, route registrations, and middleware.
+- `internal/engine/`: Relay, reverse proxy, routing, and connection multiplexing engines.
+- `pkg/`: Intentionally reusable public packages (`client`, `protocol`, `utils`, `version`).
+- `cmd/`: Binary entrypoints (`server`, `tunnel`, `cron`, `check`, `cli`).
 
 ## Protocol and security
 
@@ -53,7 +42,6 @@ Outpipe integration belongs under `integrations/outpipe/` and communicates throu
 
 - Read files before editing them.
 - Use targeted patches for edits.
-- Do not run builds or tests after every small change.
-- Run `npm run fmt` before finishing a change session.
-- Run relevant Go, TypeScript, protocol, security, and integration checks for the affected area.
+- Run `gofmt -w .` before finishing a change session.
+- Run `go vet ./...` and relevant `go test` checks for the affected area.
 - Do not commit or push unless explicitly requested.
