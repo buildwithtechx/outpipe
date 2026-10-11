@@ -1,3 +1,5 @@
+import { env } from '#/env';
+
 export type AgentProviderType = 'openai' | 'xai' | 'anthropic' | 'mock';
 
 export interface AgentConfig {
@@ -13,59 +15,49 @@ export interface AgentConfig {
 }
 
 export function readAgentConfig(
-  env: Record<string, string | undefined> = typeof process !== 'undefined'
-    ? process.env
-    : {},
+  customEnv?: Record<string, string | undefined>,
 ): AgentConfig {
-  const explicitProvider = (
-    env.DEFAULT_AGENT_PROVIDER ||
-    env.AGENT_PROVIDER ||
+  let explicitProvider = (
+    customEnv?.DEFAULT_AGENT_PROVIDER ||
+    customEnv?.AGENT_PROVIDER ||
+    env.VITE_DEFAULT_AGENT_PROVIDER ||
     ''
   )
     .toLowerCase()
     .trim() as AgentProviderType;
 
-  const openaiKey = env.OPENAI_API_KEY?.trim();
-  const xaiKey = env.XAI_API_KEY?.trim();
-  const anthropicKey = env.ANTHROPIC_API_KEY?.trim();
+  const openaiKey = customEnv?.OPENAI_API_KEY?.trim();
+  const xaiKey = customEnv?.XAI_API_KEY?.trim();
+  const anthropicKey = customEnv?.ANTHROPIC_API_KEY?.trim();
 
-  let provider: AgentProviderType = 'mock';
-  let apiKey: string | undefined;
-  let model = env.AGENT_MODEL?.trim() || '';
-
-  if (explicitProvider === 'openai' || (!explicitProvider && openaiKey)) {
-    provider = 'openai';
-    apiKey = openaiKey;
-    model = model || env.OPENAI_MODEL?.trim() || 'gpt-4o';
-  } else if (explicitProvider === 'xai' || (!explicitProvider && xaiKey)) {
-    provider = 'xai';
-    apiKey = xaiKey;
-    model =
-      model ||
-      env.AGENT_GROK_MODEL?.trim() ||
-      env.XAI_MODEL?.trim() ||
-      'grok-4.7';
-  } else if (
-    explicitProvider === 'anthropic' ||
-    (!explicitProvider && anthropicKey)
-  ) {
-    provider = 'anthropic';
-    apiKey = anthropicKey;
-    model =
-      model || env.ANTHROPIC_MODEL?.trim() || 'claude-3-5-sonnet-20241022';
-  } else {
-    provider = 'mock';
-    model = model || 'outpipe-heuristic-engine-v1';
+  if (!explicitProvider) {
+    if (openaiKey) {
+      explicitProvider = 'openai';
+    } else if (xaiKey) {
+      explicitProvider = 'xai';
+    } else if (anthropicKey) {
+      explicitProvider = 'anthropic';
+    } else {
+      explicitProvider = 'mock';
+    }
   }
 
-  const isConfigured =
-    provider === 'mock' || (Boolean(apiKey) && Boolean(model));
+  const model =
+    customEnv?.AGENT_MODEL ||
+    env.VITE_AGENT_MODEL ||
+    (explicitProvider === 'openai'
+      ? 'gpt-4o'
+      : explicitProvider === 'xai'
+        ? 'grok-4.7'
+        : explicitProvider === 'anthropic'
+          ? 'claude-3-5-sonnet-20241022'
+          : 'outpipe-heuristic-engine-v1');
 
   return {
-    configured: isConfigured,
-    provider,
+    configured: true,
+    provider: explicitProvider,
     model,
-    apiKey,
+    apiKey: openaiKey || xaiKey || anthropicKey,
     timeoutMs: 60_000,
     maxSteps: 6,
     maxToolCalls: 8,
