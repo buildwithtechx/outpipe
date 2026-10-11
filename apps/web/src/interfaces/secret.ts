@@ -40,6 +40,13 @@ export interface SecretShare {
   createdAt: string;
 }
 
+export interface SecretVersion {
+  version: number;
+  value?: string;
+  comment?: string;
+  updatedAt: string;
+}
+
 export interface CreateSecretInput {
   key: string;
   value: string;

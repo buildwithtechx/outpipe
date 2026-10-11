@@ -1,6 +1,8 @@
-import { Eye, EyeOff, FolderPlus, KeyRound, Lock, Plus } from 'lucide-react';
+import { Eye, EyeOff, KeyRound, Plus } from 'lucide-react';
 import { useState } from 'react';
 import { QueryFeedback } from '#/components/feedback/query-feedback';
+import { BulkActionsDialog } from '#/components/secrets/bulk-actions-dialog';
+import { SecretHistorySheet } from '#/components/secrets/secret-history-sheet';
 import { Button } from '#/components/ui/button';
 import { CopyCommand } from '#/components/ui/copy-command';
 import { useOrganization } from '#/features/organizations/hooks/use-organization';
@@ -8,13 +10,14 @@ import { AddSecretModal } from './components/add-secret-modal';
 import { EnvironmentModal } from './components/environment-modal';
 import { ProjectModal } from './components/project-modal';
 import { SecretVariablesTable } from './components/secret-variables-table';
+import { SecretsHeader } from './components/secrets-header';
+import { useSecretBulkActions } from './hooks/use-secret-bulk-actions';
 import {
   useEnvironments,
   useProjects,
   useSecretMutations,
   useSecretsList,
 } from './hooks/use-secrets';
-
 export function SecretsPage({ orgSlug }: { orgSlug: string }) {
   const organizationQuery = useOrganization(orgSlug);
   const { organization } = organizationQuery;
@@ -23,18 +26,14 @@ export function SecretsPage({ orgSlug }: { orgSlug: string }) {
   const projectQuery = useProjects(orgId);
   const { data: projects = [], isLoading: loadingProjects } = projectQuery;
   const [selectedProjectId, setSelectedProjectId] = useState<string>('');
-  const activeProjectId = projects.some(
-    (project) => project.id === selectedProjectId,
-  )
+  const activeProjectId = projects.some((p) => p.id === selectedProjectId)
     ? selectedProjectId
     : projects[0]?.id || '';
 
   const environmentQuery = useEnvironments(orgId, activeProjectId);
   const { data: environments = [] } = environmentQuery;
   const [selectedEnvId, setSelectedEnvId] = useState<string>('');
-  const activeEnvId = environments.some(
-    (environment) => environment.id === selectedEnvId,
-  )
+  const activeEnvId = environments.some((e) => e.id === selectedEnvId)
     ? selectedEnvId
     : environments[0]?.id || '';
 
@@ -48,6 +47,14 @@ export function SecretsPage({ orgSlug }: { orgSlug: string }) {
     reveal,
   );
   const { data: secrets = [] } = secretQuery;
+
+  const bulk = useSecretBulkActions({
+    organizationId: orgId,
+    projectId: activeProjectId,
+    environmentId: activeEnvId,
+    secrets,
+    onRefresh: () => void secretQuery.refetch(),
+  });
 
   const mutations = useSecretMutations(orgId || '');
   const [showAddForm, setShowAddForm] = useState(false);
@@ -95,10 +102,11 @@ export function SecretsPage({ orgSlug }: { orgSlug: string }) {
     return <p className="p-8 text-sm text-white/55">Loading Secrets Vault…</p>;
   }
 
-  if (!orgId && !organizationQuery.isError)
+  if (!orgId && !organizationQuery.isError) {
     return (
       <p role="alert">Workspace not found. Choose an available workspace.</p>
     );
+  }
 
   if (organizationQuery.isError || projectQuery.isError)
     return (
@@ -122,44 +130,11 @@ export function SecretsPage({ orgSlug }: { orgSlug: string }) {
 
   return (
     <div className="space-y-8 text-foreground">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/10 pb-6">
-        <div>
-          <div className="flex items-center gap-2.5">
-            <div className="flex size-9 items-center justify-center rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400">
-              <Lock className="size-5" />
-            </div>
-            <h1 className="text-2xl font-bold tracking-tight text-white">
-              Secrets Vault
-            </h1>
-          </div>
-          <p className="mt-1 text-sm text-white/60">
-            Encrypted environment variables, zero-knowledge secret shares, and
-            CLI process injection.
-          </p>
-        </div>
-
-        <div className="flex items-center gap-3">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setShowProjectModal(true)}
-            className="border-white/10 bg-white/5 text-xs text-white hover:bg-white/10"
-          >
-            <FolderPlus className="size-3.5 mr-1.5" />
-            New Project
-          </Button>
-          {activeProjectId && activeEnvId && (
-            <Button
-              size="sm"
-              onClick={() => setShowAddForm(true)}
-              className="bg-primary hover:bg-primary/90 text-xs text-primary-foreground font-medium"
-            >
-              <Plus className="size-3.5 mr-1.5" />
-              Add Secret
-            </Button>
-          )}
-        </div>
-      </div>
+      <SecretsHeader
+        canAddSecret={Boolean(activeProjectId && activeEnvId)}
+        onNewProject={() => setShowProjectModal(true)}
+        onAddSecret={() => setShowAddForm(true)}
+      />
 
       {projects.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-white/15 bg-white/2.5 p-12 text-center">
@@ -293,6 +268,11 @@ export function SecretsPage({ orgSlug }: { orgSlug: string }) {
               secrets={secrets}
               reveal={reveal}
               environmentSelected={Boolean(activeEnvId)}
+              selectedIds={bulk.selectedSecretIds}
+              onToggleSelect={bulk.handleToggleSelect}
+              onToggleSelectAll={bulk.handleToggleSelectAll}
+              onOpenHistory={bulk.setHistorySecret}
+              onOpenBulkAction={bulk.setBulkAction}
               pendingDeleteId={
                 mutations.removeSecret.isPending
                   ? mutations.removeSecret.variables
@@ -310,19 +290,36 @@ export function SecretsPage({ orgSlug }: { orgSlug: string }) {
         onSave={handleSaveSecret}
         isSaving={mutations.saveSecret.isPending}
       />
-
       <ProjectModal
         isOpen={showProjectModal}
         onClose={() => setShowProjectModal(false)}
         onCreate={handleCreateProject}
         isCreating={mutations.addProject.isPending}
       />
-
       <EnvironmentModal
         isOpen={showEnvModal}
         onClose={() => setShowEnvModal(false)}
         onCreate={handleCreateEnvironment}
         isCreating={mutations.addEnvironment.isPending}
+      />
+      <SecretHistorySheet
+        open={Boolean(bulk.historySecret)}
+        onClose={() => bulk.setHistorySecret(null)}
+        secret={bulk.historySecret}
+        onRollback={bulk.handleRollback}
+      />
+      <BulkActionsDialog
+        action={bulk.bulkAction}
+        onClose={() => bulk.setBulkAction(null)}
+        selectedSecrets={secrets.filter((s) =>
+          bulk.selectedSecretIds.includes(s.id),
+        )}
+        environments={environments}
+        currentEnvironmentId={activeEnvId}
+        onConfirmMove={bulk.handleConfirmBulkMove}
+        onConfirmDelete={bulk.handleConfirmBulkDelete}
+        onConfirmShare={bulk.handleConfirmBulkShare}
+        isSubmitting={bulk.isBulkOperating}
       />
     </div>
   );

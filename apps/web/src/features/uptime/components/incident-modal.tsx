@@ -16,15 +16,24 @@ import {
   SelectValue,
 } from '#/components/ui/select';
 import { Textarea } from '#/components/ui/textarea';
+import type {
+  UptimeComponent,
+  UptimeComponentGroup,
+} from '#/components/uptime/incident-component-data';
+import { IncidentComponentPicker } from '#/components/uptime/incident-component-picker';
+import { useUptimeUnsavedChanges } from '#/components/uptime/use-uptime-unsaved-changes';
 import { useSubmitFeedback } from '#/hooks/use-submit-feedback';
 
 interface IncidentModalProps {
   isOpen: boolean;
   onClose: () => void;
+  components?: UptimeComponent[];
+  groups?: UptimeComponentGroup[];
   onSave: (input: {
     title: string;
     severity: 'minor' | 'major' | 'critical';
     message: string;
+    componentIds?: string[];
   }) => Promise<void>;
   isSaving: boolean;
 }
@@ -32,6 +41,8 @@ interface IncidentModalProps {
 export function IncidentModal({
   isOpen,
   onClose,
+  components = [],
+  groups = [],
   onSave,
   isSaving,
 }: IncidentModalProps) {
@@ -40,8 +51,22 @@ export function IncidentModal({
     'minor',
   );
   const [message, setMessage] = useState('');
+  const [selectedComponentIds, setSelectedComponentIds] = useState<string[]>(
+    [],
+  );
+
+  const isDirty =
+    isOpen &&
+    Boolean(title.trim() || message.trim() || selectedComponentIds.length > 0);
+  useUptimeUnsavedChanges(isDirty);
 
   const { error, submit } = useSubmitFeedback(isOpen);
+
+  const handleToggleComponent = (id: string, checked: boolean) => {
+    setSelectedComponentIds((prev) =>
+      checked ? [...prev, id] : prev.filter((item) => item !== id),
+    );
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -52,12 +77,14 @@ export function IncidentModal({
           title: title.trim(),
           severity,
           message: message.trim(),
+          componentIds: selectedComponentIds,
         }),
       ))
     )
       return;
     setTitle('');
     setMessage('');
+    setSelectedComponentIds([]);
   };
 
   return (
@@ -138,6 +165,15 @@ export function IncidentModal({
                 className="border-white/10 bg-white/5 text-xs text-white placeholder-white/30"
               />
             </div>
+
+            {components.length > 0 && (
+              <IncidentComponentPicker
+                components={components}
+                groups={groups}
+                selected={selectedComponentIds}
+                onToggle={handleToggleComponent}
+              />
+            )}
 
             <div className="flex justify-end gap-2 pt-2">
               <Button

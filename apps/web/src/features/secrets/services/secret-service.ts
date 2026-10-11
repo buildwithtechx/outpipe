@@ -90,6 +90,59 @@ export function restoreSecret(organizationId: string, secretId: string) {
   );
 }
 
+export function rollbackSecretVersion(
+  organizationId: string,
+  secretId: string,
+  version: number,
+) {
+  return apiClient.post<SecretItem>(
+    `/api/v1/organizations/${organizationId}/secrets/${secretId}/rollback`,
+    { version },
+  );
+}
+
+export function batchDeleteSecrets(
+  organizationId: string,
+  secretIds: string[],
+) {
+  return apiClient.post<void>(
+    `/api/v1/organizations/${organizationId}/secrets/batch-delete`,
+    { secretIds },
+  );
+}
+
+export function batchMoveSecrets(
+  organizationId: string,
+  projectId: string,
+  sourceEnvironmentId: string,
+  targetEnvironmentId: string,
+  secretIds: string[],
+  conflictMode: 'skip' | 'overwrite',
+) {
+  return apiClient.post<void>(
+    `/api/v1/organizations/${organizationId}/secrets/projects/${projectId}/environments/${sourceEnvironmentId}/move`,
+    {
+      targetEnvironmentId,
+      secretIds,
+      conflictMode,
+    },
+  );
+}
+
+export function createSecretShare(
+  organizationId: string,
+  input: {
+    encryptedPayload: string;
+    expiresAt: string;
+    maxViews: number;
+  },
+) {
+  return apiClient.post<SecretShare>(
+    `/api/v1/organizations/${organizationId}/secrets/shares`,
+    input,
+  );
+}
+
 export function getShares(organizationId: string) {
   return apiClient.get<SecretShare[]>(
     `/api/v1/organizations/${organizationId}/secrets/shares`,

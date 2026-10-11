@@ -43,25 +43,16 @@ export function UptimePage({ orgSlug }: { orgSlug: string }) {
   const downCount = monitors.filter((m) => m.status === 'down').length;
   const activeIncidents = incidents.filter((i) => i.status !== 'resolved');
 
-  const handleCreateMonitor = async (input: {
-    name: string;
-    type: 'http' | 'https' | 'tcp' | 'icmp';
-    target: string;
-    interval_seconds: number;
-    timeout_seconds: number;
-    expected_status_code?: number;
-    body_regex?: string;
-    max_latency_ms?: number;
-  }) => {
+  const handleCreateMonitor = async (
+    input: Parameters<typeof mutations.addMonitor.mutateAsync>[0],
+  ) => {
     await mutations.addMonitor.mutateAsync(input);
     setShowAddMonitor(false);
   };
 
-  const handleCreateIncident = async (input: {
-    title: string;
-    severity: 'minor' | 'major' | 'critical';
-    message: string;
-  }) => {
+  const handleCreateIncident = async (
+    input: Parameters<typeof mutations.addIncident.mutateAsync>[0],
+  ) => {
     await mutations.addIncident.mutateAsync(input);
     setShowIncidentModal(false);
   };
@@ -335,6 +326,7 @@ export function UptimePage({ orgSlug }: { orgSlug: string }) {
       <IncidentModal
         isOpen={showIncidentModal}
         onClose={() => setShowIncidentModal(false)}
+        components={monitors.map((m) => ({ id: m.id, name: m.name }))}
         onSave={handleCreateIncident}
         isSaving={mutations.addIncident.isPending}
       />
