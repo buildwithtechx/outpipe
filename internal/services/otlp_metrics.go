@@ -55,7 +55,19 @@ func (s *ObservabilityService) IngestMetrics(ctx context.Context, orgID string, 
 			}
 		}
 	}
-	if err := s.repo.CreateMetrics(ctx, rows); err != nil {
+	if len(rows) > 0 {
+		duplicate, err := s.admitTelemetry(ctx, orgID, "metrics", raw)
+		if err != nil {
+			return 0, err
+		}
+		if duplicate {
+			return 0, nil
+		}
+		if err := s.repo.CreateMetrics(ctx, rows); err != nil {
+			s.refundTelemetry(ctx, orgID, "metrics", raw)
+			return 0, &TelemetryUnavailableError{Cause: err}
+		}
+	} else if err := s.repo.CreateMetrics(ctx, rows); err != nil {
 		return 0, &TelemetryUnavailableError{Cause: err}
 	}
 	if err := s.exportTelemetry(ctx, "metrics", rows); err != nil {

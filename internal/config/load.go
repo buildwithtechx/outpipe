@@ -81,12 +81,15 @@ func LoadCLI() (CLIConfig, error) {
 	if cfg.APIURL == "" || cfg.RelayURL == "" {
 		return CLIConfig{}, fmt.Errorf("tunnel api and relay urls are required")
 	}
+	if _, err := CanonicalAPIOrigin(cfg.APIURL); err != nil {
+		return CLIConfig{}, err
+	}
 	if cfg.ConfigPath == "" {
-		directory, err := os.UserConfigDir()
+		path, err := defaultCLIConfigPath(cfg.APIURL)
 		if err != nil {
-			return CLIConfig{}, fmt.Errorf("locate user configuration directory: %w", err)
+			return CLIConfig{}, err
 		}
-		cfg.ConfigPath = filepath.Join(directory, "outpipe", "config.json")
+		cfg.ConfigPath = path
 	}
 
 	return cfg, nil

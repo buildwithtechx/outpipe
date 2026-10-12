@@ -119,7 +119,7 @@ func TestRunTunnelsCommands(t *testing.T) {
 }
 
 func TestRunTunnelsCommandValidationErrors(t *testing.T) {
-	cliTestEnv(t, "http://api.test")
+	cliTestEnv(t, "https://api.test")
 	t.Setenv("OUTPIPE_API_KEY", "key-1")
 
 	for _, args := range [][]string{

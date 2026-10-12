@@ -99,6 +99,12 @@ func main() {
 		log.Fatal(err)
 	}
 
+	telemetryQuota, err := repositories.NewTelemetryQuotaRepository(db)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	audit, err := repositories.NewAuditRepository(db)
 
 	if err != nil {
@@ -161,6 +167,12 @@ func main() {
 	}
 
 	billingJob, err := workers.NewBillingJob(billingReconciler)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	telemetryJob, err := workers.NewTelemetryReceiptJob(telemetryQuota)
 
 	if err != nil {
 		log.Fatal(err)
@@ -253,6 +265,12 @@ func main() {
 		log.Fatal(err)
 	}
 
+	wrappedTelemetry, err := workers.NewRetryableJob(telemetryJob, retryConfig, dlh, tracker)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	wrappedReconciliation, err := workers.NewRetryableJob(reconciliation, retryConfig, dlh, tracker)
 
 	if err != nil {
@@ -264,7 +282,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	jobs := []workers.Job{wrappedCleanup, wrappedUsage, wrappedRetention, wrappedBilling, wrappedReconciliation, wrappedWebhook}
+	jobs := []workers.Job{wrappedCleanup, wrappedUsage, wrappedRetention, wrappedBilling, wrappedReconciliation, wrappedWebhook, wrappedTelemetry}
 	if emailJob != nil {
 		wrappedEmail, wrapErr := workers.NewRetryableJob(emailJob, retryConfig, dlh, tracker)
 		if wrapErr != nil {

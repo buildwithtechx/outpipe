@@ -12,8 +12,10 @@ import (
 )
 
 type ObservabilityService struct {
-	repo     repositories.ObservabilityRepository
-	exporter TelemetryExporter
+	repo         repositories.ObservabilityRepository
+	exporter     TelemetryExporter
+	quota        repositories.TelemetryQuotaRepository
+	quotaBilling repositories.BillingRepository
 }
 
 func NewObservabilityService(repo repositories.ObservabilityRepository) *ObservabilityService {

@@ -141,16 +141,18 @@ func migrations() []migration {
 		return db.AutoMigrate(&models.TelemetryMetric{}, &models.TelemetrySpan{}, &models.TelemetryLog{}, &models.UptimeMonitor{}, &models.Tunnel{})
 	}}, {version: 20, name: "scheduled_uptime_and_status_privacy", up: func(db *gorm.DB) error {
 		return db.AutoMigrate(&models.UptimeMonitor{}, &models.UptimeStatusPage{}, &models.TelemetrySpan{}, &models.TelemetryLog{})
-	}}, {version: 21, name: "unique_active_secrets_and_versions", up: migrateSecretUniqueness}}
+	}}, {version: 21, name: "unique_active_secrets_and_versions", up: migrateSecretUniqueness}, {version: 22, name: "telemetry_monthly_usage_and_receipts", up: func(db *gorm.DB) error {
+		return db.AutoMigrate(&models.OrganizationMonthlyUsage{}, &models.OrganizationTelemetryReceipt{})
+	}}}
 }
 
 func seedDefaultBillingPlans(db *gorm.DB) error {
 
 	plans := []models.Plan{
-		{Key: "free", Name: "Free", Currency: "USD", MaxTunnels: 2, MaxDomains: 0, MaxMembers: 1, MaxConnections: 10, BandwidthBytes: 2 * 1024 * 1024 * 1024, RetentionDays: 3, Features: `{}`, Active: true},
-		{Key: "link", Name: "Link", PriceMinor: 700, Currency: "USD", MaxTunnels: 3, MaxDomains: 1, MaxMembers: 3, MaxConnections: 50, BandwidthBytes: 25 * 1024 * 1024 * 1024, RetentionDays: 14, Features: `{"customDomains":true}`, Active: true},
-		{Key: "route", Name: "Route", PriceMinor: 1500, Currency: "USD", MaxTunnels: 5, MaxDomains: 5, MaxMembers: 5, MaxConnections: 100, BandwidthBytes: 100 * 1024 * 1024 * 1024, RetentionDays: 30, Features: `{"customDomains":true,"prioritySupport":true}`, Active: true},
-		{Key: "edge", Name: "Edge", PriceMinor: 12000, Currency: "USD", MaxTunnels: 20, MaxDomains: 25, MaxMembers: -1, MaxConnections: 500, BandwidthBytes: 1024 * 1024 * 1024 * 1024, RetentionDays: 90, Features: `{"customDomains":true,"prioritySupport":true}`, Active: true},
+		{Key: "free", Name: "Free", Currency: "USD", MaxTunnels: 2, MaxDomains: 0, MaxMembers: 1, MaxConnections: 10, BandwidthBytes: 2 * 1024 * 1024 * 1024, TelemetryBytes: 1024 * 1024 * 1024, RetentionDays: 3, Features: `{}`, Active: true},
+		{Key: "link", Name: "Link", PriceMinor: 700, Currency: "USD", MaxTunnels: 3, MaxDomains: 1, MaxMembers: 3, MaxConnections: 50, BandwidthBytes: 25 * 1024 * 1024 * 1024, TelemetryBytes: 5 * 1024 * 1024 * 1024, RetentionDays: 14, Features: `{"customDomains":true}`, Active: true},
+		{Key: "route", Name: "Route", PriceMinor: 1500, Currency: "USD", MaxTunnels: 5, MaxDomains: 5, MaxMembers: 5, MaxConnections: 100, BandwidthBytes: 100 * 1024 * 1024 * 1024, TelemetryBytes: 20 * 1024 * 1024 * 1024, RetentionDays: 30, Features: `{"customDomains":true,"prioritySupport":true}`, Active: true},
+		{Key: "edge", Name: "Edge", PriceMinor: 12000, Currency: "USD", MaxTunnels: 20, MaxDomains: 25, MaxMembers: -1, MaxConnections: 500, BandwidthBytes: 1024 * 1024 * 1024 * 1024, TelemetryBytes: 100 * 1024 * 1024 * 1024, RetentionDays: 90, Features: `{"customDomains":true,"prioritySupport":true}`, Active: true},
 	}
 
 	for _, plan := range plans {
