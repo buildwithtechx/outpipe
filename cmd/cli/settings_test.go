@@ -33,6 +33,30 @@ func TestLoginPreservesUnsupportedConfigVersion(t *testing.T) {
 	}
 }
 
+func TestInstanceCredentialsDoNotCrossOrigins(t *testing.T) {
+	t.Setenv("APPDATA", t.TempDir())
+	t.Setenv("XDG_CONFIG_HOME", t.TempDir())
+	t.Setenv("OUTPIPE_CONFIG_PATH", "")
+	t.Setenv("OUTPIPE_RELAY_URL", "wss://relay.test")
+	t.Setenv("OUTPIPE_API_KEY", "")
+	t.Setenv("OUTPIPE_AGENT_TOKEN", "")
+	t.Setenv("OUTPIPE_API_URL", "https://first.example.test")
+	if err := run([]string{"login", "--agent-token", "first-token", "--api-key", "first-key"}); err != nil {
+		t.Fatalf("save first-origin login: %v", err)
+	}
+	t.Setenv("OUTPIPE_API_URL", "https://second.example.test")
+	cfg, err := loadCLISettings()
+	if err != nil {
+		t.Fatalf("load second-origin settings: %v", err)
+	}
+	if cfg.APIURL != "https://second.example.test" {
+		t.Fatalf("expected second-origin API URL, got %s", cfg.APIURL)
+	}
+	if cfg.AgentToken != "" || cfg.APIKey != "" {
+		t.Fatal("credentials leaked across instance origins")
+	}
+}
+
 func TestLoginRepairsCorruptSavedSettings(t *testing.T) {
 	t.Chdir(t.TempDir())
 	path := filepath.Join(t.TempDir(), "config.json")
