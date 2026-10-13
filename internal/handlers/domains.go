@@ -72,3 +72,51 @@ func (h *DomainHandler) Verify(c *fiber.Ctx) error {
 
 	return c.SendStatus(fiber.StatusNoContent)
 }
+
+func (h *DomainHandler) Delete(c *fiber.Ctx) error {
+	if err := h.domains.Delete(c.UserContext(), c.Params("domainID")); err != nil {
+		return writeError(c, fiber.StatusNotFound, err)
+	}
+
+	return c.SendStatus(fiber.StatusNoContent)
+}
+
+type StoreDNSProviderRequest struct {
+	Provider string `json:"provider"`
+	Token    string `json:"token"`
+	Label    string `json:"label"`
+}
+
+func (h *DomainHandler) StoreDNSProvider(c *fiber.Ctx) error {
+	var input StoreDNSProviderRequest
+
+	if err := c.BodyParser(&input); err != nil {
+		return writeError(c, fiber.StatusBadRequest, fmt.Errorf("decode dns provider request: %w", err))
+	}
+
+	credential, err := h.domains.StoreDNSCredential(c.UserContext(), strings.TrimSpace(c.Params("organizationID")), input.Provider, input.Token, input.Label)
+
+	if err != nil {
+		return writeError(c, fiber.StatusBadRequest, err)
+	}
+
+	return c.Status(fiber.StatusCreated).JSON(credential)
+}
+
+func (h *DomainHandler) ListDNSProviders(c *fiber.Ctx) error {
+	credentials, err := h.domains.ListDNSCredentials(c.UserContext(), strings.TrimSpace(c.Params("organizationID")))
+
+	if err != nil {
+		return writeError(c, fiber.StatusBadRequest, err)
+	}
+
+	return c.JSON(credentials)
+}
+
+func (h *DomainHandler) DeleteDNSProvider(c *fiber.Ctx) error {
+	if err := h.domains.DeleteDNSCredential(c.UserContext(), strings.TrimSpace(c.Params("organizationID")), c.Params("credentialID")); err != nil {
+		return writeError(c, fiber.StatusNotFound, err)
+	}
+
+	return c.SendStatus(fiber.StatusNoContent)
+}

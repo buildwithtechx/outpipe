@@ -43,7 +43,7 @@ func TestNormalizeBillingInterval(t *testing.T) {
 }
 
 func TestValidHostname(t *testing.T) {
-	valid := []string{"example.com", "api.example.com", "a1.example-2.com"}
+	valid := []string{"example.com", "api.example.com", "a1.example-2.com", "*.example.com"}
 
 	for _, hostname := range valid {
 
@@ -52,7 +52,7 @@ func TestValidHostname(t *testing.T) {
 		}
 	}
 
-	invalid := []string{"localhost", "127.0.0.1", "-example.com", "example..com", "example_com"}
+	invalid := []string{"localhost", "127.0.0.1", "-example.com", "example..com", "example_com", "*", "*example.com", "*.*.example.com", "*.com."}
 
 	for _, hostname := range invalid {
 

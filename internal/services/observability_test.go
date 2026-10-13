@@ -30,10 +30,18 @@ func setupTestObservabilityDB(t *testing.T) (*gorm.DB, func()) {
 		&models.RequestCapture{},
 		&models.TelemetrySpan{},
 		&models.TelemetryLog{},
+		&models.TelemetryExport{},
 	); err != nil {
 		t.Fatalf("failed to auto migrate: %v", err)
 	}
 	return db, func() { _ = sqlDB.Close() }
+}
+
+func setupObservabilityServiceWithQueue(t *testing.T, db *gorm.DB) *services.ObservabilityService {
+	t.Helper()
+	svc := services.NewObservabilityService(repositories.NewGormObservabilityRepository(db))
+	svc.SetExportQueue(repositories.NewGormTelemetryExportRepository(db))
+	return svc
 }
 
 func TestObservabilityServiceLifecycle(t *testing.T) {
@@ -42,6 +50,7 @@ func TestObservabilityServiceLifecycle(t *testing.T) {
 
 	repo := repositories.NewGormObservabilityRepository(db)
 	svc := services.NewObservabilityService(repo)
+	svc.SetExportQueue(repositories.NewGormTelemetryExportRepository(db))
 	ctx := context.Background()
 
 	orgID := "org-test-obs-1"

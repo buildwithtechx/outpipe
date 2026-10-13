@@ -50,7 +50,7 @@ HTTP tunnels work through the normal HTTPS reverse-proxy route. Raw TCP and UDP 
 
 Custom domains are verified independently from the relay wildcard. Users manage their DNS records themselves and provide either the DNS TXT challenge or HTTP challenge required by the dashboard.
 
-Provider-specific DNS automation is intentionally outside the core service. A future user-authorized integration may create records through a customer-owned DNS token, but the hosted service does not store or use a global DNS provider credential.
+For automated verification and wildcard certificates, connect a customer-owned DNS provider token (Cloudflare) with `POST /api/v1/organizations/{organizationID}/dns-providers`, then register the domain with verification method `dns-automation`. The platform sets and cleans up `_acme-challenge` TXT records through the customer token, completes DNS-01, and issues the certificate; wildcard hostnames (`*.example.com`) require this method. Tokens are encrypted at rest, never returned by the API, and only need DNS-edit scope on the relevant zone. Certificates are renewed automatically by the cron `domain-certificates` worker starting 30 days before expiry. The hosted service never uses a global DNS provider credential.
 
 ## Local development
 

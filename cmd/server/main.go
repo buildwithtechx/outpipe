@@ -61,6 +61,7 @@ func main() {
 		deps.DeviceLogin.SetSecretProtector(secretBox)
 		deps.Billing.SetSecretProtector(secretBox)
 		deps.Billing.SetBillingSecretProtector(secretBox)
+		deps.Domains.SetDNSProtector(secretBox)
 		deps.Billing.SetGracePeriod(cfg.Billing.GracePeriod)
 	}
 

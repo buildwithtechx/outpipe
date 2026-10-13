@@ -60,8 +60,9 @@ func TestOTLPRejectsRecordsBeforeUnmarshalAndExpandedStorage(t *testing.T) {
 }
 
 func TestOTLPLogFieldsAndInvalidIdentifiers(t *testing.T) {
-	db := reviewTestDatabase(t, &models.TelemetryLog{}, &models.TelemetrySpan{})
+	db := reviewTestDatabase(t, &models.TelemetryLog{}, &models.TelemetrySpan{}, &models.TelemetryExport{})
 	svc := NewObservabilityService(repositories.NewGormObservabilityRepository(db))
+	svc.SetExportQueue(repositories.NewGormTelemetryExportRepository(db))
 	entry := &logs.LogRecord{ObservedTimeUnixNano: 1234567890, Body: &common.AnyValue{Value: &common.AnyValue_StringValue{StringValue: ""}}, Attributes: []*common.KeyValue{{Key: "component", Value: &common.AnyValue{Value: &common.AnyValue_StringValue{StringValue: "api"}}}}}
 	request := &logsCollector.ExportLogsServiceRequest{ResourceLogs: []*logs.ResourceLogs{{ScopeLogs: []*logs.ScopeLogs{{LogRecords: []*logs.LogRecord{entry}}}}}}
 	wire, err := proto.Marshal(request)

@@ -79,6 +79,11 @@ func main() {
 		log.Fatal(err)
 	}
 	captures := &captureRecorder{resolver: managedTunnels, baseURL: cfg.Service.InternalAPIURL, secret: cfg.Service.InternalAPISecret, client: httpclient.New(5 * time.Second)}
+	if cfg.Tunnel.CaptureSpoolDir != "" {
+		if err := captures.setSpoolDir(cfg.Tunnel.CaptureSpoolDir); err != nil {
+			log.Printf("warning: capture spool disabled: %v", err)
+		}
+	}
 	captures.start(ctx)
 	defer captures.wait.Wait()
 	httpProxy.SetCaptureRecorder(captures)
@@ -93,7 +98,7 @@ func main() {
 	app.Use(recover.New())
 	app.Get("/v1/connect", relayHandler.Upgrade)
 	app.Get("/healthz", func(c *fiber.Ctx) error {
-		return c.JSON(fiber.Map{"status": "ok", "sessions": len(sessions.Snapshot()), "metrics": metrics.Snapshot(), "captureDrops": captures.dropped.Load()})
+		return c.JSON(fiber.Map{"status": "ok", "sessions": len(sessions.Snapshot()), "metrics": metrics.Snapshot(), "captureDrops": captures.dropped.Load(), "captureQueued": captures.queued()})
 	})
 	app.Get("/metrics", func(c *fiber.Ctx) error {
 		c.Type("text", "plain")

@@ -17,10 +17,11 @@ import (
 
 func TestOTLPHTTPEncodingTenantAndLimits(t *testing.T) {
 	stack := newVerificationStack(t)
-	if err := stack.db.AutoMigrate(&models.TelemetryMetric{}); err != nil {
+	if err := stack.db.AutoMigrate(&models.TelemetryMetric{}, &models.TelemetryExport{}); err != nil {
 		t.Fatal(err)
 	}
 	svc := services.NewObservabilityService(repositories.NewGormObservabilityRepository(stack.db))
+	svc.SetExportQueue(repositories.NewGormTelemetryExportRepository(stack.db))
 	handler := handlers.NewObservabilityHandler(svc)
 	app := fiber.New(fiber.Config{BodyLimit: services.MaxOTLPBodyBytes + 1024})
 	app.Post("/metrics", ingestionRequired(stack.keys, stack.auth, stack.organizations), handler.IngestOTLPMetrics)

@@ -47,13 +47,11 @@ retry deduplication; query pipes apply per-row retention even before physical
 TTL cleanup. Storage keeps the existing maximum of 90 days.
 
 Captured payloads remain sensitive data: protect the Tinybird workspace and tokens
-appropriately. Redis also temporarily holds sensitive capture payloads while
-delivering or retrying them, so restrict network access and protect credentials.
+appropriately. The relay spool directory also holds sensitive capture payloads
+while delivering or retrying them, so restrict filesystem access and protect
+credentials.
 
-Unsent capture storage is intentionally bounded: the queue and dead-letter
-stream each hold at most 64 messages of at most 4 MiB each, with a three-day cutoff.
-A capture larger than 3 MiB is rejected individually rather than poisoning neighboring
-captures; ordinary request metadata continues to be recorded.
+Unsent capture storage is intentionally bounded on both sides. The relay spools every capture to disk (`OUTPIPE_TUNNEL_CAPTURE_SPOOL_DIR`, default `data/capture-spool`, at most 4096 files) and replays the spool after restarts; spool files older than 72 hours are evicted and counted as drops. The intake API rejects bodies larger than 512 KiB and per-field capture payloads stay bounded at 64 KiB. A capture larger than 3 MiB is rejected individually rather than poisoning neighboring captures; ordinary request metadata continues to be recorded. The relay `/healthz` response exposes `captureQueued` alongside `captureDrops` so operators can distinguish backlog from loss.
 
 ## Endpoints Summary
 

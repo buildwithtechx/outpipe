@@ -24,13 +24,15 @@ type RelayConfig struct {
 }
 
 type CronConfig struct {
-	App      AppConfig      `envPrefix:"OUTPIPE_" json:"app" yaml:"app"`
-	Database DatabaseConfig `envPrefix:"OUTPIPE_" json:"database" yaml:"database"`
-	Redis    RedisConfig    `envPrefix:"OUTPIPE_" json:"redis" yaml:"redis"`
-	Service  ServiceConfig  `envPrefix:"OUTPIPE_" json:"service" yaml:"service"`
-	Backup   BackupConfig   `envPrefix:"OUTPIPE_" json:"backup" yaml:"backup"`
-	Mail     MailConfig     `envPrefix:"OUTPIPE_" json:"mail" yaml:"mail"`
-	Metrics  bool           `json:"metrics" yaml:"metrics" env:"OUTPIPE_CRON_METRICS" envDefault:"false"`
+	App       AppConfig       `envPrefix:"OUTPIPE_" json:"app" yaml:"app"`
+	Auth      AuthConfig      `envPrefix:"OUTPIPE_" json:"auth" yaml:"auth"`
+	Analytics AnalyticsConfig `envPrefix:"OUTPIPE_" json:"analytics" yaml:"analytics"`
+	Database  DatabaseConfig  `envPrefix:"OUTPIPE_" json:"database" yaml:"database"`
+	Redis     RedisConfig     `envPrefix:"OUTPIPE_" json:"redis" yaml:"redis"`
+	Service   ServiceConfig   `envPrefix:"OUTPIPE_" json:"service" yaml:"service"`
+	Backup    BackupConfig    `envPrefix:"OUTPIPE_" json:"backup" yaml:"backup"`
+	Mail      MailConfig      `envPrefix:"OUTPIPE_" json:"mail" yaml:"mail"`
+	Metrics   bool            `json:"metrics" yaml:"metrics" env:"OUTPIPE_CRON_METRICS" envDefault:"false"`
 }
 
 type CheckConfig struct {
@@ -144,6 +146,7 @@ type TunnelConfig struct {
 	ReadTimeout     time.Duration `json:"readTimeout" yaml:"read_timeout" env:"TUNNEL_READ_TIMEOUT" envDefault:"90s"`
 	DrainTimeout    time.Duration `json:"drainTimeout" yaml:"drain_timeout" env:"TUNNEL_DRAIN_TIMEOUT" envDefault:"10s"`
 	MaxFrameBytes   int64         `json:"maxFrameBytes" yaml:"max_frame_bytes" env:"TUNNEL_MAX_FRAME_BYTES" envDefault:"16777216"`
+	CaptureSpoolDir string        `json:"captureSpoolDir" yaml:"capture_spool_dir" env:"TUNNEL_CAPTURE_SPOOL_DIR" envDefault:"data/capture-spool"`
 }
 
 type BillingConfig struct {

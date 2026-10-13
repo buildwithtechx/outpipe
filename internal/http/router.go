@@ -64,6 +64,7 @@ func RegisterRoutes(app *fiber.App, handlers Handlers, options RouterOptions) er
 	if handlers.Tunnels != nil {
 		handlers.Tunnels.SetMachineSigningKey(options.InternalAPISecret)
 		app.Post("/api/v1/machines/tunnels", authLimiter, handlers.Tunnels.CreateMachine)
+		app.Post("/api/v1/machines/tunnels/:tunnelID/relay-token", authLimiter, handlers.Tunnels.RefreshMachineRelayToken)
 	}
 	app.Post("/api/v1/auth/device/start", authLimiter, handlers.Auth.StartDeviceLogin)
 	app.Get("/api/v1/auth/device/poll", authLimiter, handlers.Auth.PollDeviceLogin)
@@ -128,6 +129,9 @@ func RegisterRoutes(app *fiber.App, handlers Handlers, options RouterOptions) er
 	protected.Get("/organizations/:organizationID/agents", organizationRoleRequired(handlers.organizationService, models.MemberRoleViewer), handlers.Agents.List)
 	protected.Post("/organizations/:organizationID/domains", organizationRoleRequired(handlers.organizationService, models.MemberRoleAdmin), handlers.Domains.Create)
 	protected.Get("/organizations/:organizationID/domains", organizationRoleRequired(handlers.organizationService, models.MemberRoleViewer), handlers.Domains.List)
+	protected.Post("/organizations/:organizationID/dns-providers", organizationRoleRequired(handlers.organizationService, models.MemberRoleAdmin), handlers.Domains.StoreDNSProvider)
+	protected.Get("/organizations/:organizationID/dns-providers", organizationRoleRequired(handlers.organizationService, models.MemberRoleViewer), handlers.Domains.ListDNSProviders)
+	protected.Delete("/organizations/:organizationID/dns-providers/:credentialID", organizationRoleRequired(handlers.organizationService, models.MemberRoleAdmin), handlers.Domains.DeleteDNSProvider)
 	protected.Get("/organizations/:organizationID/usage/events", organizationRoleRequired(handlers.organizationService, models.MemberRoleViewer), handlers.Usage.Events)
 	protected.Get("/organizations/:organizationID/usage/requests", organizationRoleRequired(handlers.organizationService, models.MemberRoleViewer), handlers.Usage.Requests)
 	protected.Get("/organizations/:organizationID/usage/snapshot", organizationRoleRequired(handlers.organizationService, models.MemberRoleViewer), handlers.Usage.Snapshot)
@@ -152,6 +156,7 @@ func RegisterRoutes(app *fiber.App, handlers Handlers, options RouterOptions) er
 	protected.Get("/tunnels/:tunnelID", apiKeyResourceScopeRequired(handlers.organizationService, "tunnels:read", "tunnelID", handlers.Tunnels.OrganizationID), handlers.Tunnels.Inspect)
 	protected.Delete("/tunnels/:tunnelID", apiKeyResourceScopeRequired(handlers.organizationService, "tunnels:write", "tunnelID", handlers.Tunnels.OrganizationID), handlers.Tunnels.Revoke)
 	protected.Post("/domains/:domainID/verify", apiKeyResourceScopeRequired(handlers.organizationService, "domains:write", "domainID", handlers.Domains.OrganizationID), handlers.Domains.Verify)
+	protected.Delete("/domains/:domainID", apiKeyResourceScopeRequired(handlers.organizationService, "domains:write", "domainID", handlers.Domains.OrganizationID), handlers.Domains.Delete)
 	protected.Delete("/agents/:agentID", apiKeyResourceScopeRequired(handlers.organizationService, "agents:write", "agentID", handlers.Agents.OrganizationID), handlers.Agents.Revoke)
 
 	if handlers.Shares != nil {

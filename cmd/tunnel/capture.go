@@ -16,16 +16,27 @@ import (
 )
 
 type captureRecorder struct {
-	resolver    *relay.InternalTunnelResolver
-	baseURL     string
-	secret      string
-	client      *http.Client
-	mu          sync.Mutex
-	policies    map[string]capturePolicy
-	policyQueue chan capturePolicyRequest
-	queue       chan engine.RequestCapture
-	wait        sync.WaitGroup
-	dropped     atomic.Uint64
+	resolver      *relay.InternalTunnelResolver
+	baseURL       string
+	secret        string
+	client        *http.Client
+	mu            sync.Mutex
+	policies      map[string]capturePolicy
+	policyQueue   chan capturePolicyRequest
+	queue         chan captureUpload
+	wait          sync.WaitGroup
+	dropped       atomic.Uint64
+	spoolDir      string
+	spool         *captureSpool
+	sweepInterval time.Duration
+}
+
+func (r *captureRecorder) queued() int64 {
+	queued := int64(len(r.queue))
+	if r.spool != nil {
+		queued += r.spool.count.Load()
+	}
+	return queued
 }
 
 func (r *captureRecorder) enabledPolicy(ctx context.Context, tunnelID, orgID string) (bool, error) {

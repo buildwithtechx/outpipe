@@ -143,6 +143,10 @@ func migrations() []migration {
 		return db.AutoMigrate(&models.UptimeMonitor{}, &models.UptimeStatusPage{}, &models.TelemetrySpan{}, &models.TelemetryLog{})
 	}}, {version: 21, name: "unique_active_secrets_and_versions", up: migrateSecretUniqueness}, {version: 22, name: "telemetry_monthly_usage_and_receipts", up: func(db *gorm.DB) error {
 		return db.AutoMigrate(&models.OrganizationMonthlyUsage{}, &models.OrganizationTelemetryReceipt{})
+	}}, {version: 23, name: "telemetry_export_queue", up: func(db *gorm.DB) error {
+		return db.AutoMigrate(&models.TelemetryExport{})
+	}}, {version: 24, name: "dns_provider_credentials", up: func(db *gorm.DB) error {
+		return db.AutoMigrate(&models.DNSProviderCredential{})
 	}}}
 }
 

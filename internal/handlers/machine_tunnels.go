@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
+	"fmt"
 	"strings"
 	"time"
 
@@ -15,21 +16,21 @@ import (
 func (h *TunnelHandler) SetMachineService(secrets *services.SecretService) { h.secrets = secrets }
 func (h *TunnelHandler) SetMachineSigningKey(key string)                   { h.signingKey = key }
 
-func (h *TunnelHandler) CreateMachine(c *fiber.Ctx) error {
+func (h *TunnelHandler) machineCredential(c *fiber.Ctx) (models.SecretMachineToken, int, error) {
 	if h.secrets == nil || h.signingKey == "" {
-		return c.SendStatus(fiber.StatusServiceUnavailable)
+		return models.SecretMachineToken{}, fiber.StatusServiceUnavailable, fmt.Errorf("machine tunnel service is unavailable")
 	}
 	parts := strings.Fields(c.Get("Authorization"))
 	if len(parts) != 2 || !strings.EqualFold(parts[0], "bearer") {
-		return c.SendStatus(fiber.StatusUnauthorized)
+		return models.SecretMachineToken{}, fiber.StatusUnauthorized, fmt.Errorf("machine credential is required")
 	}
 	machine, err := h.secrets.VerifyMachineToken(c.UserContext(), parts[1])
 	if err != nil {
-		return c.SendStatus(fiber.StatusUnauthorized)
+		return models.SecretMachineToken{}, fiber.StatusUnauthorized, err
 	}
 	var scopes []string
 	if err := json.Unmarshal([]byte(machine.Scopes), &scopes); err != nil {
-		return c.SendStatus(fiber.StatusForbidden)
+		return models.SecretMachineToken{}, fiber.StatusForbidden, err
 	}
 	allowed := false
 	for _, scope := range scopes {
@@ -38,7 +39,27 @@ func (h *TunnelHandler) CreateMachine(c *fiber.Ctx) error {
 		}
 	}
 	if !allowed || machine.ProjectID != nil || machine.EnvironmentID != nil {
-		return c.SendStatus(fiber.StatusForbidden)
+		return models.SecretMachineToken{}, fiber.StatusForbidden, fmt.Errorf("machine credential lacks tunnels:write scope")
+	}
+	return machine, fiber.StatusOK, nil
+}
+
+func (h *TunnelHandler) signMachineRelayToken(machine models.SecretMachineToken, tunnelID string) (string, time.Time, error) {
+	expires := time.Now().UTC().Add(15 * time.Minute)
+	if machine.ExpiresAt.Before(expires) {
+		expires = *machine.ExpiresAt
+	}
+	token, err := auth.SignRelayToken(auth.RelayClaims{Sub: machine.ID, Org: machine.OrganizationID, TunnelID: tunnelID, MachineTokenID: machine.ID, MaxTunnels: 1, Exp: expires.Unix(), Iat: time.Now().Unix()}, h.signingKey)
+	if err != nil {
+		return "", time.Time{}, err
+	}
+	return token, expires, nil
+}
+
+func (h *TunnelHandler) CreateMachine(c *fiber.Ctx) error {
+	machine, status, err := h.machineCredential(c)
+	if err != nil {
+		return c.SendStatus(status)
 	}
 	var input CreateTunnelRequest
 	if err := c.BodyParser(&input); err != nil {
@@ -54,15 +75,30 @@ func (h *TunnelHandler) CreateMachine(c *fiber.Ctx) error {
 	if err != nil {
 		return writeError(c, fiber.StatusBadRequest, err)
 	}
-	expires := time.Now().UTC().Add(15 * time.Minute)
-	if machine.ExpiresAt.Before(expires) {
-		expires = *machine.ExpiresAt
-	}
-	token, err := auth.SignRelayToken(auth.RelayClaims{Sub: machine.ID, Org: machine.OrganizationID, TunnelID: tunnel.ID, MachineTokenID: machine.ID, MaxTunnels: 1, Exp: expires.Unix(), Iat: time.Now().Unix()}, h.signingKey)
+	token, expires, err := h.signMachineRelayToken(machine, tunnel.ID)
 	if err != nil {
 		return c.SendStatus(fiber.StatusInternalServerError)
 	}
 	return c.Status(fiber.StatusCreated).JSON(fiber.Map{"tunnel": tunnel, "relayToken": token, "expiresAt": expires})
+}
+
+func (h *TunnelHandler) RefreshMachineRelayToken(c *fiber.Ctx) error {
+	machine, status, err := h.machineCredential(c)
+	if err != nil {
+		return c.SendStatus(status)
+	}
+	tunnel, err := h.tunnels.Find(c.UserContext(), strings.TrimSpace(c.Params("tunnelID")))
+	if err != nil {
+		return c.SendStatus(fiber.StatusNotFound)
+	}
+	if tunnel.OrganizationID != machine.OrganizationID || tunnel.MachineTokenID == nil || *tunnel.MachineTokenID != machine.ID || tunnel.Status == models.TunnelStatusRevoked || tunnel.RevokedAt != nil {
+		return c.SendStatus(fiber.StatusNotFound)
+	}
+	token, expires, err := h.signMachineRelayToken(machine, tunnel.ID)
+	if err != nil {
+		return c.SendStatus(fiber.StatusInternalServerError)
+	}
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{"relayToken": token, "expiresAt": expires})
 }
 
 func (h *TunnelHandler) machinePolicyAllowed(c *fiber.Ctx, tunnel models.Tunnel) bool {

@@ -6,14 +6,17 @@ import (
 	"log"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 	"time"
 
 	"outpipe.dev/outpipe/internal/config"
+	"outpipe.dev/outpipe/internal/infra/certificates"
 	"outpipe.dev/outpipe/internal/infra/locks"
 	"outpipe.dev/outpipe/internal/infra/mail"
 	"outpipe.dev/outpipe/internal/infra/postgres"
 	"outpipe.dev/outpipe/internal/infra/redis"
+	"outpipe.dev/outpipe/internal/infra/storage"
 	"outpipe.dev/outpipe/internal/infra/telemetry"
 	"outpipe.dev/outpipe/internal/repositories"
 	"outpipe.dev/outpipe/internal/services"
@@ -117,6 +120,72 @@ func main() {
 	}
 
 	webhookRepository, err := repositories.NewWebhookRepository(db)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	domainRepository, err := repositories.NewDomainRepository(db)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	dnsCredentialRepository, err := repositories.NewDNSProviderRepository(db)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	domainService, err := services.NewDomainService(domainRepository)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	dnsCredentialService, err := services.NewDNSCredentialService(dnsCredentialRepository)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	domainService.SetDNSCredentials(dnsCredentialService)
+
+	if cfg.App.ACMEEnabled && cfg.App.ACMEEmail != "" {
+		dnsIssuer, err := certificates.NewDNS01Issuer(certificates.ACMEConfig{Email: cfg.App.ACMEEmail, Directory: cfg.App.ACMEDirectory, CacheDir: cfg.App.CertificateCache})
+		if err != nil {
+			log.Fatal(err)
+		}
+		domainService.SetDNS01Issuer(dnsIssuer)
+		autocertIssuer, err := certificates.NewACMEIssuer(certificates.ACMEConfig{Email: cfg.App.ACMEEmail, Directory: cfg.App.ACMEDirectory, CacheDir: cfg.App.CertificateCache, AllowedHost: func(host string) bool {
+			return strings.Contains(host, ".") && !strings.Contains(host, "..") && !strings.Contains(host, "*")
+		}})
+		if err != nil {
+			log.Fatal(err)
+		}
+		domainService.SetCertificateIssuer(autocertIssuer)
+	}
+
+	if cfg.Auth.EncryptionKey != "" {
+		secretBox, err := storage.NewSecretBox([]byte(cfg.Auth.EncryptionKey))
+		if err != nil {
+			log.Fatal(err)
+		}
+		domainService.SetDNSProtector(secretBox)
+	} else {
+		log.Print("warning: OUTPIPE_AUTH_ENCRYPTION_KEY is empty; automated domain renewals will fail")
+	}
+
+	domainCertificateJob, err := workers.NewDomainCertificateJob(domainService, 30*24*time.Hour)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	telemetryExportRepository := repositories.NewGormTelemetryExportRepository(db)
+	telemetryExportService := services.NewObservabilityService(repositories.NewGormObservabilityRepository(db))
+	telemetryExportService.SetExportQueue(telemetryExportRepository)
+	telemetryExporter, err := services.NewHTTPAnalyticsExporter(cfg.Analytics)
+	if err != nil {
+		log.Fatal(err)
+	}
+	telemetryExportService.SetTelemetryExporter(telemetryExporter)
+
+	telemetryExportJob, err := workers.NewTelemetryExportJob(telemetryExportService)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -282,7 +351,17 @@ func main() {
 		log.Fatal(err)
 	}
 
-	jobs := []workers.Job{wrappedCleanup, wrappedUsage, wrappedRetention, wrappedBilling, wrappedReconciliation, wrappedWebhook, wrappedTelemetry}
+	wrappedTelemetryExport, err := workers.NewRetryableJob(telemetryExportJob, retryConfig, dlh, tracker)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	wrappedDomainCertificates, err := workers.NewRetryableJob(domainCertificateJob, retryConfig, dlh, tracker)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	jobs := []workers.Job{wrappedCleanup, wrappedUsage, wrappedRetention, wrappedBilling, wrappedReconciliation, wrappedWebhook, wrappedTelemetry, wrappedTelemetryExport, wrappedDomainCertificates}
 	if emailJob != nil {
 		wrappedEmail, wrapErr := workers.NewRetryableJob(emailJob, retryConfig, dlh, tracker)
 		if wrapErr != nil {

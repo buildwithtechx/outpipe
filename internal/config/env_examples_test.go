@@ -17,7 +17,7 @@ func TestEnvironmentExamplesCoverConfiguration(t *testing.T) {
 	}{
 		{"cmd/server/.env.example", APIConfig{}, nil},
 		{"cmd/tunnel/.env.example", RelayConfig{}, []string{"ACME_ENABLED", "ACME_EMAIL", "ACME_DIRECTORY", "CERTIFICATE_CACHE_DIR"}},
-		{"cmd/cron/.env.example", CronConfig{}, []string{"ACME_ENABLED", "ACME_EMAIL", "ACME_DIRECTORY", "CERTIFICATE_CACHE_DIR", "REQUIRE_TLS", "TLS_CERT_FILE", "TLS_KEY_FILE"}},
+		{"cmd/cron/.env.example", CronConfig{}, []string{"REQUIRE_TLS", "TLS_CERT_FILE", "TLS_KEY_FILE"}},
 		{"cmd/check/.env.example", CheckConfig{}, []string{"ACME_ENABLED", "ACME_EMAIL", "ACME_DIRECTORY", "CERTIFICATE_CACHE_DIR", "REQUIRE_TLS", "TLS_CERT_FILE", "TLS_KEY_FILE"}},
 		{"cmd/cli/.env.example", CLIConfig{}, nil},
 	}

@@ -85,6 +85,10 @@ func NewDatabaseDependencies(db *gorm.DB, cfg config.APIConfig) (Dependencies, e
 	if err != nil {
 		return Dependencies{}, err
 	}
+	dnsCredentials, err := repositories.NewDNSProviderRepository(db)
+	if err != nil {
+		return Dependencies{}, err
+	}
 	billingRepository, err := repositories.NewBillingRepository(db)
 	if err != nil {
 		return Dependencies{}, err
@@ -259,7 +263,23 @@ func NewDatabaseDependencies(db *gorm.DB, cfg config.APIConfig) (Dependencies, e
 		}
 
 		domainService.SetCertificateIssuer(issuer)
+
+		dnsIssuer, dnsIssuerErr := certificates.NewDNS01Issuer(certificates.ACMEConfig{Email: cfg.App.ACMEEmail, Directory: cfg.App.ACMEDirectory, CacheDir: cfg.App.CertificateCache})
+
+		if dnsIssuerErr != nil {
+			return Dependencies{}, dnsIssuerErr
+		}
+
+		domainService.SetDNS01Issuer(dnsIssuer)
 	}
+
+	dnsCredentialService, err := services.NewDNSCredentialService(dnsCredentials)
+
+	if err != nil {
+		return Dependencies{}, err
+	}
+
+	domainService.SetDNSCredentials(dnsCredentialService)
 
 	tunnelService.SetBilling(billingService)
 	organizationService.SetBilling(billingService)

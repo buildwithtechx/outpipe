@@ -3,6 +3,7 @@ package repositories
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"gorm.io/gorm"
 	"outpipe.dev/outpipe/internal/models"
@@ -13,6 +14,7 @@ type DomainRepository interface {
 	FindByID(context.Context, string) (models.Domain, error)
 	FindByHostname(context.Context, string) (models.Domain, error)
 	FindByOrganization(context.Context, string) ([]models.Domain, error)
+	FindExpiringCertificates(context.Context, time.Time) ([]models.Domain, error)
 	CountByOrganization(context.Context, string) (int64, error)
 	Update(context.Context, *models.Domain) error
 	UpdateStatus(context.Context, string, models.DomainStatus) error
@@ -57,6 +59,16 @@ func (r *GormDomainRepository) FindByHostname(ctx context.Context, hostname stri
 	}
 
 	return domain, nil
+}
+
+func (r *GormDomainRepository) FindExpiringCertificates(ctx context.Context, before time.Time) ([]models.Domain, error) {
+	var domains []models.Domain
+
+	if err := r.db.WithContext(ctx).Where("status = ? AND certificate_expires_at IS NOT NULL AND certificate_expires_at <= ?", models.DomainStatusActive, before).Order("certificate_expires_at ASC").Limit(DefaultListLimit).Find(&domains).Error; err != nil {
+		return nil, fmt.Errorf("list expiring certificates: %w", err)
+	}
+
+	return domains, nil
 }
 
 func (r *GormDomainRepository) FindByOrganization(ctx context.Context, organizationID string) ([]models.Domain, error) {

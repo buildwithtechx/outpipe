@@ -31,6 +31,7 @@ func productServices(db *gorm.DB, cfg config.APIConfig) (*services.SecretService
 	}
 	obsRepo := repositories.NewGormObservabilityRepository(db)
 	obsService := services.NewObservabilityService(obsRepo)
+	obsService.SetExportQueue(repositories.NewGormTelemetryExportRepository(db))
 	exporter, err := services.NewHTTPAnalyticsExporter(cfg.Analytics)
 	if err != nil {
 		return nil, nil, nil, nil, nil, fmt.Errorf("configure telemetry analytics: %w", err)

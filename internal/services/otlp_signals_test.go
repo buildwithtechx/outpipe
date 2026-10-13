@@ -11,14 +11,12 @@ import (
 	logs "go.opentelemetry.io/proto/otlp/logs/v1"
 	traces "go.opentelemetry.io/proto/otlp/trace/v1"
 	"google.golang.org/protobuf/proto"
-	"outpipe.dev/outpipe/internal/repositories"
-	"outpipe.dev/outpipe/internal/services"
 )
 
 func TestOTLPProtobufTracesAndLogs(t *testing.T) {
 	db, cleanup := setupTestObservabilityDB(t)
 	defer cleanup()
-	svc := services.NewObservabilityService(repositories.NewGormObservabilityRepository(db))
+	svc := setupObservabilityServiceWithQueue(t, db)
 	span := &traces.Span{TraceId: bytes.Repeat([]byte{1}, 16), SpanId: bytes.Repeat([]byte{2}, 8), Name: "request", StartTimeUnixNano: 1000000000, EndTimeUnixNano: 1001000000}
 	traceRequest := &traceCollector.ExportTraceServiceRequest{ResourceSpans: []*traces.ResourceSpans{{ScopeSpans: []*traces.ScopeSpans{{Spans: []*traces.Span{span}}}}}}
 	wire, err := proto.Marshal(traceRequest)

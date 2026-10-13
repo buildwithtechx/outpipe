@@ -25,7 +25,7 @@ func setupQuotaObservability(t *testing.T) (*services.ObservabilityService, repo
 	if err != nil {
 		t.Fatal(err)
 	}
-	svc := services.NewObservabilityService(repositories.NewGormObservabilityRepository(db))
+	svc := setupObservabilityServiceWithQueue(t, db)
 	svc.SetQuota(quota, billing)
 	plan := models.Plan{Key: "tiny", Name: "Tiny", Currency: "USD", MaxTunnels: 1, MaxDomains: 0, MaxMembers: 1, TelemetryBytes: 200, RetentionDays: 3, Features: `{}`, Active: true}
 	if err := billing.CreatePlan(context.Background(), &plan); err != nil {

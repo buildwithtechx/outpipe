@@ -80,9 +80,9 @@ DELETE /api/v1/tunnels/:tunnelID
 
 ## Webhooks
 
-Signed webhook subscriptions per organization. Events are delivered
-synchronously with a 5-second timeout; every delivery is recorded and can be
-inspected.
+Signed webhook subscriptions per organization. Deliveries are queued durably
+and retried with bounded exponential backoff by the cron worker; each attempt
+has a 5-second timeout. Every delivery is recorded and can be inspected.
 
 Create (returns `secret` exactly once — store it):
 
