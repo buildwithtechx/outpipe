@@ -147,7 +147,7 @@ func migrations() []migration {
 		return db.AutoMigrate(&models.TelemetryExport{})
 	}}, {version: 24, name: "dns_provider_credentials", up: func(db *gorm.DB) error {
 		return db.AutoMigrate(&models.DNSProviderCredential{})
-	}}}
+	}}, {version: 25, name: "uptime_subscriber_management", up: migrateSubscriberManagement}}
 }
 
 func seedDefaultBillingPlans(db *gorm.DB) error {
@@ -175,6 +175,28 @@ func seedDefaultBillingPlans(db *gorm.DB) error {
 		}
 	}
 
+	return nil
+}
+
+func migrateSubscriberManagement(db *gorm.DB) error {
+	if err := db.Exec("DELETE FROM uptime_subscribers AS dup USING uptime_subscribers AS kept WHERE dup.status_page_id = kept.status_page_id AND dup.email = kept.email AND (dup.created_at > kept.created_at OR (dup.created_at = kept.created_at AND dup.id > kept.id))").Error; err != nil {
+		return fmt.Errorf("dedupe subscribers: %w", err)
+	}
+	if err := db.AutoMigrate(
+		&models.UptimeStatusPage{},
+		&models.UptimeSubscriber{},
+		&models.UptimeSubscriberComponent{},
+		&models.UptimeSubscriberNotification{},
+		&models.UptimeSubscriptionAttempt{},
+	); err != nil {
+		return err
+	}
+	if err := db.Exec("UPDATE uptime_status_pages SET subscriptions_enabled = TRUE WHERE subscriptions_enabled IS NULL").Error; err != nil {
+		return fmt.Errorf("backfill subscriptions_enabled: %w", err)
+	}
+	if err := db.Exec("UPDATE uptime_subscribers SET status = 'confirmed' WHERE confirmed = TRUE AND (status IS NULL OR status = '' OR status = 'pending')").Error; err != nil {
+		return fmt.Errorf("backfill subscriber status: %w", err)
+	}
 	return nil
 }
 

@@ -339,6 +339,13 @@ func NewDatabaseDependencies(db *gorm.DB, cfg config.APIConfig) (Dependencies, e
 	if err != nil {
 		return Dependencies{}, err
 	}
+	uptimeService.SetSubscriberMailer(outboxMailer)
+	uptimeService.SetSubscriberSigningKey(cfg.Auth.EncryptionKey)
+	statusBaseURL := strings.TrimSpace(cfg.App.StatusBaseURL)
+	if statusBaseURL == "" {
+		statusBaseURL = strings.TrimRight(cfg.App.DashboardURL, "/")
+	}
+	uptimeService.SetSubscriberBaseURL(statusBaseURL)
 
 	return Dependencies{Auth: authService, DeviceLogin: deviceService, Organizations: organizationService, Invitations: invitationService, Tunnels: tunnelService, Agents: agentService, Domains: domainService, Usage: usageService, Billing: billingService, Account: accountService, Admin: adminService, Audit: auditService, APIKeys: apiKeyService, Webhooks: webhookService, Support: supportService, Secrets: secretService, Shares: shareService, Uptime: uptimeService, Observability: obsService, AIAgent: aiService, WelcomeMailer: welcomeMailer, Ready: databaseReady(db), Metrics: metrics}, nil
 }

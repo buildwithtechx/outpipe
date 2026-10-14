@@ -279,6 +279,20 @@ func platformAdminRequired(auth *services.AuthService) fiber.Handler {
 	}
 }
 
+func statusPageRequired(uptime *services.UptimeService) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		if uptime == nil {
+			return c.Status(fiber.StatusServiceUnavailable).JSON(fiber.Map{"error": "status page service is unavailable"})
+		}
+		page, err := uptime.GetStatusPageByOrg(c.UserContext(), c.Params("organizationID"))
+		if err != nil {
+			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "status page not found"})
+		}
+		c.Locals("statusPage", *page)
+		return c.Next()
+	}
+}
+
 func internalSecretRequired(expected string) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		provided := []byte(c.Get("X-Internal-Secret"))

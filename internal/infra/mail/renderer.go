@@ -54,6 +54,19 @@ type InvoiceReceiptData struct {
 	DashboardURL string
 }
 
+type SubscriberConfirmData struct {
+	PageTitle  string
+	ConfirmURL string
+}
+
+type SubscriberIncidentData struct {
+	PageTitle      string
+	IncidentTitle  string
+	Status         string
+	Message        string
+	UnsubscribeURL string
+}
+
 type templateRenderer struct {
 	html *template.Template
 }

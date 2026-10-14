@@ -94,7 +94,12 @@ func RegisterRoutes(app *fiber.App, handlers Handlers, options RouterOptions) er
 
 	if handlers.Uptime != nil {
 		app.Get("/api/v1/status/:slug", handlers.Uptime.GetPublicStatus)
-		app.Post("/api/v1/status/:slug/subscribe", handlers.Uptime.Subscribe)
+		subscribeLimiter := requestRateLimitDistributed(options.RateLimiter, 10, time.Minute, func(c *fiber.Ctx) string { return "subscribe:" + requestClientIP(c) })
+		app.Post("/api/v1/status/:slug/subscribe", subscribeLimiter, handlers.Uptime.Subscribe)
+		app.Post("/api/v1/status/:slug/confirm", subscribeLimiter, handlers.Uptime.ConfirmSubscription)
+		app.Post("/api/v1/status/:slug/unsubscribe", subscribeLimiter, handlers.Uptime.UnsubscribeWithToken)
+		app.Post("/api/v1/status-pages/:id/confirm", subscribeLimiter, handlers.Uptime.ConfirmSubscriptionByPage)
+		app.Post("/api/v1/status-pages/:id/unsubscribe", subscribeLimiter, handlers.Uptime.UnsubscribeByPage)
 	}
 
 	if handlers.Observability != nil {
@@ -195,6 +200,11 @@ func RegisterRoutes(app *fiber.App, handlers Handlers, options RouterOptions) er
 
 		protected.Get("/organizations/:organizationID/uptime/status-page", organizationRoleRequired(handlers.organizationService, models.MemberRoleViewer), handlers.Uptime.GetStatusPage)
 		protected.Post("/organizations/:organizationID/uptime/status-page", organizationRoleRequired(handlers.organizationService, models.MemberRoleAdmin), handlers.Uptime.UpsertStatusPage)
+		protected.Patch("/organizations/:organizationID/uptime/status-page/subscriptions", organizationRoleRequired(handlers.organizationService, models.MemberRoleAdmin), statusPageRequired(handlers.uptimeService), handlers.Uptime.UpdateSubscriberSettings)
+		protected.Get("/organizations/:organizationID/uptime/status-page/subscribers", organizationRoleRequired(handlers.organizationService, models.MemberRoleViewer), statusPageRequired(handlers.uptimeService), handlers.Uptime.ListSubscribers)
+		protected.Delete("/organizations/:organizationID/uptime/status-page/subscribers/:subscriberID", organizationRoleRequired(handlers.organizationService, models.MemberRoleAdmin), statusPageRequired(handlers.uptimeService), handlers.Uptime.RemoveSubscriber)
+		protected.Post("/organizations/:organizationID/uptime/status-page/subscribers/:subscriberID/unsubscribe", organizationRoleRequired(handlers.organizationService, models.MemberRoleAdmin), statusPageRequired(handlers.uptimeService), handlers.Uptime.ManagerUnsubscribe)
+		protected.Put("/organizations/:organizationID/uptime/status-page/subscribers/:subscriberID/scope", organizationRoleRequired(handlers.organizationService, models.MemberRoleAdmin), statusPageRequired(handlers.uptimeService), handlers.Uptime.SetSubscriberScope)
 	}
 
 	if handlers.Observability != nil {

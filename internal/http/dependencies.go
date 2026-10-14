@@ -76,6 +76,7 @@ type Handlers struct {
 	organizationService *services.OrganizationService
 	apiKeyService       *services.APIKeyService
 	agentService        *services.AgentService
+	uptimeService       *services.UptimeService
 }
 
 func buildHandlers(deps Dependencies, cookie handlers.SessionCookieConfig) (Handlers, error) {
@@ -218,5 +219,5 @@ func buildHandlers(deps Dependencies, cookie handlers.SessionCookieConfig) (Hand
 		}
 	}
 
-	return Handlers{Health: handlers.NewHealthHandler(deps.Ready), Auth: authHandler, Organizations: organizationHandler, Invitations: invitationHandler, Tunnels: tunnelHandler, Agents: agentHandler, Domains: domainHandler, Usage: usageHandler, Billing: billingHandler, OAuth: oauthHandler, Account: accountHandler, Admin: adminHandler, APIKeys: apiKeyHandler, Webhooks: webhookHandler, Support: supportHandler, AuditLogs: auditLogHandler, Secrets: secretHandler, Shares: shareHandler, Uptime: uptimeHandler, Observability: observabilityHandler, AIAgent: aiAgentHandler, authService: deps.Auth, organizationService: deps.Organizations, apiKeyService: deps.APIKeys, auditService: deps.Audit, agentService: deps.Agents}, nil
+	return Handlers{Health: handlers.NewHealthHandler(deps.Ready), Auth: authHandler, Organizations: organizationHandler, Invitations: invitationHandler, Tunnels: tunnelHandler, Agents: agentHandler, Domains: domainHandler, Usage: usageHandler, Billing: billingHandler, OAuth: oauthHandler, Account: accountHandler, Admin: adminHandler, APIKeys: apiKeyHandler, Webhooks: webhookHandler, Support: supportHandler, AuditLogs: auditLogHandler, Secrets: secretHandler, Shares: shareHandler, Uptime: uptimeHandler, Observability: observabilityHandler, AIAgent: aiAgentHandler, authService: deps.Auth, organizationService: deps.Organizations, apiKeyService: deps.APIKeys, auditService: deps.Audit, agentService: deps.Agents, uptimeService: deps.Uptime}, nil
 }

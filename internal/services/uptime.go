@@ -17,8 +17,11 @@ import (
 )
 
 type UptimeService struct {
-	repo       repositories.UptimeRepository
-	httpClient *http.Client
+	repo                 repositories.UptimeRepository
+	httpClient           *http.Client
+	subscriberMailer     SubscriberMailer
+	subscriberSigningKey string
+	subscriberBaseURL    string
 }
 
 func NewUptimeService(repo repositories.UptimeRepository) (*UptimeService, error) {
@@ -111,9 +114,10 @@ func (s *UptimeService) GetStatusPageByOrg(ctx context.Context, orgID string) (*
 }
 
 type CreateIncidentInput struct {
-	Title    string                  `json:"title"`
-	Severity models.IncidentSeverity `json:"severity"`
-	Message  string                  `json:"message"`
+	Title        string                  `json:"title"`
+	Severity     models.IncidentSeverity `json:"severity"`
+	Message      string                  `json:"message"`
+	ComponentIDs []string                `json:"componentIds"`
 }
 
 func (s *UptimeService) CreateIncident(ctx context.Context, orgID string, input CreateIncidentInput) (models.UptimeIncident, error) {
@@ -157,12 +161,17 @@ func (s *UptimeService) CreateIncident(ctx context.Context, orgID string, input 
 		}
 		_ = s.repo.AddIncidentUpdate(ctx, &initialUpdate)
 		incident.Updates = append(incident.Updates, initialUpdate)
+		_, _ = s.NotifyIncidentUpdate(ctx, incident.ID, initialUpdate.ID, input.ComponentIDs)
 	}
 
 	return incident, nil
 }
 
 func (s *UptimeService) AddIncidentUpdate(ctx context.Context, incidentID string, status models.IncidentStatus, message string) error {
+	return s.AddIncidentUpdateScoped(ctx, incidentID, status, message, nil)
+}
+
+func (s *UptimeService) AddIncidentUpdateScoped(ctx context.Context, incidentID string, status models.IncidentStatus, message string, componentIDs []string) error {
 	incident, err := s.repo.GetIncident(ctx, incidentID)
 	if err != nil {
 		return err
@@ -191,7 +200,11 @@ func (s *UptimeService) AddIncidentUpdate(ctx context.Context, incidentID string
 	if status == models.IncidentStatusResolved {
 		incident.ResolvedAt = &now
 	}
-	return s.repo.UpdateIncident(ctx, incident)
+	if err := s.repo.UpdateIncident(ctx, incident); err != nil {
+		return err
+	}
+	_, _ = s.NotifyIncidentUpdate(ctx, incidentID, update.ID, componentIDs)
+	return nil
 }
 
 func (s *UptimeService) ListOrgIncidents(ctx context.Context, orgID string) ([]models.UptimeIncident, error) {
@@ -269,15 +282,16 @@ func (s *UptimeService) UpsertStatusPage(ctx context.Context, orgID, slug, title
 			return models.UptimeStatusPage{}, fmt.Errorf("generate status page id: %w", err)
 		}
 		newPage := models.UptimeStatusPage{
-			ID:             hex.EncodeToString(randomID),
-			OrganizationID: orgID,
-			Slug:           strings.ToLower(strings.TrimSpace(slug)),
-			Title:          strings.TrimSpace(title),
-			Description:    strings.TrimSpace(description),
-			CustomDomain:   strings.TrimSpace(customDomain),
-			Published:      published,
-			CreatedAt:      now,
-			UpdatedAt:      now,
+			ID:                   hex.EncodeToString(randomID),
+			OrganizationID:       orgID,
+			Slug:                 strings.ToLower(strings.TrimSpace(slug)),
+			Title:                strings.TrimSpace(title),
+			Description:          strings.TrimSpace(description),
+			CustomDomain:         strings.TrimSpace(customDomain),
+			Published:            published,
+			SubscriptionsEnabled: true,
+			CreatedAt:            now,
+			UpdatedAt:            now,
 		}
 		if err := s.repo.UpsertStatusPage(ctx, &newPage); err != nil {
 			return models.UptimeStatusPage{}, err
@@ -298,29 +312,3 @@ func (s *UptimeService) UpsertStatusPage(ctx context.Context, orgID, slug, title
 	return *page, nil
 }
 
-func (s *UptimeService) Subscribe(ctx context.Context, slug, email string) error {
-	page, err := s.repo.GetStatusPageBySlug(ctx, slug)
-	if err != nil {
-		return fmt.Errorf("status page %q not found: %w", slug, err)
-	}
-	if !page.Published {
-		return repositories.ErrNotFound
-	}
-
-	randomID := make([]byte, 16)
-	if _, err := rand.Read(randomID); err != nil {
-		return fmt.Errorf("generate subscriber id: %w", err)
-	}
-	now := time.Now().UTC()
-
-	subscriber := models.UptimeSubscriber{
-		ID:           hex.EncodeToString(randomID),
-		StatusPageID: page.ID,
-		Email:        strings.ToLower(strings.TrimSpace(email)),
-		Confirmed:    true,
-		ConfirmedAt:  &now,
-		CreatedAt:    now,
-	}
-
-	return s.repo.AddSubscriber(ctx, &subscriber)
-}

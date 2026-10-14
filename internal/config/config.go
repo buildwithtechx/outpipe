@@ -88,6 +88,7 @@ type AppConfig struct {
 	CORSOrigin            string        `json:"corsOrigin" yaml:"cors_origin" env:"CORS_ORIGIN" envDefault:"http://localhost:3000"`
 	PublicAPIURL          string        `json:"publicApiUrl" yaml:"public_api_url" env:"PUBLIC_API_URL" envDefault:"http://localhost:8080"`
 	DashboardURL          string        `json:"dashboardUrl" yaml:"dashboard_url" env:"DASHBOARD_URL" envDefault:"http://localhost:3000"`
+	StatusBaseURL         string        `json:"statusBaseUrl" yaml:"status_base_url" env:"STATUS_BASE_URL" envDefault:"https://status.outpipe.dev"`
 	ACMEEnabled           bool          `json:"acmeEnabled" yaml:"acme_enabled" env:"ACME_ENABLED" envDefault:"false"`
 	ACMEEmail             string        `json:"acmeEmail" yaml:"acme_email" env:"ACME_EMAIL"`
 	ACMEDirectory         string        `json:"acmeDirectory" yaml:"acme_directory" env:"ACME_DIRECTORY"`

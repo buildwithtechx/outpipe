@@ -277,6 +277,32 @@ func main() {
 		log.Fatal(err)
 	}
 
+	uptimeRepository, err := repositories.NewUptimeRepository(db)
+	if err != nil {
+		log.Fatal(err)
+	}
+	uptimeService, err := services.NewUptimeService(uptimeRepository)
+	if err != nil {
+		log.Fatal(err)
+	}
+	subscriberMailer, err := mail.NewOutboxMailer(emailRepository, func(ctx context.Context, organizationID string) (string, error) {
+		return "", fmt.Errorf("direct email enqueue only; recipient resolution is unavailable in cron")
+	}, cfg.App.DashboardURL, cfg.Mail.Support)
+	if err != nil {
+		log.Fatal(err)
+	}
+	uptimeService.SetSubscriberMailer(subscriberMailer)
+	uptimeService.SetSubscriberSigningKey(cfg.Auth.EncryptionKey)
+	subscriberBaseURL := strings.TrimSpace(cfg.App.StatusBaseURL)
+	if subscriberBaseURL == "" {
+		subscriberBaseURL = strings.TrimRight(cfg.App.DashboardURL, "/")
+	}
+	uptimeService.SetSubscriberBaseURL(subscriberBaseURL)
+	subscriberJob, err := workers.NewSubscriberNotificationJob(uptimeService)
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	var emailJob *workers.EmailJob
 	if cfg.Mail.ZeptoAPIKey != "" {
 		zepto, mailErr := mail.NewZeptoClient(mail.Config{URL: cfg.Mail.ZeptoURL, APIKey: cfg.Mail.ZeptoAPIKey, FromAddress: cfg.Mail.FromAddress}, nil)
@@ -356,12 +382,17 @@ func main() {
 		log.Fatal(err)
 	}
 
+	wrappedSubscriberNotifications, err := workers.NewRetryableJob(subscriberJob, retryConfig, dlh, tracker)
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	wrappedDomainCertificates, err := workers.NewRetryableJob(domainCertificateJob, retryConfig, dlh, tracker)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	jobs := []workers.Job{wrappedCleanup, wrappedUsage, wrappedRetention, wrappedBilling, wrappedReconciliation, wrappedWebhook, wrappedTelemetry, wrappedTelemetryExport, wrappedDomainCertificates}
+	jobs := []workers.Job{wrappedCleanup, wrappedUsage, wrappedRetention, wrappedBilling, wrappedReconciliation, wrappedWebhook, wrappedTelemetry, wrappedTelemetryExport, wrappedSubscriberNotifications, wrappedDomainCertificates}
 	if emailJob != nil {
 		wrappedEmail, wrapErr := workers.NewRetryableJob(emailJob, retryConfig, dlh, tracker)
 		if wrapErr != nil {

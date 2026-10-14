@@ -101,8 +101,9 @@ func (h *UptimeHandler) CreateIncident(c *fiber.Ctx) error {
 }
 
 type AddUpdateInput struct {
-	Status  models.IncidentStatus `json:"status"`
-	Message string                `json:"message"`
+	Status       models.IncidentStatus `json:"status"`
+	Message      string                `json:"message"`
+	ComponentIDs []string              `json:"componentIds"`
 }
 
 func (h *UptimeHandler) AddIncidentUpdate(c *fiber.Ctx) error {
@@ -114,7 +115,7 @@ func (h *UptimeHandler) AddIncidentUpdate(c *fiber.Ctx) error {
 	if err := c.BodyParser(&input); err != nil {
 		return writeError(c, fiber.StatusBadRequest, fmt.Errorf("decode request: %w", err))
 	}
-	if err := h.uptime.AddIncidentUpdate(c.UserContext(), id, input.Status, input.Message); err != nil {
+	if err := h.uptime.AddIncidentUpdateScoped(c.UserContext(), id, input.Status, input.Message, input.ComponentIDs); err != nil {
 		return writeError(c, fiber.StatusBadRequest, err)
 	}
 	return c.SendStatus(fiber.StatusOK)
@@ -163,7 +164,8 @@ func (h *UptimeHandler) GetPublicStatus(c *fiber.Ctx) error {
 }
 
 type SubscribeInput struct {
-	Email string `json:"email"`
+	Email        string   `json:"email"`
+	ComponentIDs []string `json:"componentIds"`
 }
 
 func (h *UptimeHandler) Subscribe(c *fiber.Ctx) error {
@@ -172,7 +174,13 @@ func (h *UptimeHandler) Subscribe(c *fiber.Ctx) error {
 	if err := c.BodyParser(&input); err != nil {
 		return writeError(c, fiber.StatusBadRequest, fmt.Errorf("decode request: %w", err))
 	}
-	if err := h.uptime.Subscribe(c.UserContext(), slug, input.Email); err != nil {
+	if _, _, err := h.uptime.RequestSubscription(c.UserContext(), slug, input.Email, input.ComponentIDs, c.IP()); err != nil {
+		if errors.Is(err, services.ErrSubscriptionsDisabled) {
+			return writeError(c, fiber.StatusConflict, err)
+		}
+		if errors.Is(err, gorm.ErrRecordNotFound) || errors.Is(err, repositories.ErrNotFound) {
+			return writeError(c, fiber.StatusNotFound, err)
+		}
 		return writeError(c, fiber.StatusBadRequest, err)
 	}
 	return c.Status(fiber.StatusCreated).JSON(fiber.Map{"subscribed": true})
