@@ -32,6 +32,8 @@ type Dependencies struct {
 	Uptime        *services.UptimeService
 	Observability *services.ObservabilityService
 	AIAgent       *services.AIAgentService
+	MachineFleets *services.MachineFleetService
+	Pipelines     *services.PipelineHealthService
 	WelcomeMailer services.WelcomeMailer
 	Ready         func(context.Context) error
 	RateLimiter   *infraredis.Client
@@ -71,6 +73,8 @@ type Handlers struct {
 	Uptime              *handlers.UptimeHandler
 	Observability       *handlers.ObservabilityHandler
 	AIAgent             *handlers.AIAgentHandler
+	MachineFleets       *handlers.MachineFleetHandler
+	Pipelines           *handlers.PipelineHandler
 	auditService        *services.AuditService
 	authService         *services.AuthService
 	organizationService *services.OrganizationService
@@ -220,5 +224,21 @@ func buildHandlers(deps Dependencies, cookie handlers.SessionCookieConfig) (Hand
 		}
 	}
 
-	return Handlers{Health: handlers.NewHealthHandler(deps.Ready), Auth: authHandler, Organizations: organizationHandler, Invitations: invitationHandler, Tunnels: tunnelHandler, Agents: agentHandler, Domains: domainHandler, Usage: usageHandler, Billing: billingHandler, OAuth: oauthHandler, Account: accountHandler, Admin: adminHandler, APIKeys: apiKeyHandler, Webhooks: webhookHandler, Support: supportHandler, AuditLogs: auditLogHandler, Secrets: secretHandler, Shares: shareHandler, Uptime: uptimeHandler, Observability: observabilityHandler, AIAgent: aiAgentHandler, authService: deps.Auth, organizationService: deps.Organizations, apiKeyService: deps.APIKeys, auditService: deps.Audit, agentService: deps.Agents, uptimeService: deps.Uptime}, nil
+	var fleetHandler *handlers.MachineFleetHandler
+	if deps.MachineFleets != nil {
+		fleetHandler, err = handlers.NewMachineFleetHandler(deps.MachineFleets)
+		if err != nil {
+			return Handlers{}, err
+		}
+	}
+
+	var pipelineHandler *handlers.PipelineHandler
+	if deps.Pipelines != nil {
+		pipelineHandler, err = handlers.NewPipelineHandler(deps.Pipelines)
+		if err != nil {
+			return Handlers{}, err
+		}
+	}
+
+	return Handlers{Health: handlers.NewHealthHandler(deps.Ready), Auth: authHandler, Organizations: organizationHandler, Invitations: invitationHandler, Tunnels: tunnelHandler, Agents: agentHandler, Domains: domainHandler, Usage: usageHandler, Billing: billingHandler, OAuth: oauthHandler, Account: accountHandler, Admin: adminHandler, APIKeys: apiKeyHandler, Webhooks: webhookHandler, Support: supportHandler, AuditLogs: auditLogHandler, Secrets: secretHandler, Shares: shareHandler, Uptime: uptimeHandler, Observability: observabilityHandler, AIAgent: aiAgentHandler, MachineFleets: fleetHandler, Pipelines: pipelineHandler, authService: deps.Auth, organizationService: deps.Organizations, apiKeyService: deps.APIKeys, auditService: deps.Audit, agentService: deps.Agents, uptimeService: deps.Uptime}, nil
 }

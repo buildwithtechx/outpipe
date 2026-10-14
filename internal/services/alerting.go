@@ -15,6 +15,7 @@ const (
 	AlertStalePresenceGrowth    AlertType = "stale_presence_growth"
 	AlertQuotaInconsistency     AlertType = "quota_inconsistency"
 	AlertDeadLetteredJob        AlertType = "dead_lettered_job"
+	AlertPipelineUnhealthy      AlertType = "pipeline_unhealthy"
 )
 
 type AlertService struct {
@@ -104,6 +105,23 @@ func (s *AlertService) AlertJobDeadLetter(ctx context.Context, jobName string, e
 		},
 	}); err != nil {
 		return fmt.Errorf("report dead-lettered job alert: %w", err)
+	}
+
+	return nil
+}
+
+func (s *AlertService) AlertPipelineUnhealthy(ctx context.Context, organizationID, queue string, depth, deadLettered int64) error {
+
+	if err := s.reporter.Report(ctx, telemetry.Event{
+		Name: string(AlertPipelineUnhealthy),
+		Properties: map[string]any{
+			"organization_id": organizationID,
+			"queue":           queue,
+			"depth":           depth,
+			"dead_lettered":   deadLettered,
+		},
+	}); err != nil {
+		return fmt.Errorf("report pipeline health alert: %w", err)
 	}
 
 	return nil

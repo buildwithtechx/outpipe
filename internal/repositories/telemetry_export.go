@@ -18,6 +18,8 @@ type TelemetryExportRepository interface {
 	MarkFailed(context.Context, string, string, time.Time) error
 	PruneExported(context.Context, time.Time, time.Time) (int64, error)
 	CountQueued(context.Context) (int64, error)
+	OrgStats(context.Context, string) (depth int64, oldest *time.Time, deadLettered int64, err error)
+	ListDeadLettered(context.Context, string, int) ([]models.TelemetryExport, error)
 }
 
 type GormTelemetryExportRepository struct{ db *gorm.DB }
@@ -80,4 +82,36 @@ func (r *GormTelemetryExportRepository) CountQueued(ctx context.Context) (int64,
 		return 0, fmt.Errorf("count queued telemetry exports: %w", err)
 	}
 	return count, nil
+}
+
+func (r *GormTelemetryExportRepository) OrgStats(ctx context.Context, orgID string) (int64, *time.Time, int64, error) {
+	var depth int64
+	if err := r.db.WithContext(ctx).Model(&models.TelemetryExport{}).Where("organization_id = ? AND status IN ?", orgID, []models.TelemetryExportStatus{models.TelemetryExportPending, models.TelemetryExportSending, models.TelemetryExportFailed}).Count(&depth).Error; err != nil {
+		return 0, nil, 0, fmt.Errorf("count organization exports: %w", err)
+	}
+	var dead int64
+	if err := r.db.WithContext(ctx).Model(&models.TelemetryExport{}).Where("organization_id = ? AND status = ? AND attempts >= ?", orgID, models.TelemetryExportFailed, TelemetryExportMaxAttempts).Count(&dead).Error; err != nil {
+		return 0, nil, 0, fmt.Errorf("count dead-lettered exports: %w", err)
+	}
+	var oldestRow models.TelemetryExport
+	err := r.db.WithContext(ctx).Where("organization_id = ? AND status IN ?", orgID, []models.TelemetryExportStatus{models.TelemetryExportPending, models.TelemetryExportSending, models.TelemetryExportFailed}).Order("available_at ASC").Limit(1).First(&oldestRow).Error
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return depth, nil, dead, nil
+		}
+		return 0, nil, 0, fmt.Errorf("find oldest export: %w", err)
+	}
+	oldest := oldestRow.AvailableAt
+	return depth, &oldest, dead, nil
+}
+
+func (r *GormTelemetryExportRepository) ListDeadLettered(ctx context.Context, orgID string, limit int) ([]models.TelemetryExport, error) {
+	if limit <= 0 || limit > 100 {
+		limit = 25
+	}
+	var jobs []models.TelemetryExport
+	if err := r.db.WithContext(ctx).Where("organization_id = ? AND status = ? AND attempts >= ?", orgID, models.TelemetryExportFailed, TelemetryExportMaxAttempts).Order("updated_at DESC").Limit(limit).Find(&jobs).Error; err != nil {
+		return nil, fmt.Errorf("list dead-lettered exports: %w", err)
+	}
+	return jobs, nil
 }

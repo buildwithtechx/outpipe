@@ -256,6 +256,17 @@ func (s *TunnelService) Touch(ctx context.Context, id string) error {
 	return nil
 }
 
+func (s *TunnelService) RepointMachineToken(ctx context.Context, orgID, oldTokenID, newTokenID string) (int64, error) {
+	if orgID == "" || oldTokenID == "" || newTokenID == "" {
+		return 0, fmt.Errorf("organization and token ids are required")
+	}
+	count, err := s.tunnels.RepointMachineToken(ctx, orgID, oldTokenID, newTokenID)
+	if err != nil {
+		return 0, fmt.Errorf("repoint machine tunnels: %w", err)
+	}
+	return count, nil
+}
+
 func (s *TunnelService) Revoke(ctx context.Context, id string) error {
 	tunnel, err := s.tunnels.FindByID(ctx, id)
 	if err != nil {

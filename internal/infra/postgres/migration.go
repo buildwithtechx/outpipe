@@ -147,7 +147,9 @@ func migrations() []migration {
 		return db.AutoMigrate(&models.TelemetryExport{})
 	}}, {version: 24, name: "dns_provider_credentials", up: func(db *gorm.DB) error {
 		return db.AutoMigrate(&models.DNSProviderCredential{})
-	}}, {version: 25, name: "uptime_subscriber_management", up: migrateSubscriberManagement}}
+	}}, {version: 25, name: "uptime_subscriber_management", up: migrateSubscriberManagement}, {version: 26, name: "machine_fleets", up: func(db *gorm.DB) error {
+		return db.AutoMigrate(&models.MachineFleet{}, &models.MachineFleetToken{}, &models.MachineFleetTunnel{})
+	}}}
 }
 
 func seedDefaultBillingPlans(db *gorm.DB) error {

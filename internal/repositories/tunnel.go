@@ -21,6 +21,7 @@ type TunnelRepository interface {
 	Touch(context.Context, string, time.Time) error
 	Revoke(context.Context, string, time.Time) error
 	DeleteExpired(context.Context, time.Time) (int64, error)
+	RepointMachineToken(context.Context, string, string, string) (int64, error)
 }
 
 type GormTunnelRepository struct{ db *gorm.DB }
@@ -142,4 +143,9 @@ func (r *GormTunnelRepository) Revoke(ctx context.Context, id string, at time.Ti
 func (r *GormTunnelRepository) DeleteExpired(ctx context.Context, now time.Time) (int64, error) {
 	result := r.db.WithContext(ctx).Where("expires_at IS NOT NULL AND expires_at <= ?", now).Delete(&models.Tunnel{})
 	return result.RowsAffected, wrap(result.Error, "delete expired tunnels")
+}
+
+func (r *GormTunnelRepository) RepointMachineToken(ctx context.Context, orgID, oldTokenID, newTokenID string) (int64, error) {
+	result := r.db.WithContext(ctx).Model(&models.Tunnel{}).Where("organization_id = ? AND machine_token_id = ? AND revoked_at IS NULL", orgID, oldTokenID).Update("machine_token_id", newTokenID)
+	return result.RowsAffected, wrap(result.Error, "repoint fleet tunnels")
 }

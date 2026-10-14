@@ -340,6 +340,22 @@ func NewDatabaseDependencies(db *gorm.DB, cfg config.APIConfig) (Dependencies, e
 	if err != nil {
 		return Dependencies{}, err
 	}
+	fleetRepository, err := repositories.NewMachineFleetRepository(db)
+	if err != nil {
+		return Dependencies{}, err
+	}
+	fleetService, err := services.NewMachineFleetService(fleetRepository, secretService, tunnelService)
+	if err != nil {
+		return Dependencies{}, err
+	}
+	uptimeRepository, err := repositories.NewUptimeRepository(db)
+	if err != nil {
+		return Dependencies{}, err
+	}
+	pipelineHealth, err := services.NewPipelineHealthService(webhookRepository, repositories.NewGormTelemetryExportRepository(db), uptimeRepository)
+	if err != nil {
+		return Dependencies{}, err
+	}
 	uptimeService.SetSubscriberMailer(outboxMailer)
 	uptimeService.SetSubscriberSigningKey(cfg.Auth.EncryptionKey)
 	statusBaseURL := strings.TrimSpace(cfg.App.StatusBaseURL)
@@ -348,5 +364,5 @@ func NewDatabaseDependencies(db *gorm.DB, cfg config.APIConfig) (Dependencies, e
 	}
 	uptimeService.SetSubscriberBaseURL(statusBaseURL)
 
-	return Dependencies{Auth: authService, DeviceLogin: deviceService, Organizations: organizationService, Invitations: invitationService, Tunnels: tunnelService, Agents: agentService, Domains: domainService, Usage: usageService, Billing: billingService, Account: accountService, Admin: adminService, Audit: auditService, APIKeys: apiKeyService, Webhooks: webhookService, Support: supportService, Secrets: secretService, Shares: shareService, Uptime: uptimeService, Observability: obsService, AIAgent: aiService, WelcomeMailer: welcomeMailer, Ready: databaseReady(db), Metrics: metrics}, nil
+	return Dependencies{Auth: authService, DeviceLogin: deviceService, Organizations: organizationService, Invitations: invitationService, Tunnels: tunnelService, Agents: agentService, Domains: domainService, Usage: usageService, Billing: billingService, Account: accountService, Admin: adminService, Audit: auditService, APIKeys: apiKeyService, Webhooks: webhookService, Support: supportService, Secrets: secretService, Shares: shareService, Uptime: uptimeService, Observability: obsService, AIAgent: aiService, MachineFleets: fleetService, Pipelines: pipelineHealth, WelcomeMailer: welcomeMailer, Ready: databaseReady(db), Metrics: metrics}, nil
 }

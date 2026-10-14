@@ -130,6 +130,17 @@ func RegisterRoutes(app *fiber.App, handlers Handlers, options RouterOptions) er
 	protected.Post("/organizations/:organizationID/transfer", organizationRoleRequired(handlers.organizationService, models.MemberRoleOwner), handlers.Account.TransferOwnership)
 	protected.Post("/organizations/:organizationID/tunnels", tunnelWriteLimiter, organizationRoleRequired(handlers.organizationService, models.MemberRoleMember), handlers.Tunnels.Create)
 	protected.Get("/organizations/:organizationID/tunnels", organizationRoleRequired(handlers.organizationService, models.MemberRoleViewer), handlers.Tunnels.List)
+	if handlers.MachineFleets != nil {
+		protected.Post("/organizations/:organizationID/machine-fleets", organizationRoleRequired(handlers.organizationService, models.MemberRoleAdmin), handlers.MachineFleets.Create)
+		protected.Get("/organizations/:organizationID/machine-fleets", organizationRoleRequired(handlers.organizationService, models.MemberRoleViewer), handlers.MachineFleets.List)
+		protected.Get("/organizations/:organizationID/machine-fleets/:fleetID", organizationRoleRequired(handlers.organizationService, models.MemberRoleViewer), handlers.MachineFleets.Status)
+		protected.Delete("/organizations/:organizationID/machine-fleets/:fleetID", organizationRoleRequired(handlers.organizationService, models.MemberRoleAdmin), handlers.MachineFleets.Delete)
+		protected.Post("/organizations/:organizationID/machine-fleets/:fleetID/tokens", organizationRoleRequired(handlers.organizationService, models.MemberRoleAdmin), handlers.MachineFleets.AttachToken)
+		protected.Post("/organizations/:organizationID/machine-fleets/:fleetID/tunnels", tunnelWriteLimiter, organizationRoleRequired(handlers.organizationService, models.MemberRoleAdmin), handlers.MachineFleets.BulkCreateTunnels)
+		protected.Post("/organizations/:organizationID/machine-fleets/:fleetID/rotate", organizationRoleRequired(handlers.organizationService, models.MemberRoleAdmin), handlers.MachineFleets.RotateTokens)
+		protected.Post("/organizations/:organizationID/machine-fleets/:fleetID/revoke", organizationRoleRequired(handlers.organizationService, models.MemberRoleAdmin), handlers.MachineFleets.Revoke)
+		protected.Post("/organizations/:organizationID/machine-fleets/:fleetID/reconcile", organizationRoleRequired(handlers.organizationService, models.MemberRoleAdmin), handlers.MachineFleets.Reconcile)
+	}
 	protected.Post("/organizations/:organizationID/agents", organizationRoleRequired(handlers.organizationService, models.MemberRoleAdmin), handlers.Agents.Register)
 	protected.Get("/organizations/:organizationID/agents", organizationRoleRequired(handlers.organizationService, models.MemberRoleViewer), handlers.Agents.List)
 	protected.Post("/organizations/:organizationID/domains", organizationRoleRequired(handlers.organizationService, models.MemberRoleAdmin), handlers.Domains.Create)
@@ -218,6 +229,11 @@ func RegisterRoutes(app *fiber.App, handlers Handlers, options RouterOptions) er
 		protected.Get("/organizations/:organizationID/observability/captures", organizationRoleRequired(handlers.organizationService, models.MemberRoleViewer), handlers.Observability.ListCaptures)
 		protected.Get("/organizations/:organizationID/observability/captures/:captureId", organizationRoleRequired(handlers.organizationService, models.MemberRoleViewer), handlers.Observability.GetCapture)
 		protected.Post("/organizations/:organizationID/observability/replay", organizationRoleRequired(handlers.organizationService, models.MemberRoleAdmin), handlers.Observability.ReplayRequest)
+	}
+
+	if handlers.Pipelines != nil {
+		protected.Get("/organizations/:organizationID/observability/pipelines", organizationRoleRequired(handlers.organizationService, models.MemberRoleViewer), handlers.Pipelines.Health)
+		protected.Get("/organizations/:organizationID/observability/dead-letters", organizationRoleRequired(handlers.organizationService, models.MemberRoleViewer), handlers.Pipelines.DeadLetters)
 	}
 
 	if handlers.AIAgent != nil {

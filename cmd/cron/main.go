@@ -277,6 +277,35 @@ func main() {
 		log.Fatal(err)
 	}
 
+	secretRepository, err := repositories.NewSecretRepository(db)
+	if err != nil {
+		log.Fatal(err)
+	}
+	secretService, err := services.NewSecretService(secretRepository, cfg.Auth.EncryptionKey)
+	if err != nil {
+		log.Fatal(err)
+	}
+	tunnelRepository, err := repositories.NewTunnelRepository(db)
+	if err != nil {
+		log.Fatal(err)
+	}
+	tunnelService, err := services.NewTunnelService(tunnelRepository)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fleetRepository, err := repositories.NewMachineFleetRepository(db)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fleetService, err := services.NewMachineFleetService(fleetRepository, secretService, tunnelService)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fleetJob, err := workers.NewMachineFleetJob(fleetService)
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	uptimeRepository, err := repositories.NewUptimeRepository(db)
 	if err != nil {
 		log.Fatal(err)
@@ -392,7 +421,29 @@ func main() {
 		log.Fatal(err)
 	}
 
-	jobs := []workers.Job{wrappedCleanup, wrappedUsage, wrappedRetention, wrappedBilling, wrappedReconciliation, wrappedWebhook, wrappedTelemetry, wrappedTelemetryExport, wrappedSubscriberNotifications, wrappedDomainCertificates}
+	wrappedMachineFleets, err := workers.NewRetryableJob(fleetJob, retryConfig, dlh, tracker)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	pipelineHealth, err := services.NewPipelineHealthService(webhookRepository, telemetryExportRepository, uptimeRepository)
+	if err != nil {
+		log.Fatal(err)
+	}
+	orgLister, err := workers.NewOrganizationListAdapter(organizations)
+	if err != nil {
+		log.Fatal(err)
+	}
+	pipelineJob, err := workers.NewPipelineHealthJob(pipelineHealth, orgLister, alerts)
+	if err != nil {
+		log.Fatal(err)
+	}
+	wrappedPipelineHealth, err := workers.NewRetryableJob(pipelineJob, retryConfig, dlh, tracker)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	jobs := []workers.Job{wrappedCleanup, wrappedUsage, wrappedRetention, wrappedBilling, wrappedReconciliation, wrappedWebhook, wrappedTelemetry, wrappedTelemetryExport, wrappedSubscriberNotifications, wrappedDomainCertificates, wrappedMachineFleets, wrappedPipelineHealth}
 	if emailJob != nil {
 		wrappedEmail, wrapErr := workers.NewRetryableJob(emailJob, retryConfig, dlh, tracker)
 		if wrapErr != nil {
