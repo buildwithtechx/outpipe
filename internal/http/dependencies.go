@@ -119,6 +119,7 @@ func buildHandlers(deps Dependencies, cookie handlers.SessionCookieConfig) (Hand
 	}
 
 	domainHandler, err := handlers.NewDomainHandler(deps.Domains)
+	domainHandler.SetTunnels(deps.Tunnels)
 
 	if err != nil {
 		return Handlers{}, err

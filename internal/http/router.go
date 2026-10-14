@@ -161,6 +161,7 @@ func RegisterRoutes(app *fiber.App, handlers Handlers, options RouterOptions) er
 	protected.Get("/tunnels/:tunnelID", apiKeyResourceScopeRequired(handlers.organizationService, "tunnels:read", "tunnelID", handlers.Tunnels.OrganizationID), handlers.Tunnels.Inspect)
 	protected.Delete("/tunnels/:tunnelID", apiKeyResourceScopeRequired(handlers.organizationService, "tunnels:write", "tunnelID", handlers.Tunnels.OrganizationID), handlers.Tunnels.Revoke)
 	protected.Post("/domains/:domainID/verify", apiKeyResourceScopeRequired(handlers.organizationService, "domains:write", "domainID", handlers.Domains.OrganizationID), handlers.Domains.Verify)
+	protected.Post("/domains/:domainID/revoke", apiKeyResourceScopeRequired(handlers.organizationService, "domains:write", "domainID", handlers.Domains.OrganizationID), handlers.Domains.Revoke)
 	protected.Delete("/domains/:domainID", apiKeyResourceScopeRequired(handlers.organizationService, "domains:write", "domainID", handlers.Domains.OrganizationID), handlers.Domains.Delete)
 	protected.Delete("/agents/:agentID", apiKeyResourceScopeRequired(handlers.organizationService, "agents:write", "agentID", handlers.Agents.OrganizationID), handlers.Agents.Revoke)
 
@@ -259,6 +260,9 @@ func RegisterInternalRoutes(app *fiber.App, handlers Handlers, options RouterOpt
 		return "internal-password:" + requestClientIP(c) + ":" + c.Params("tunnelID")
 	}), handlers.Tunnels.VerifyPassword)
 	app.Post("/internal/usage", internalSecretRequired(options.InternalAPISecret), handlers.Usage.Ingest)
+	if handlers.Domains != nil {
+		app.Get("/internal/domains/certificate", internalSecretRequired(options.InternalAPISecret), handlers.Domains.ServeCertificate)
+	}
 	if handlers.Observability != nil {
 		app.Post("/internal/captures", internalSecretRequired(options.InternalAPISecret), handlers.Observability.IngestCapture)
 	}

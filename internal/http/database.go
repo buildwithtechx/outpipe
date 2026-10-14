@@ -280,6 +280,7 @@ func NewDatabaseDependencies(db *gorm.DB, cfg config.APIConfig) (Dependencies, e
 	}
 
 	domainService.SetDNSCredentials(dnsCredentialService)
+	domainService.SetCertificateCacheDir(cfg.App.CertificateCache)
 
 	tunnelService.SetBilling(billingService)
 	organizationService.SetBilling(billingService)

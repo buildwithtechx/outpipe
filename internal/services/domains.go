@@ -32,6 +32,15 @@ type DomainService struct {
 	dnsIssuer      DNS01Issuer
 	dnsSolver      func(string, string) (dns.ChallengeSolver, error)
 	httpClient     *http.Client
+	certCacheDir   string
+}
+
+type DomainCertificate struct {
+	Hostname    string
+	ChainPEM    []byte
+	KeyPEM      []byte
+	ExpiresAt   time.Time
+	WildcardFor string
 }
 
 type CertificateIssuer interface {
@@ -44,6 +53,9 @@ type DNS01Issuer interface {
 
 func (s *DomainService) SetBilling(billing *BillingService)                  { s.billing = billing }
 func (s *DomainService) SetCertificateIssuer(issuer CertificateIssuer)       { s.issuer = issuer }
+func (s *DomainService) SetCertificateCacheDir(dir string) {
+	s.certCacheDir = strings.TrimSpace(dir)
+}
 func (s *DomainService) SetDNSCredentials(credentials *DNSCredentialService) { s.dnsCredentials = credentials }
 func (s *DomainService) SetDNS01Issuer(issuer DNS01Issuer)                    { s.dnsIssuer = issuer }
 func (s *DomainService) SetDNSProtector(protector dnsSecretProtector) {
@@ -54,6 +66,22 @@ func (s *DomainService) SetDNSProtector(protector dnsSecretProtector) {
 
 func (s *DomainService) Find(ctx context.Context, id string) (models.Domain, error) {
 	domain, err := s.domains.FindByID(ctx, id)
+
+	if err != nil {
+		return models.Domain{}, fmt.Errorf("find domain: %w", err)
+	}
+
+	return domain, nil
+}
+
+func (s *DomainService) FindByHostname(ctx context.Context, hostname string) (models.Domain, error) {
+	host := strings.ToLower(strings.TrimSpace(strings.TrimSuffix(hostname, ".")))
+
+	if host == "" {
+		return models.Domain{}, fmt.Errorf("hostname is required")
+	}
+
+	domain, err := s.domains.FindByHostname(ctx, host)
 
 	if err != nil {
 		return models.Domain{}, fmt.Errorf("find domain: %w", err)
@@ -77,8 +105,15 @@ func (s *DomainService) Delete(ctx context.Context, id string) error {
 	if strings.TrimSpace(id) == "" {
 		return fmt.Errorf("domain is required")
 	}
-
-	return s.domains.Delete(ctx, strings.TrimSpace(id))
+	domain, err := s.domains.FindByID(ctx, strings.TrimSpace(id))
+	if err != nil {
+		return fmt.Errorf("find domain: %w", err)
+	}
+	if err := s.domains.Delete(ctx, strings.TrimSpace(id)); err != nil {
+		return err
+	}
+	s.removeCertificateFiles(domain.Hostname)
+	return nil
 }
 
 func (s *DomainService) StoreDNSCredential(ctx context.Context, organizationID, provider, token, label string) (models.DNSProviderCredential, error) {
@@ -381,7 +416,6 @@ func (s *DomainService) renewAutomated(ctx context.Context, domain *models.Domai
 }
 
 func validHostname(hostname string) bool {
-
 	if strings.HasPrefix(hostname, "*.") {
 		hostname = hostname[2:]
 	}

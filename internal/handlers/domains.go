@@ -9,7 +9,14 @@ import (
 	"outpipe.dev/outpipe/internal/services"
 )
 
-type DomainHandler struct{ domains *services.DomainService }
+type DomainHandler struct {
+	domains *services.DomainService
+	tunnels *services.TunnelService
+}
+
+func (h *DomainHandler) SetTunnels(tunnels *services.TunnelService) {
+	h.tunnels = tunnels
+}
 
 func (h *DomainHandler) OrganizationID(ctx context.Context, id string) (string, error) {
 	domain, err := h.domains.Find(ctx, id)
@@ -75,6 +82,14 @@ func (h *DomainHandler) Verify(c *fiber.Ctx) error {
 
 func (h *DomainHandler) Delete(c *fiber.Ctx) error {
 	if err := h.domains.Delete(c.UserContext(), c.Params("domainID")); err != nil {
+		return writeError(c, fiber.StatusNotFound, err)
+	}
+
+	return c.SendStatus(fiber.StatusNoContent)
+}
+
+func (h *DomainHandler) Revoke(c *fiber.Ctx) error {
+	if err := h.domains.RevokeDomainCertificate(c.UserContext(), c.Params("domainID")); err != nil {
 		return writeError(c, fiber.StatusNotFound, err)
 	}
 

@@ -15,7 +15,6 @@ import (
 	"github.com/google/uuid"
 	"outpipe.dev/outpipe/internal/config"
 	"outpipe.dev/outpipe/internal/engine"
-	"outpipe.dev/outpipe/internal/infra/certificates"
 	"outpipe.dev/outpipe/internal/infra/httpclient"
 	"outpipe.dev/outpipe/internal/infra/redis"
 	"outpipe.dev/outpipe/internal/relay"
@@ -117,7 +116,7 @@ func main() {
 		var listenErr error
 
 		if cfg.App.RequireTLS {
-			listener, err := certificates.NewTLSListener(cfg.App.ListenAddress(), cfg.App.TLSCertFile, cfg.App.TLSKeyFile)
+			listener, err := relayServingListener(cfg.App.ListenAddress(), cfg.App.TLSCertFile, cfg.App.TLSKeyFile, cfg.Service.InternalAPIURL, cfg.Service.InternalAPISecret)
 
 			if err != nil {
 				listenErr = err

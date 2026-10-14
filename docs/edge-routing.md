@@ -52,6 +52,27 @@ Custom domains are verified independently from the relay wildcard. Users manage 
 
 For automated verification and wildcard certificates, connect a customer-owned DNS provider token (Cloudflare) with `POST /api/v1/organizations/{organizationID}/dns-providers`, then register the domain with verification method `dns-automation`. The platform sets and cleans up `_acme-challenge` TXT records through the customer token, completes DNS-01, and issues the certificate; wildcard hostnames (`*.example.com`) require this method. Tokens are encrypted at rest, never returned by the API, and only need DNS-edit scope on the relevant zone. Certificates are renewed automatically by the cron `domain-certificates` worker starting 30 days before expiry. The hosted service never uses a global DNS provider credential.
 
+### Relay SNI certificate serving
+
+Issued certificates are served to relays over the internal API so custom-domain TLS works end to end on a stock relay deploy:
+
+- `GET /internal/domains/certificate?hostname=<host>` (or `?tunnelId=<id>`) returns the PEM chain, key, and expiry for the calling relay. Access is scope-checked per organization: the domain's organization must match the tunnel's organization (or the resolved domain's when queried by hostname), and only `active`/`ready`, unexpired, non-revoked certificates are served. Exact hostnames win; otherwise a `*.parent` wildcard certificate covers subdomains.
+- The relay selects certificates by SNI on every TLS handshake (`SNIDispatcher`): per-host certificates from the internal API with a 1-minute cache, falling back to the mounted `TLSCertFile`/`TLSKeyFile` when no custom certificate exists or the API is unreachable. In-memory entries expire and refresh; revocation stops serving within the cache window.
+- Revoke with `POST /api/v1/domains/:domainID/revoke` (or delete the domain): the domain is marked `revoked`, certificate files are removed from the cache dir, and relays stop serving it once cached entries expire. Deleting a domain also removes its `<host>.crt`/`<host>.key` files.
+
+To enable it, run the relay with TLS and the internal API configured — no extra flags are needed:
+
+```text
+OUTPIPE_REQUIRE_TLS=true
+OUTPIPE_TLS_CERT_FILE=/run/secrets/tunnel/fullchain.pem
+OUTPIPE_TLS_KEY_FILE=/run/secrets/tunnel/privkey.pem
+OUTPIPE_INTERNAL_API_URL=http://127.0.0.1:9090
+OUTPIPE_INTERNAL_API_SECRET=<shared secret>
+OUTPIPE_TUNNEL_DOMAIN=outpipe.app
+```
+
+The API side needs `OUTPIPE_CERTIFICATE_CACHE_DIR` pointing at the same certificate cache the issuance and renewal workers write to. When the internal API is unreachable, the relay keeps serving the mounted fallback certificate.
+
 ## Local development
 
 Use the local example values:

@@ -183,14 +183,11 @@ func (i *DNS01Issuer) IssueDNS01(ctx context.Context, hostname string, solver dn
 		return nil, nil, time.Time{}, fmt.Errorf("encode certificate key: %w", err)
 	}
 	keyPEM := pem.EncodeToMemory(&pem.Block{Type: "EC PRIVATE KEY", Bytes: keyDER})
-	base := strings.ReplaceAll(strings.TrimPrefix(hostname, "*."), ".", "_")
-	if strings.HasPrefix(hostname, "*.") {
-		base = "wildcard_" + base
-	}
-	if err := os.WriteFile(filepath.Join(i.config.CacheDir, base+".crt"), certPEM, 0o600); err != nil {
+	certFile, keyFile := HostCertificatePaths(i.config.CacheDir, hostname)
+	if err := os.WriteFile(certFile, certPEM, 0o600); err != nil {
 		return nil, nil, time.Time{}, fmt.Errorf("store issued certificate: %w", err)
 	}
-	if err := os.WriteFile(filepath.Join(i.config.CacheDir, base+".key"), keyPEM, 0o600); err != nil {
+	if err := os.WriteFile(keyFile, keyPEM, 0o600); err != nil {
 		return nil, nil, time.Time{}, fmt.Errorf("store issued certificate key: %w", err)
 	}
 	return certPEM, keyPEM, leaf.NotAfter, nil
