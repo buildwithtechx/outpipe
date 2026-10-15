@@ -144,6 +144,7 @@ func RegisterRoutes(app *fiber.App, handlers Handlers, options RouterOptions) er
 	protected.Post("/organizations/:organizationID/agents", organizationRoleRequired(handlers.organizationService, models.MemberRoleAdmin), handlers.Agents.Register)
 	protected.Get("/organizations/:organizationID/agents", organizationRoleRequired(handlers.organizationService, models.MemberRoleViewer), handlers.Agents.List)
 	protected.Post("/organizations/:organizationID/domains", organizationRoleRequired(handlers.organizationService, models.MemberRoleAdmin), handlers.Domains.Create)
+	protected.Post("/organizations/:organizationID/domains/bundle", organizationRoleRequired(handlers.organizationService, models.MemberRoleAdmin), handlers.Domains.CreateBundle)
 	protected.Get("/organizations/:organizationID/domains", organizationRoleRequired(handlers.organizationService, models.MemberRoleViewer), handlers.Domains.List)
 	protected.Post("/organizations/:organizationID/dns-providers", organizationRoleRequired(handlers.organizationService, models.MemberRoleAdmin), handlers.Domains.StoreDNSProvider)
 	protected.Get("/organizations/:organizationID/dns-providers", organizationRoleRequired(handlers.organizationService, models.MemberRoleViewer), handlers.Domains.ListDNSProviders)
@@ -168,6 +169,7 @@ func RegisterRoutes(app *fiber.App, handlers Handlers, options RouterOptions) er
 	protected.Post("/organizations/:organizationID/billing/resume", organizationRoleRequired(handlers.organizationService, models.MemberRoleOwner), handlers.Billing.Resume)
 	protected.Patch("/tunnels/:tunnelID/status", apiKeyResourceScopeRequired(handlers.organizationService, "tunnels:write", "tunnelID", handlers.Tunnels.OrganizationID), handlers.Tunnels.SetStatus)
 	protected.Patch("/tunnels/:tunnelID/capture", apiKeyResourceScopeRequired(handlers.organizationService, "tunnels:write", "tunnelID", handlers.Tunnels.OrganizationID), handlers.Tunnels.SetCapture)
+	protected.Get("/tunnels/:tunnelID/capture-policy", apiKeyResourceScopeRequired(handlers.organizationService, "tunnels:read", "tunnelID", handlers.Tunnels.OrganizationID), handlers.Tunnels.GetCapturePolicy)
 	protected.Patch("/tunnels/:tunnelID/config", apiKeyResourceScopeRequired(handlers.organizationService, "tunnels:write", "tunnelID", handlers.Tunnels.OrganizationID), handlers.Tunnels.UpdateConfiguration)
 	protected.Get("/tunnels/:tunnelID", apiKeyResourceScopeRequired(handlers.organizationService, "tunnels:read", "tunnelID", handlers.Tunnels.OrganizationID), handlers.Tunnels.Inspect)
 	protected.Delete("/tunnels/:tunnelID", apiKeyResourceScopeRequired(handlers.organizationService, "tunnels:write", "tunnelID", handlers.Tunnels.OrganizationID), handlers.Tunnels.Revoke)
@@ -234,6 +236,14 @@ func RegisterRoutes(app *fiber.App, handlers Handlers, options RouterOptions) er
 	if handlers.Pipelines != nil {
 		protected.Get("/organizations/:organizationID/observability/pipelines", organizationRoleRequired(handlers.organizationService, models.MemberRoleViewer), handlers.Pipelines.Health)
 		protected.Get("/organizations/:organizationID/observability/dead-letters", organizationRoleRequired(handlers.organizationService, models.MemberRoleViewer), handlers.Pipelines.DeadLetters)
+	}
+
+	if handlers.Alerts != nil {
+		protected.Get("/organizations/:organizationID/observability/alerts", organizationRoleRequired(handlers.organizationService, models.MemberRoleViewer), handlers.Alerts.List)
+		protected.Post("/organizations/:organizationID/observability/alerts", organizationRoleRequired(handlers.organizationService, models.MemberRoleAdmin), handlers.Alerts.Create)
+		protected.Delete("/organizations/:organizationID/observability/alerts/:alertID", organizationRoleRequired(handlers.organizationService, models.MemberRoleAdmin), handlers.Alerts.Delete)
+		protected.Patch("/organizations/:organizationID/observability/alerts/:alertID/status-page", organizationRoleRequired(handlers.organizationService, models.MemberRoleAdmin), handlers.Alerts.SetStatusPage)
+		protected.Patch("/organizations/:organizationID/observability/alerts/:alertID/enabled", organizationRoleRequired(handlers.organizationService, models.MemberRoleAdmin), handlers.Alerts.SetEnabled)
 	}
 
 	if handlers.AIAgent != nil {

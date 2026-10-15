@@ -7,3 +7,8 @@ type ChallengeSolver interface {
 	Cleanup(context.Context, string) error
 	Name() string
 }
+
+type ValueCleanupSolver interface {
+	ChallengeSolver
+	CleanupValue(context.Context, string, string) error
+}

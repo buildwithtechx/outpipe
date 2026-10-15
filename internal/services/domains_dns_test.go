@@ -41,7 +41,7 @@ type stubDNS01Issuer struct {
 	err       error
 }
 
-func (s *stubDNS01Issuer) IssueDNS01(ctx context.Context, hostname string, solver dns.ChallengeSolver) ([]byte, []byte, time.Time, error) {
+func (s *stubDNS01Issuer) issue(hostname string, solver dns.ChallengeSolver, ctx context.Context) ([]byte, []byte, time.Time, error) {
 	if s.err != nil {
 		return nil, nil, time.Time{}, s.err
 	}
@@ -51,6 +51,32 @@ func (s *stubDNS01Issuer) IssueDNS01(ctx context.Context, hostname string, solve
 	}
 	if err := solver.Cleanup(ctx, "_acme-challenge."+hostname); err != nil {
 		return nil, nil, time.Time{}, err
+	}
+	return []byte("cert"), []byte("key"), s.expires, nil
+}
+
+func (s *stubDNS01Issuer) IssueDNS01(_ context.Context, hostname string, solver dns.ChallengeSolver) ([]byte, []byte, time.Time, error) {
+	return s.issue(hostname, solver, context.Background())
+}
+
+func (s *stubDNS01Issuer) IssueBundleDNS01(_ context.Context, hostnames []string, solver dns.ChallengeSolver) ([]byte, []byte, time.Time, error) {
+	for _, hostname := range hostnames {
+		if _, _, _, err := s.issue(hostname, solver, context.Background()); err != nil {
+			return nil, nil, time.Time{}, err
+		}
+	}
+	return []byte("cert"), []byte("key"), s.expires, nil
+}
+
+func (s *stubDNS01Issuer) IssueDelegatedDNS01(_ context.Context, hostname string, _ string, solver dns.ChallengeSolver) ([]byte, []byte, time.Time, error) {
+	return s.issue(hostname, solver, context.Background())
+}
+
+func (s *stubDNS01Issuer) IssueBundleDelegatedDNS01(_ context.Context, hostnames []string, _ string, solver dns.ChallengeSolver) ([]byte, []byte, time.Time, error) {
+	for _, hostname := range hostnames {
+		if _, _, _, err := s.issue(hostname, solver, context.Background()); err != nil {
+			return nil, nil, time.Time{}, err
+		}
 	}
 	return []byte("cert"), []byte("key"), s.expires, nil
 }

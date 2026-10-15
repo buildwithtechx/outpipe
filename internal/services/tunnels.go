@@ -13,11 +13,12 @@ import (
 )
 
 type TunnelService struct {
-	tunnels   repositories.TunnelRepository
-	billing   *BillingService
-	allocator *HostnameAllocator
-	webhooks  *WebhookService
-	now       func() time.Time
+	tunnels         repositories.TunnelRepository
+	capturePolicies repositories.CapturePolicyRepository
+	billing         *BillingService
+	allocator       *HostnameAllocator
+	webhooks        *WebhookService
+	now             func() time.Time
 }
 
 func NewTunnelService(tunnels repositories.TunnelRepository) (*TunnelService, error) {
@@ -39,6 +40,10 @@ func (s *TunnelService) SetHostnameAllocator(allocator *HostnameAllocator) {
 
 func (s *TunnelService) SetWebhooks(webhooks *WebhookService) {
 	s.webhooks = webhooks
+}
+
+func (s *TunnelService) SetCapturePolicies(policies repositories.CapturePolicyRepository) {
+	s.capturePolicies = policies
 }
 
 func (s *TunnelService) Find(ctx context.Context, id string) (models.Tunnel, error) {

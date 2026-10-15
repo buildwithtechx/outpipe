@@ -10,6 +10,7 @@ import (
 
 	"github.com/google/uuid"
 	"outpipe.dev/outpipe/internal/engine"
+	"outpipe.dev/outpipe/internal/validation"
 )
 
 type capturePolicy struct {
@@ -17,6 +18,7 @@ type capturePolicy struct {
 	expires time.Time
 	pending bool
 	orgID   string
+	rules   []validation.CaptureRule
 }
 type capturePolicyRequest struct {
 	tunnelID string
@@ -50,10 +52,10 @@ func (r *captureRecorder) start(ctx context.Context) {
 					return
 				case request := <-r.policyQueue:
 					lookupCtx, cancel := context.WithTimeout(ctx, 2*time.Second)
-					enabled, err := r.enabledPolicy(lookupCtx, request.tunnelID, request.orgID)
+					enabled, rules, err := r.resolveCapturePolicy(lookupCtx, request.tunnelID, request.orgID)
 					cancel()
 					r.mu.Lock()
-					r.policies[request.tunnelID] = capturePolicy{enabled: err == nil && enabled, expires: time.Now().Add(time.Second), orgID: request.orgID}
+					r.policies[request.tunnelID] = capturePolicy{enabled: err == nil && enabled, expires: time.Now().Add(time.Second), orgID: request.orgID, rules: rules}
 					r.mu.Unlock()
 				}
 			}
@@ -106,6 +108,9 @@ func (r *captureRecorder) RecordCapture(_ context.Context, capture engine.Reques
 	if capture.ID == "" {
 		capture.ID = uuid.NewString()
 	}
+	if r.policyDenies(capture) {
+		return nil
+	}
 	if r.spool != nil {
 		file, err := r.spool.store(capture)
 		if err != nil {
@@ -118,6 +123,16 @@ func (r *captureRecorder) RecordCapture(_ context.Context, capture engine.Reques
 		return nil
 	}
 	return r.recordMemory(capture)
+}
+
+func (r *captureRecorder) policyDenies(capture engine.RequestCapture) bool {
+	r.mu.Lock()
+	policy, ok := r.policies[capture.TunnelID]
+	r.mu.Unlock()
+	if !ok || policy.orgID != capture.OrganizationID || !policy.expires.After(time.Now()) {
+		return false
+	}
+	return !validation.CaptureAllowed(policy.rules, capture.Method, capture.Path)
 }
 
 func (r *captureRecorder) recordMemory(capture engine.RequestCapture) error {

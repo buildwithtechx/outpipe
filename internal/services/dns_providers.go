@@ -2,6 +2,7 @@ package services
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"strings"
 	"time"
@@ -34,13 +35,35 @@ func (s *DNSCredentialService) SetProtector(protector dnsSecretProtector) {
 }
 
 func supportedDNSProvider(provider string) bool {
-	return strings.ToLower(strings.TrimSpace(provider)) == "cloudflare"
+	switch strings.ToLower(strings.TrimSpace(provider)) {
+	case "cloudflare", "route53":
+		return true
+	default:
+		return false
+	}
+}
+
+type route53Credential struct {
+	AccessKeyID     string `json:"access_key_id"`
+	SecretAccessKey string `json:"secret_access_key"`
+	SessionToken    string `json:"session_token"`
 }
 
 func SolverFor(provider, token string) (dns.ChallengeSolver, error) {
 	switch strings.ToLower(strings.TrimSpace(provider)) {
 	case "cloudflare":
 		return dns.NewCloudflareProvider(token, nil)
+	case "route53":
+		var credentials route53Credential
+		if err := json.Unmarshal([]byte(token), &credentials); err != nil {
+			return nil, fmt.Errorf("route53 credential must be JSON with access_key_id and secret_access_key")
+		}
+		credentials.AccessKeyID = strings.TrimSpace(credentials.AccessKeyID)
+		credentials.SecretAccessKey = strings.TrimSpace(credentials.SecretAccessKey)
+		if credentials.AccessKeyID == "" || credentials.SecretAccessKey == "" {
+			return nil, fmt.Errorf("route53 credential must be JSON with access_key_id and secret_access_key")
+		}
+		return dns.NewRoute53Provider(credentials.AccessKeyID, credentials.SecretAccessKey, strings.TrimSpace(credentials.SessionToken), nil)
 	default:
 		return nil, fmt.Errorf("unsupported DNS provider %q", provider)
 	}
@@ -63,6 +86,13 @@ func (s *DNSCredentialService) Store(ctx context.Context, organizationID, provid
 		return models.DNSProviderCredential{}, fmt.Errorf("encrypt dns credential: %w", err)
 	}
 	suffix := token
+	if provider == "route53" {
+		var credentials route53Credential
+		if err := json.Unmarshal([]byte(token), &credentials); err != nil || strings.TrimSpace(credentials.AccessKeyID) == "" || strings.TrimSpace(credentials.SecretAccessKey) == "" {
+			return models.DNSProviderCredential{}, fmt.Errorf("route53 credential must be JSON with access_key_id and secret_access_key")
+		}
+		suffix = credentials.AccessKeyID
+	}
 	if len(suffix) > 4 {
 		suffix = suffix[len(suffix)-4:]
 	}

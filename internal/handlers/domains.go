@@ -27,6 +27,7 @@ type CreateDomainRequest struct {
 	Hostname           string  `json:"hostname"`
 	VerificationMethod string  `json:"verificationMethod"`
 	TunnelID           *string `json:"tunnelId"`
+	DNSProvider        string  `json:"dnsProvider"`
 }
 
 type VerifyDomainRequest struct {
@@ -49,13 +50,42 @@ func (h *DomainHandler) Create(c *fiber.Ctx) error {
 		return writeError(c, fiber.StatusBadRequest, fmt.Errorf("decode domain request: %w", err))
 	}
 
-	token, domain, err := h.domains.Create(c.UserContext(), strings.TrimSpace(c.Params("organizationID")), input.Hostname, input.VerificationMethod, input.TunnelID)
+	token, domain, err := h.domains.CreateWithProvider(c.UserContext(), strings.TrimSpace(c.Params("organizationID")), input.Hostname, input.VerificationMethod, input.TunnelID, input.DNSProvider)
 
 	if err != nil {
 		return writeError(c, fiber.StatusBadRequest, err)
 	}
 
 	return c.Status(fiber.StatusCreated).JSON(fiber.Map{"domain": domain, "verificationToken": token})
+}
+
+type CreateDomainBundleRequest struct {
+	Hostname    string  `json:"hostname"`
+	TunnelID    *string `json:"tunnelId"`
+	DNSProvider string  `json:"dnsProvider"`
+	Wildcard    bool    `json:"wildcard"`
+	Delegated   bool    `json:"delegated"`
+}
+
+func (h *DomainHandler) CreateBundle(c *fiber.Ctx) error {
+	var input CreateDomainBundleRequest
+
+	if err := c.BodyParser(&input); err != nil {
+		return writeError(c, fiber.StatusBadRequest, fmt.Errorf("decode domain bundle request: %w", err))
+	}
+
+	method := services.DomainMethodDNSAutomation
+	if input.Delegated {
+		method = services.DomainMethodDNSDelegation
+	}
+
+	domains, err := h.domains.CreateBundle(c.UserContext(), strings.TrimSpace(c.Params("organizationID")), input.Hostname, method, input.TunnelID, input.DNSProvider, input.Wildcard)
+
+	if err != nil {
+		return writeError(c, fiber.StatusBadRequest, err)
+	}
+
+	return c.Status(fiber.StatusCreated).JSON(domains)
 }
 
 func (h *DomainHandler) List(c *fiber.Ctx) error {

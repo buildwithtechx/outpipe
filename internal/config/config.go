@@ -93,6 +93,9 @@ type AppConfig struct {
 	ACMEEmail             string        `json:"acmeEmail" yaml:"acme_email" env:"ACME_EMAIL"`
 	ACMEDirectory         string        `json:"acmeDirectory" yaml:"acme_directory" env:"ACME_DIRECTORY"`
 	CertificateCache      string        `json:"certificateCacheDir" yaml:"certificate_cache_dir" env:"CERTIFICATE_CACHE_DIR" envDefault:".data/acme"`
+	ChallengeZone         string        `json:"challengeZone" yaml:"challenge_zone" env:"CHALLENGE_ZONE"`
+	ChallengeDNSProvider  string        `json:"challengeDnsProvider" yaml:"challenge_dns_provider" env:"CHALLENGE_DNS_PROVIDER"`
+	ChallengeDNSCredential string       `json:"-" yaml:"challenge_dns_credential" env:"CHALLENGE_DNS_CREDENTIAL"`
 	RequireTLS            bool          `json:"requireTls" yaml:"require_tls" env:"REQUIRE_TLS" envDefault:"false"`
 	TLSCertFile           string        `json:"tlsCertFile" yaml:"tls_cert_file" env:"TLS_CERT_FILE"`
 	TLSKeyFile            string        `json:"tlsKeyFile" yaml:"tls_key_file" env:"TLS_KEY_FILE"`

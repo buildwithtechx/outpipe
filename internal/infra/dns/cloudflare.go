@@ -151,12 +151,43 @@ func (p *CloudflareProvider) Present(ctx context.Context, fqdn, value string) er
 		if record.Content == value {
 			return nil
 		}
+	}
+	_, err = p.call(ctx, http.MethodPost, "/zones/"+zone+"/dns_records", map[string]any{"type": "TXT", "name": fqdn, "content": value, "ttl": 120})
+	return err
+}
+
+func (p *CloudflareProvider) CleanupValue(ctx context.Context, fqdn, value string) error {
+	fqdn = strings.TrimSuffix(strings.ToLower(strings.TrimSpace(fqdn)), ".")
+	if !validRecordName(fqdn) {
+		return fmt.Errorf("dns record name is required")
+	}
+	zone, err := p.zoneID(ctx, fqdn)
+	if err != nil {
+		return err
+	}
+	raw, err := p.call(ctx, http.MethodGet, "/zones/"+zone+"/dns_records?type=TXT&name="+fqdn, nil)
+	if err != nil {
+		return err
+	}
+	var existing struct {
+		cloudflareEnvelope
+		Result []struct {
+			ID      string `json:"id"`
+			Content string `json:"content"`
+		} `json:"result"`
+	}
+	if err := json.Unmarshal(raw, &existing); err != nil {
+		return fmt.Errorf("decode cloudflare records: %w", err)
+	}
+	for _, record := range existing.Result {
+		if record.Content != value {
+			continue
+		}
 		if _, err := p.call(ctx, http.MethodDelete, "/zones/"+zone+"/dns_records/"+record.ID, nil); err != nil {
 			return err
 		}
 	}
-	_, err = p.call(ctx, http.MethodPost, "/zones/"+zone+"/dns_records", map[string]any{"type": "TXT", "name": fqdn, "content": value, "ttl": 120})
-	return err
+	return nil
 }
 
 func (p *CloudflareProvider) Cleanup(ctx context.Context, fqdn string) error {

@@ -2,6 +2,8 @@ package services
 
 import (
 	"context"
+	"crypto/rand"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"io"
@@ -21,6 +23,7 @@ const (
 	DomainMethodDNS           = "dns"
 	DomainMethodHTTP          = "http"
 	DomainMethodDNSAutomation = "dns-automation"
+	DomainMethodDNSDelegation = "dns-delegation"
 )
 
 type DomainService struct {
@@ -33,6 +36,8 @@ type DomainService struct {
 	dnsSolver      func(string, string) (dns.ChallengeSolver, error)
 	httpClient     *http.Client
 	certCacheDir   string
+	challengeZone  string
+	challenge      dns.ChallengeSolver
 }
 
 type DomainCertificate struct {
@@ -49,6 +54,9 @@ type CertificateIssuer interface {
 
 type DNS01Issuer interface {
 	IssueDNS01(context.Context, string, dns.ChallengeSolver) ([]byte, []byte, time.Time, error)
+	IssueBundleDNS01(context.Context, []string, dns.ChallengeSolver) ([]byte, []byte, time.Time, error)
+	IssueDelegatedDNS01(context.Context, string, string, dns.ChallengeSolver) ([]byte, []byte, time.Time, error)
+	IssueBundleDelegatedDNS01(context.Context, []string, string, dns.ChallengeSolver) ([]byte, []byte, time.Time, error)
 }
 
 func (s *DomainService) SetBilling(billing *BillingService)                  { s.billing = billing }
@@ -62,6 +70,11 @@ func (s *DomainService) SetDNSProtector(protector dnsSecretProtector) {
 	if s.dnsCredentials != nil {
 		s.dnsCredentials.SetProtector(protector)
 	}
+}
+
+func (s *DomainService) SetChallengeSolver(zone string, solver dns.ChallengeSolver) {
+	s.challengeZone = strings.ToLower(strings.TrimSpace(strings.TrimSuffix(zone, ".")))
+	s.challenge = solver
 }
 
 func (s *DomainService) Find(ctx context.Context, id string) (models.Domain, error) {
@@ -150,15 +163,28 @@ func NewDomainService(domains repositories.DomainRepository) (*DomainService, er
 }
 
 func (s *DomainService) Create(ctx context.Context, organizationID, hostname, method string, tunnelID *string) (string, models.Domain, error) {
+	return s.CreateWithProvider(ctx, organizationID, hostname, method, tunnelID, "")
+}
+
+func (s *DomainService) CreateWithProvider(ctx context.Context, organizationID, hostname, method string, tunnelID *string, dnsProvider string) (string, models.Domain, error) {
 	hostname = strings.ToLower(strings.TrimSpace(hostname))
 	method = strings.ToLower(strings.TrimSpace(method))
+	dnsProvider = strings.ToLower(strings.TrimSpace(dnsProvider))
 
-	if organizationID == "" || !validHostname(hostname) || (method != DomainMethodDNS && method != DomainMethodHTTP && method != DomainMethodDNSAutomation) {
+	if organizationID == "" || !validHostname(hostname) || (method != DomainMethodDNS && method != DomainMethodHTTP && method != DomainMethodDNSAutomation && method != DomainMethodDNSDelegation) {
 		return "", models.Domain{}, fmt.Errorf("organization, hostname, and verification method are required")
 	}
 
-	if strings.HasPrefix(hostname, "*.") && method != DomainMethodDNSAutomation {
+	if strings.HasPrefix(hostname, "*.") && method != DomainMethodDNSAutomation && method != DomainMethodDNSDelegation {
 		return "", models.Domain{}, fmt.Errorf("wildcard domains require dns-automation verification")
+	}
+
+	if dnsProvider != "" && !supportedDNSProvider(dnsProvider) {
+		return "", models.Domain{}, fmt.Errorf("unsupported DNS provider %q", dnsProvider)
+	}
+
+	if method == DomainMethodDNSDelegation && (s.challengeZone == "" || s.challenge == nil) {
+		return "", models.Domain{}, fmt.Errorf("delegated verification is not configured")
 	}
 
 	if s.billing != nil {
@@ -189,12 +215,101 @@ func (s *DomainService) Create(ctx context.Context, organizationID, hostname, me
 		return "", models.Domain{}, err
 	}
 
-	domain := models.Domain{OrganizationID: organizationID, TunnelID: tunnelID, Hostname: hostname, Status: models.DomainStatusPending, VerificationMethod: method, VerificationToken: auth.HashToken(raw), CertificateStatus: "pending"}
+	domain := models.Domain{OrganizationID: organizationID, TunnelID: tunnelID, Hostname: hostname, Status: models.DomainStatusPending, VerificationMethod: method, VerificationToken: auth.HashToken(raw), CertificateStatus: "pending", DNSProvider: dnsProvider}
+
+	if method == DomainMethodDNSDelegation {
+		target, err := s.delegationTarget()
+		if err != nil {
+			return "", models.Domain{}, err
+		}
+		domain.DelegationTarget = target
+	}
 
 	if err := s.domains.Create(ctx, &domain); err != nil {
 		return "", models.Domain{}, fmt.Errorf("create domain: %w", err)
 	}
 
+	return raw, domain, nil
+}
+
+func (s *DomainService) delegationTarget() (string, error) {
+	randomID := make([]byte, 16)
+	if _, err := rand.Read(randomID); err != nil {
+		return "", fmt.Errorf("generate delegation target: %w", err)
+	}
+	return hex.EncodeToString(randomID) + "." + s.challengeZone, nil
+}
+
+func (s *DomainService) CreateBundle(ctx context.Context, organizationID, apex, method string, tunnelID *string, dnsProvider string, wildcard bool) ([]models.Domain, error) {
+	apex = strings.ToLower(strings.TrimSpace(strings.TrimSuffix(apex, ".")))
+	if organizationID == "" || !validHostname(apex) || strings.HasPrefix(apex, "*.") {
+		return nil, fmt.Errorf("bundle registration needs a bare apex hostname")
+	}
+	if method != DomainMethodDNSAutomation && method != DomainMethodDNSDelegation {
+		return nil, fmt.Errorf("bundles require dns-automation verification")
+	}
+	hostnames := []string{apex}
+	if wildcard {
+		hostnames = append(hostnames, "*."+apex)
+	}
+	group := ""
+	if len(hostnames) > 1 {
+		randomID := make([]byte, 16)
+		if _, err := rand.Read(randomID); err != nil {
+			return nil, fmt.Errorf("generate bundle group: %w", err)
+		}
+		group = hex.EncodeToString(randomID)
+	}
+	target := ""
+	if method == DomainMethodDNSDelegation {
+		if s.challengeZone == "" || s.challenge == nil {
+			return nil, fmt.Errorf("delegated verification is not configured")
+		}
+		var err error
+		target, err = s.delegationTarget()
+		if err != nil {
+			return nil, err
+		}
+	}
+	created := make([]models.Domain, 0, len(hostnames))
+	for _, hostname := range hostnames {
+		_, domain, err := s.createBundleRow(ctx, organizationID, hostname, method, tunnelID, dnsProvider, group, target)
+		if err != nil {
+			return nil, err
+		}
+		created = append(created, domain)
+	}
+	return created, nil
+}
+
+func (s *DomainService) createBundleRow(ctx context.Context, organizationID, hostname, method string, tunnelID *string, dnsProvider, group, target string) (string, models.Domain, error) {
+	if s.billing != nil {
+		plan, _, err := s.billing.Entitlements(ctx, organizationID)
+		if err != nil {
+			return "", models.Domain{}, fmt.Errorf("check domain entitlement: %w", err)
+		}
+		if plan.MaxDomains == 0 {
+			return "", models.Domain{}, fmt.Errorf("custom domains are not available on this plan")
+		}
+		count, err := s.domains.CountByOrganization(ctx, organizationID)
+		if err != nil {
+			return "", models.Domain{}, fmt.Errorf("count organization domains: %w", err)
+		}
+		if count >= int64(plan.MaxDomains) {
+			return "", models.Domain{}, fmt.Errorf("organization domain limit reached")
+		}
+	}
+	raw, err := auth.NewToken("cdv", 24)
+	if err != nil {
+		return "", models.Domain{}, err
+	}
+	domain := models.Domain{OrganizationID: organizationID, TunnelID: tunnelID, Hostname: hostname, Status: models.DomainStatusPending, VerificationMethod: method, VerificationToken: auth.HashToken(raw), CertificateStatus: "pending", DNSProvider: dnsProvider, BundleGroup: group, DelegationTarget: target}
+	if method == DomainMethodDNSDelegation && target == "" {
+		return "", models.Domain{}, fmt.Errorf("delegated verification needs a challenge target")
+	}
+	if err := s.domains.Create(ctx, &domain); err != nil {
+		return "", models.Domain{}, fmt.Errorf("create domain: %w", err)
+	}
 	return raw, domain, nil
 }
 
@@ -205,12 +320,12 @@ func (s *DomainService) Verify(ctx context.Context, id, token string) error {
 		return fmt.Errorf("find domain: %w", err)
 	}
 
-	if strings.HasPrefix(domain.Hostname, "*.") && domain.VerificationMethod != DomainMethodDNSAutomation {
+	if strings.HasPrefix(domain.Hostname, "*.") && domain.VerificationMethod != DomainMethodDNSAutomation && domain.VerificationMethod != DomainMethodDNSDelegation {
 		return fmt.Errorf("wildcard domains require dns-automation verification")
 	}
 
 	switch domain.VerificationMethod {
-	case DomainMethodDNSAutomation:
+	case DomainMethodDNSAutomation, DomainMethodDNSDelegation:
 		return s.verifyAutomated(ctx, &domain)
 	case DomainMethodDNS, DomainMethodHTTP:
 		return s.verifyManual(ctx, &domain, token)
@@ -264,23 +379,15 @@ func (s *DomainService) verifyManual(ctx context.Context, domain *models.Domain,
 }
 
 func (s *DomainService) verifyAutomated(ctx context.Context, domain *models.Domain) error {
-	if s.dnsCredentials == nil || s.dnsIssuer == nil {
-		return fmt.Errorf("automated verification is not configured")
+	if domain.DelegationTarget != "" {
+		if err := s.assertDelegation(ctx, domain); err != nil {
+			return err
+		}
 	}
-
-	solver, err := s.dnsSolverForOrganization(ctx, domain.OrganizationID)
-
+	expires, err := s.issueAutomation(ctx, domain, []string{domain.Hostname})
 	if err != nil {
 		return err
 	}
-
-	_, _, expires, err := s.dnsIssuer.IssueDNS01(ctx, domain.Hostname, solver)
-
-	if err != nil {
-		return fmt.Errorf("issue automated certificate: %w", err)
-	}
-
-	s.dnsCredentials.TouchUsed(ctx, domain.OrganizationID)
 
 	now := s.now()
 	domain.Status = models.DomainStatusActive
@@ -292,6 +399,18 @@ func (s *DomainService) verifyAutomated(ctx context.Context, domain *models.Doma
 		return fmt.Errorf("verify domain: %w", err)
 	}
 
+	return nil
+}
+
+func (s *DomainService) assertDelegation(ctx context.Context, domain *models.Domain) error {
+	canonical, err := net.LookupCNAME("_acme-challenge." + strings.TrimPrefix(domain.Hostname, "*."))
+	if err != nil {
+		return fmt.Errorf("delegation record is not published: %w", err)
+	}
+	expected := strings.TrimSuffix(domain.DelegationTarget, ".") + "."
+	if !strings.EqualFold(strings.TrimSpace(canonical), expected) {
+		return fmt.Errorf("delegation record does not point at the challenge zone")
+	}
 	return nil
 }
 
@@ -329,14 +448,28 @@ func (s *DomainService) RenewDueCertificates(ctx context.Context, within time.Du
 
 	renewed := 0
 	var failures error
+	renewedGroups := map[string]bool{}
 
 	for i := range domains {
 		domain := domains[i]
 
+		if domain.BundleGroup != "" {
+			if renewedGroups[domain.BundleGroup] {
+				continue
+			}
+			renewedGroups[domain.BundleGroup] = true
+			if count, err := s.renewBundle(ctx, domains, domain.BundleGroup); err != nil {
+				failures = errors.Join(failures, err)
+			} else {
+				renewed += count
+			}
+			continue
+		}
+
 		var expires time.Time
 		var err error
 
-		if domain.VerificationMethod == DomainMethodDNSAutomation {
+		if domain.VerificationMethod == DomainMethodDNSAutomation || domain.VerificationMethod == DomainMethodDNSDelegation {
 			expires, err = s.renewAutomated(ctx, &domain)
 		} else if s.issuer != nil {
 			expires, err = s.issuer.Issue(ctx, domain.Hostname)
@@ -363,7 +496,75 @@ func (s *DomainService) RenewDueCertificates(ctx context.Context, within time.Du
 	return renewed, failures
 }
 
-func (s *DomainService) dnsSolverForOrganization(ctx context.Context, organizationID string) (dns.ChallengeSolver, error) {
+func (s *DomainService) renewBundle(ctx context.Context, domains []models.Domain, group string) (int, error) {
+	members := make([]models.Domain, 0, 2)
+	for i := range domains {
+		if domains[i].BundleGroup == group {
+			members = append(members, domains[i])
+		}
+	}
+	if len(members) == 0 {
+		return 0, nil
+	}
+	hostnames := make([]string, 0, len(members))
+	for _, member := range members {
+		hostnames = append(hostnames, member.Hostname)
+	}
+	expires, err := s.issueAutomation(ctx, &members[0], hostnames)
+	if err != nil {
+		return 0, fmt.Errorf("renew bundle %s: %w", group, err)
+	}
+	for i := range members {
+		members[i].CertificateExpiresAt = &expires
+		members[i].CertificateStatus = "ready"
+		if err := s.domains.Update(ctx, &members[i]); err != nil {
+			return 0, fmt.Errorf("record %s renewal: %w", members[i].Hostname, err)
+		}
+	}
+	return len(members), nil
+}
+
+func (s *DomainService) issueAutomation(ctx context.Context, domain *models.Domain, hostnames []string) (time.Time, error) {
+	if s.dnsIssuer == nil {
+		return time.Time{}, fmt.Errorf("automated issuance is not configured")
+	}
+	if domain.DelegationTarget != "" {
+		if s.challenge == nil || s.challengeZone == "" {
+			return time.Time{}, fmt.Errorf("delegated issuance is not configured")
+		}
+		var expires time.Time
+		var err error
+		if len(hostnames) > 1 {
+			_, _, expires, err = s.dnsIssuer.IssueBundleDelegatedDNS01(ctx, hostnames, domain.DelegationTarget, s.challenge)
+		} else {
+			_, _, expires, err = s.dnsIssuer.IssueDelegatedDNS01(ctx, hostnames[0], domain.DelegationTarget, s.challenge)
+		}
+		if err != nil {
+			return time.Time{}, fmt.Errorf("issue delegated certificate: %w", err)
+		}
+		return expires, nil
+	}
+	if s.dnsCredentials == nil {
+		return time.Time{}, fmt.Errorf("automated issuance is not configured")
+	}
+	solver, err := s.dnsSolverForDomain(ctx, domain)
+	if err != nil {
+		return time.Time{}, err
+	}
+	var expires time.Time
+	if len(hostnames) > 1 {
+		_, _, expires, err = s.dnsIssuer.IssueBundleDNS01(ctx, hostnames, solver)
+	} else {
+		_, _, expires, err = s.dnsIssuer.IssueDNS01(ctx, hostnames[0], solver)
+	}
+	if err != nil {
+		return time.Time{}, fmt.Errorf("issue automated certificate: %w", err)
+	}
+	s.dnsCredentials.TouchUsed(ctx, domain.OrganizationID)
+	return expires, nil
+}
+
+func (s *DomainService) dnsSolverForDomain(ctx context.Context, domain *models.Domain) (dns.ChallengeSolver, error) {
 	if s.dnsCredentials == nil {
 		return nil, fmt.Errorf("dns credentials are not configured")
 	}
@@ -374,44 +575,33 @@ func (s *DomainService) dnsSolverForOrganization(ctx context.Context, organizati
 		factory = SolverFor
 	}
 
-	credentials, err := s.dnsCredentials.List(ctx, organizationID)
+	if domain.DNSProvider != "" {
+		token, err := s.dnsCredentials.Open(ctx, domain.OrganizationID, domain.DNSProvider)
+		if err != nil {
+			return nil, err
+		}
+		return factory(domain.DNSProvider, token)
+	}
 
+	credentials, err := s.dnsCredentials.List(ctx, domain.OrganizationID)
 	if err != nil {
 		return nil, err
 	}
-
 	if len(credentials) != 1 {
 		return nil, fmt.Errorf("connect exactly one DNS provider to use automated verification")
 	}
-
-	token, err := s.dnsCredentials.Open(ctx, organizationID, credentials[0].Provider)
-
+	token, err := s.dnsCredentials.Open(ctx, domain.OrganizationID, credentials[0].Provider)
 	if err != nil {
 		return nil, err
 	}
-
 	return factory(credentials[0].Provider, token)
 }
 
 func (s *DomainService) renewAutomated(ctx context.Context, domain *models.Domain) (time.Time, error) {
-	if s.dnsCredentials == nil || s.dnsIssuer == nil {
-		return time.Time{}, fmt.Errorf("automated renewal is not configured")
-	}
-
-	solver, err := s.dnsSolverForOrganization(ctx, domain.OrganizationID)
-
-	if err != nil {
-		return time.Time{}, err
-	}
-
-	_, _, expires, err := s.dnsIssuer.IssueDNS01(ctx, domain.Hostname, solver)
-
+	expires, err := s.issueAutomation(ctx, domain, []string{domain.Hostname})
 	if err != nil {
 		return time.Time{}, fmt.Errorf("issue automated renewal: %w", err)
 	}
-
-	s.dnsCredentials.TouchUsed(ctx, domain.OrganizationID)
-
 	return expires, nil
 }
 

@@ -33,6 +33,9 @@ func newDomainsCommand(cfg config.CLIConfig) *cobra.Command {
 		&cobra.Command{Use: "add HOSTNAME", Short: "register a custom domain", Args: cobra.ExactArgs(1), RunE: func(cmd *cobra.Command, args []string) error {
 			return runDomainAction(cmd, cfg, "add", args)
 		}},
+		&cobra.Command{Use: "add-bundle APEX", Short: "register an apex plus wildcard bundle", Args: cobra.ExactArgs(1), RunE: func(cmd *cobra.Command, args []string) error {
+			return runDomainAction(cmd, cfg, "add-bundle", args)
+		}},
 		&cobra.Command{Use: "list", Short: "list custom domains", Args: cobra.NoArgs, RunE: func(cmd *cobra.Command, args []string) error {
 			return runDomainAction(cmd, cfg, "list", args)
 		}},
@@ -45,7 +48,9 @@ func newDomainsCommand(cfg config.CLIConfig) *cobra.Command {
 	)
 	command.PersistentFlags().Bool("json", false, "output in JSON format")
 	command.PersistentFlags().String("organization", "", "organization ID")
-	command.PersistentFlags().String("method", "dns", "verification method (dns, http, dns-automation)")
+	command.PersistentFlags().String("method", "dns", "verification method (dns, http, dns-automation, dns-delegation)")
+	command.PersistentFlags().String("provider", "", "dns provider for automated verification")
+	command.PersistentFlags().Bool("delegated", false, "use CNAME delegation (add-bundle only)")
 	command.PersistentFlags().String("tunnel-id", "", "tunnel to attach the domain to")
 	command.PersistentFlags().String("token", "", "verification token")
 	return command
@@ -93,7 +98,11 @@ func runDomainAction(cmd *cobra.Command, cfg config.CLIConfig, action string, ar
 		if err != nil {
 			return err
 		}
-		payload := map[string]any{"hostname": args[0], "verificationMethod": method}
+		provider, err := cmd.Flags().GetString("provider")
+		if err != nil {
+			return err
+		}
+		payload := map[string]any{"hostname": args[0], "verificationMethod": method, "dnsProvider": provider}
 		if tunnelID != "" {
 			payload["tunnelId"] = tunnelID
 		}
@@ -110,6 +119,38 @@ func runDomainAction(cmd *cobra.Command, cfg config.CLIConfig, action string, ar
 			return enc.Encode(result)
 		}
 		fmt.Printf("domain %s registered (%s)\nverification token (shown once): %s\n", result.Domain.Hostname, result.Domain.VerificationMethod, result.VerificationToken)
+	case "add-bundle":
+		if organizationID == "" {
+			return fmt.Errorf("organization is required")
+		}
+		provider, err := cmd.Flags().GetString("provider")
+		if err != nil {
+			return err
+		}
+		tunnelID, err := cmd.Flags().GetString("tunnel-id")
+		if err != nil {
+			return err
+		}
+		delegated, err := cmd.Flags().GetBool("delegated")
+		if err != nil {
+			return err
+		}
+		payload := map[string]any{"hostname": args[0], "wildcard": true, "delegated": delegated, "dnsProvider": provider}
+		if tunnelID != "" {
+			payload["tunnelId"] = tunnelID
+		}
+		var bundle []DomainDTO
+		if err := apiClient.Do(cmd.Context(), http.MethodPost, "/api/v1/organizations/"+organizationID+"/domains/bundle", payload, &bundle); err != nil {
+			return fmt.Errorf("register domain bundle: %w", err)
+		}
+		if jsonOutput {
+			enc := json.NewEncoder(os.Stdout)
+			enc.SetIndent("", "  ")
+			return enc.Encode(bundle)
+		}
+		for _, domain := range bundle {
+			fmt.Printf("domain %s registered (%s)\n", domain.Hostname, domain.VerificationMethod)
+		}
 	case "verify":
 		token, err := cmd.Flags().GetString("token")
 		if err != nil {
@@ -143,8 +184,11 @@ func newDNSProvidersCommand(cfg config.CLIConfig) *cobra.Command {
 	)
 	command.PersistentFlags().Bool("json", false, "output in JSON format")
 	command.PersistentFlags().String("organization", "", "organization ID")
-	command.PersistentFlags().String("provider", "cloudflare", "dns provider")
+	command.PersistentFlags().String("provider", "cloudflare", "dns provider (cloudflare, route53)")
 	command.PersistentFlags().String("token", "", "provider API token (or OUTPIPE_DNS_PROVIDER_TOKEN)")
+	command.PersistentFlags().String("access-key-id", "", "route53 access key id")
+	command.PersistentFlags().String("secret-access-key", "", "route53 secret access key (or OUTPIPE_DNS_PROVIDER_SECRET)")
+	command.PersistentFlags().String("session-token", "", "route53 session token")
 	command.PersistentFlags().String("label", "", "credential label")
 	return command
 }
@@ -191,8 +235,32 @@ func runDNSProviderAction(cmd *cobra.Command, cfg config.CLIConfig, action strin
 		if token == "" {
 			token = cliEnvValue("OUTPIPE_DNS_PROVIDER_TOKEN")
 		}
+		if provider == "route53" && token == "" {
+			accessKey, err := cmd.Flags().GetString("access-key-id")
+			if err != nil {
+				return err
+			}
+			secret, err := cmd.Flags().GetString("secret-access-key")
+			if err != nil {
+				return err
+			}
+			if secret == "" {
+				secret = cliEnvValue("OUTPIPE_DNS_PROVIDER_SECRET")
+			}
+			session, err := cmd.Flags().GetString("session-token")
+			if err != nil {
+				return err
+			}
+			if accessKey != "" && secret != "" {
+				encoded, err := json.Marshal(map[string]string{"access_key_id": accessKey, "secret_access_key": secret, "session_token": session})
+				if err != nil {
+					return err
+				}
+				token = string(encoded)
+			}
+		}
 		if token == "" {
-			return fmt.Errorf("provider token is required via --token or OUTPIPE_DNS_PROVIDER_TOKEN")
+			return fmt.Errorf("provider credential is required via --token, route53 key flags, or OUTPIPE_DNS_PROVIDER_TOKEN")
 		}
 		label, err := cmd.Flags().GetString("label")
 		if err != nil {

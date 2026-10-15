@@ -109,6 +109,21 @@ func TestCloudflarePresentAndCleanup(t *testing.T) {
 	if err := provider.Present(ctx, "_acme-challenge.api.example.com", "digest-b"); err != nil {
 		t.Fatal(err)
 	}
+	fake.mu.Lock()
+	count = len(fake.records["_acme-challenge.api.example.com"])
+	fake.mu.Unlock()
+	if count != 2 {
+		t.Fatalf("concurrent challenge digests must coexist: %d", count)
+	}
+	if err := provider.CleanupValue(ctx, "_acme-challenge.api.example.com", "digest-a"); err != nil {
+		t.Fatal(err)
+	}
+	fake.mu.Lock()
+	count = len(fake.records["_acme-challenge.api.example.com"])
+	fake.mu.Unlock()
+	if count != 1 {
+		t.Fatalf("value-targeted cleanup removed %d records", 2-count)
+	}
 	if err := provider.Cleanup(ctx, "_acme-challenge.api.example.com"); err != nil {
 		t.Fatal(err)
 	}

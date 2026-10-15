@@ -44,6 +44,8 @@ type ManagedTunnelPasswordVerifier interface {
 
 type ManagedTunnelPolicy struct {
 	CaptureEnabled    bool    `json:"captureEnabled"`
+	CapturePolicy     string  `json:"capturePolicy"`
+	CaptureVersion    int     `json:"captureVersion"`
 	MachineTokenID    *string `json:"machineTokenId,omitempty"`
 	TargetHost        string  `json:"targetHost"`
 	TargetPort        int     `json:"targetPort"`

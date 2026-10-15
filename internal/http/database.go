@@ -135,6 +135,14 @@ func NewDatabaseDependencies(db *gorm.DB, cfg config.APIConfig) (Dependencies, e
 		return Dependencies{}, err
 	}
 
+	capturePolicies, err := repositories.NewCapturePolicyRepository(db)
+
+	if err != nil {
+		return Dependencies{}, err
+	}
+
+	tunnelService.SetCapturePolicies(capturePolicies)
+
 	billingService, err := services.NewBillingService(billingRepository)
 
 	if err != nil {
@@ -273,6 +281,14 @@ func NewDatabaseDependencies(db *gorm.DB, cfg config.APIConfig) (Dependencies, e
 		domainService.SetDNS01Issuer(dnsIssuer)
 	}
 
+	if strings.TrimSpace(cfg.App.ChallengeZone) != "" && strings.TrimSpace(cfg.App.ChallengeDNSCredential) != "" {
+		challengeSolver, challengeErr := services.SolverFor(cfg.App.ChallengeDNSProvider, cfg.App.ChallengeDNSCredential)
+		if challengeErr != nil {
+			return Dependencies{}, challengeErr
+		}
+		domainService.SetChallengeSolver(cfg.App.ChallengeZone, challengeSolver)
+	}
+
 	dnsCredentialService, err := services.NewDNSCredentialService(dnsCredentials)
 
 	if err != nil {
@@ -352,6 +368,14 @@ func NewDatabaseDependencies(db *gorm.DB, cfg config.APIConfig) (Dependencies, e
 	if err != nil {
 		return Dependencies{}, err
 	}
+	alertRepository, err := repositories.NewAlertRepository(db)
+	if err != nil {
+		return Dependencies{}, err
+	}
+	alertBridge, err := services.NewAlertBridgeService(alertRepository, uptimeRepository, uptimeService)
+	if err != nil {
+		return Dependencies{}, err
+	}
 	pipelineHealth, err := services.NewPipelineHealthService(webhookRepository, repositories.NewGormTelemetryExportRepository(db), uptimeRepository)
 	if err != nil {
 		return Dependencies{}, err
@@ -364,5 +388,5 @@ func NewDatabaseDependencies(db *gorm.DB, cfg config.APIConfig) (Dependencies, e
 	}
 	uptimeService.SetSubscriberBaseURL(statusBaseURL)
 
-	return Dependencies{Auth: authService, DeviceLogin: deviceService, Organizations: organizationService, Invitations: invitationService, Tunnels: tunnelService, Agents: agentService, Domains: domainService, Usage: usageService, Billing: billingService, Account: accountService, Admin: adminService, Audit: auditService, APIKeys: apiKeyService, Webhooks: webhookService, Support: supportService, Secrets: secretService, Shares: shareService, Uptime: uptimeService, Observability: obsService, AIAgent: aiService, MachineFleets: fleetService, Pipelines: pipelineHealth, WelcomeMailer: welcomeMailer, Ready: databaseReady(db), Metrics: metrics}, nil
+	return Dependencies{Auth: authService, DeviceLogin: deviceService, Organizations: organizationService, Invitations: invitationService, Tunnels: tunnelService, Agents: agentService, Domains: domainService, Usage: usageService, Billing: billingService, Account: accountService, Admin: adminService, Audit: auditService, APIKeys: apiKeyService, Webhooks: webhookService, Support: supportService, Secrets: secretService, Shares: shareService, Uptime: uptimeService, Observability: obsService, AIAgent: aiService, MachineFleets: fleetService, Pipelines: pipelineHealth, Alerts: alertBridge, WelcomeMailer: welcomeMailer, Ready: databaseReady(db), Metrics: metrics}, nil
 }

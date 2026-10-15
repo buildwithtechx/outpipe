@@ -161,6 +161,14 @@ func main() {
 		domainService.SetCertificateIssuer(autocertIssuer)
 	}
 
+	if strings.TrimSpace(cfg.App.ChallengeZone) != "" && strings.TrimSpace(cfg.App.ChallengeDNSCredential) != "" {
+		challengeSolver, err := services.SolverFor(cfg.App.ChallengeDNSProvider, cfg.App.ChallengeDNSCredential)
+		if err != nil {
+			log.Fatal(err)
+		}
+		domainService.SetChallengeSolver(cfg.App.ChallengeZone, challengeSolver)
+	}
+
 	if cfg.Auth.EncryptionKey != "" {
 		secretBox, err := storage.NewSecretBox([]byte(cfg.Auth.EncryptionKey))
 		if err != nil {
@@ -332,6 +340,19 @@ func main() {
 		log.Fatal(err)
 	}
 
+	alertRepository, err := repositories.NewAlertRepository(db)
+	if err != nil {
+		log.Fatal(err)
+	}
+	alertBridge, err := services.NewAlertBridgeService(alertRepository, uptimeRepository, uptimeService)
+	if err != nil {
+		log.Fatal(err)
+	}
+	alertBridgeJob, err := workers.NewAlertBridgeJob(alertBridge)
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	var emailJob *workers.EmailJob
 	if cfg.Mail.ZeptoAPIKey != "" {
 		zepto, mailErr := mail.NewZeptoClient(mail.Config{URL: cfg.Mail.ZeptoURL, APIKey: cfg.Mail.ZeptoAPIKey, FromAddress: cfg.Mail.FromAddress}, nil)
@@ -416,6 +437,11 @@ func main() {
 		log.Fatal(err)
 	}
 
+	wrappedAlertBridge, err := workers.NewRetryableJob(alertBridgeJob, retryConfig, dlh, tracker)
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	wrappedDomainCertificates, err := workers.NewRetryableJob(domainCertificateJob, retryConfig, dlh, tracker)
 	if err != nil {
 		log.Fatal(err)
@@ -443,7 +469,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	jobs := []workers.Job{wrappedCleanup, wrappedUsage, wrappedRetention, wrappedBilling, wrappedReconciliation, wrappedWebhook, wrappedTelemetry, wrappedTelemetryExport, wrappedSubscriberNotifications, wrappedDomainCertificates, wrappedMachineFleets, wrappedPipelineHealth}
+	jobs := []workers.Job{wrappedCleanup, wrappedUsage, wrappedRetention, wrappedBilling, wrappedReconciliation, wrappedWebhook, wrappedTelemetry, wrappedTelemetryExport, wrappedSubscriberNotifications, wrappedDomainCertificates, wrappedMachineFleets, wrappedPipelineHealth, wrappedAlertBridge}
 	if emailJob != nil {
 		wrappedEmail, wrapErr := workers.NewRetryableJob(emailJob, retryConfig, dlh, tracker)
 		if wrapErr != nil {

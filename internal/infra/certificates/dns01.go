@@ -94,34 +94,42 @@ func waitForDNSRecord(ctx context.Context, fqdn, value string) error {
 	}
 }
 
-func (i *DNS01Issuer) IssueDNS01(ctx context.Context, hostname string, solver dns.ChallengeSolver) ([]byte, []byte, time.Time, error) {
-	hostname = strings.ToLower(strings.TrimSpace(strings.TrimSuffix(hostname, ".")))
-	if hostname == "" {
-		return nil, nil, time.Time{}, fmt.Errorf("hostname is required")
+type pendingChallenge struct {
+	record    string
+	digest    string
+	challenge *acme.Challenge
+}
+
+func defaultChallengeRecord(authzDomain string) string {
+	return "_acme-challenge." + authzDomain
+}
+
+func solveOrder(ctx context.Context, client *acme.Client, hostnames []string, recordFor func(string) string, solver dns.ChallengeSolver) (*acme.Order, error) {
+	if len(hostnames) == 0 {
+		return nil, fmt.Errorf("hostnames are required")
 	}
 	if solver == nil {
-		return nil, nil, time.Time{}, fmt.Errorf("dns challenge solver is required")
+		return nil, fmt.Errorf("dns challenge solver is required")
 	}
-	key, err := i.accountKey()
+	if len(hostnames) > 1 {
+		if _, ok := solver.(dns.ValueCleanupSolver); !ok {
+			return nil, fmt.Errorf("bundle issuance needs value-targeted dns cleanup")
+		}
+	}
+	ids := make([]acme.AuthzID, 0, len(hostnames))
+	for _, hostname := range hostnames {
+		ids = append(ids, acme.AuthzID{Type: "dns", Value: hostname})
+	}
+	order, err := client.AuthorizeOrder(ctx, ids)
 	if err != nil {
-		return nil, nil, time.Time{}, err
+		return nil, fmt.Errorf("authorize certificate order: %w", err)
 	}
-	directory := strings.TrimSpace(i.config.Directory)
-	if directory == "" {
-		directory = acme.LetsEncryptURL
-	}
-	client := &acme.Client{Key: key, DirectoryURL: directory}
-	if _, err := client.Register(ctx, &acme.Account{Contact: []string{"mailto:" + i.config.Email}}, acme.AcceptTOS); err != nil {
-		return nil, nil, time.Time{}, fmt.Errorf("register acme account: %w", err)
-	}
-	order, err := client.AuthorizeOrder(ctx, []acme.AuthzID{{Type: "dns", Value: hostname}})
-	if err != nil {
-		return nil, nil, time.Time{}, fmt.Errorf("authorize certificate order: %w", err)
-	}
+	presented := []pendingChallenge{}
 	for _, authzURL := range order.AuthzURLs {
 		authz, err := client.GetAuthorization(ctx, authzURL)
 		if err != nil {
-			return nil, nil, time.Time{}, fmt.Errorf("fetch authorization: %w", err)
+			cleanupChallenges(ctx, solver, presented)
+			return nil, fmt.Errorf("fetch authorization: %w", err)
 		}
 		for _, challenge := range authz.Challenges {
 			if challenge.Type != "dns-01" || challenge.Status != acme.StatusPending {
@@ -129,29 +137,62 @@ func (i *DNS01Issuer) IssueDNS01(ctx context.Context, hostname string, solver dn
 			}
 			digest, err := client.DNS01ChallengeRecord(challenge.Token)
 			if err != nil {
-				return nil, nil, time.Time{}, fmt.Errorf("compute dns challenge: %w", err)
+				cleanupChallenges(ctx, solver, presented)
+				return nil, fmt.Errorf("compute dns challenge: %w", err)
 			}
-			record := "_acme-challenge." + authz.Identifier.Value
+			record := recordFor(authz.Identifier.Value)
 			if err := solver.Present(ctx, record, digest); err != nil {
-				return nil, nil, time.Time{}, fmt.Errorf("publish dns challenge: %w", err)
+				cleanupChallenges(ctx, solver, presented)
+				return nil, fmt.Errorf("publish dns challenge: %w", err)
 			}
-			if err := waitForDNSRecord(ctx, record, digest); err != nil {
-				_ = solver.Cleanup(ctx, record)
-				return nil, nil, time.Time{}, err
-			}
-			accepted, err := client.Accept(ctx, challenge)
-			if err != nil {
-				_ = solver.Cleanup(ctx, record)
-				return nil, nil, time.Time{}, fmt.Errorf("accept dns challenge: %w", err)
-			}
-			if _, err := client.WaitAuthorization(ctx, accepted.URI); err != nil {
-				_ = solver.Cleanup(ctx, record)
-				return nil, nil, time.Time{}, fmt.Errorf("validate dns challenge: %w", err)
-			}
-			_ = solver.Cleanup(ctx, record)
+			presented = append(presented, pendingChallenge{record: record, digest: digest, challenge: challenge})
 		}
 	}
-	order, err = client.WaitOrder(ctx, order.URI)
+	for _, pending := range presented {
+		if err := waitForDNSRecord(ctx, pending.record, pending.digest); err != nil {
+			cleanupChallenges(ctx, solver, presented)
+			return nil, err
+		}
+	}
+	for _, pending := range presented {
+		accepted, err := client.Accept(ctx, pending.challenge)
+		if err != nil {
+			cleanupChallenges(ctx, solver, presented)
+			return nil, fmt.Errorf("accept dns challenge: %w", err)
+		}
+		if _, err := client.WaitAuthorization(ctx, accepted.URI); err != nil {
+			cleanupChallenges(ctx, solver, presented)
+			return nil, fmt.Errorf("validate dns challenge: %w", err)
+		}
+	}
+	cleanupChallenges(ctx, solver, presented)
+	return order, nil
+}
+
+func cleanupChallenges(ctx context.Context, solver dns.ChallengeSolver, presented []pendingChallenge) {
+	for _, pending := range presented {
+		if cleaner, ok := solver.(dns.ValueCleanupSolver); ok {
+			_ = cleaner.CleanupValue(ctx, pending.record, pending.digest)
+			continue
+		}
+		_ = solver.Cleanup(ctx, pending.record)
+	}
+}
+
+func (i *DNS01Issuer) acmeClient() (*acme.Client, error) {
+	key, err := i.accountKey()
+	if err != nil {
+		return nil, err
+	}
+	directory := strings.TrimSpace(i.config.Directory)
+	if directory == "" {
+		directory = acme.LetsEncryptURL
+	}
+	return &acme.Client{Key: key, DirectoryURL: directory}, nil
+}
+
+func (i *DNS01Issuer) finalizeOrder(ctx context.Context, client *acme.Client, order *acme.Order, hostnames []string) ([]byte, []byte, time.Time, error) {
+	ready, err := client.WaitOrder(ctx, order.URI)
 	if err != nil {
 		return nil, nil, time.Time{}, fmt.Errorf("wait for certificate order: %w", err)
 	}
@@ -159,11 +200,11 @@ func (i *DNS01Issuer) IssueDNS01(ctx context.Context, hostname string, solver dn
 	if err != nil {
 		return nil, nil, time.Time{}, fmt.Errorf("generate certificate key: %w", err)
 	}
-	csr, err := x509.CreateCertificateRequest(rand.Reader, &x509.CertificateRequest{DNSNames: []string{hostname}}, certKey)
+	csr, err := x509.CreateCertificateRequest(rand.Reader, &x509.CertificateRequest{DNSNames: hostnames}, certKey)
 	if err != nil {
 		return nil, nil, time.Time{}, fmt.Errorf("create certificate request: %w", err)
 	}
-	chain, _, err := client.CreateOrderCert(ctx, order.FinalizeURL, csr, true)
+	chain, _, err := client.CreateOrderCert(ctx, ready.FinalizeURL, csr, true)
 	if err != nil {
 		return nil, nil, time.Time{}, fmt.Errorf("finalize certificate order: %w", err)
 	}
@@ -183,12 +224,120 @@ func (i *DNS01Issuer) IssueDNS01(ctx context.Context, hostname string, solver dn
 		return nil, nil, time.Time{}, fmt.Errorf("encode certificate key: %w", err)
 	}
 	keyPEM := pem.EncodeToMemory(&pem.Block{Type: "EC PRIVATE KEY", Bytes: keyDER})
-	certFile, keyFile := HostCertificatePaths(i.config.CacheDir, hostname)
-	if err := os.WriteFile(certFile, certPEM, 0o600); err != nil {
-		return nil, nil, time.Time{}, fmt.Errorf("store issued certificate: %w", err)
-	}
-	if err := os.WriteFile(keyFile, keyPEM, 0o600); err != nil {
-		return nil, nil, time.Time{}, fmt.Errorf("store issued certificate key: %w", err)
+	for _, hostname := range hostnames {
+		certFile, keyFile := HostCertificatePaths(i.config.CacheDir, hostname)
+		if err := os.WriteFile(certFile, certPEM, 0o600); err != nil {
+			return nil, nil, time.Time{}, fmt.Errorf("store issued certificate: %w", err)
+		}
+		if err := os.WriteFile(keyFile, keyPEM, 0o600); err != nil {
+			return nil, nil, time.Time{}, fmt.Errorf("store issued certificate key: %w", err)
+		}
 	}
 	return certPEM, keyPEM, leaf.NotAfter, nil
+}
+
+func normalizeHostname(hostname string) (string, error) {
+	hostname = strings.ToLower(strings.TrimSpace(strings.TrimSuffix(hostname, ".")))
+	if hostname == "" {
+		return "", fmt.Errorf("hostname is required")
+	}
+	return hostname, nil
+}
+
+func (i *DNS01Issuer) IssueDNS01(ctx context.Context, hostname string, solver dns.ChallengeSolver) ([]byte, []byte, time.Time, error) {
+	hostname, err := normalizeHostname(hostname)
+	if err != nil {
+		return nil, nil, time.Time{}, err
+	}
+	client, err := i.acmeClient()
+	if err != nil {
+		return nil, nil, time.Time{}, err
+	}
+	if _, err := client.Register(ctx, &acme.Account{Contact: []string{"mailto:" + i.config.Email}}, acme.AcceptTOS); err != nil {
+		return nil, nil, time.Time{}, fmt.Errorf("register acme account: %w", err)
+	}
+	order, err := solveOrder(ctx, client, []string{hostname}, defaultChallengeRecord, solver)
+	if err != nil {
+		return nil, nil, time.Time{}, err
+	}
+	return i.finalizeOrder(ctx, client, order, []string{hostname})
+}
+
+func (i *DNS01Issuer) IssueBundleDNS01(ctx context.Context, hostnames []string, solver dns.ChallengeSolver) ([]byte, []byte, time.Time, error) {
+	normalized := make([]string, 0, len(hostnames))
+	for _, hostname := range hostnames {
+		name, err := normalizeHostname(hostname)
+		if err != nil {
+			return nil, nil, time.Time{}, err
+		}
+		normalized = append(normalized, name)
+	}
+	if len(normalized) == 0 {
+		return nil, nil, time.Time{}, fmt.Errorf("hostnames are required")
+	}
+	client, err := i.acmeClient()
+	if err != nil {
+		return nil, nil, time.Time{}, err
+	}
+	if _, err := client.Register(ctx, &acme.Account{Contact: []string{"mailto:" + i.config.Email}}, acme.AcceptTOS); err != nil {
+		return nil, nil, time.Time{}, fmt.Errorf("register acme account: %w", err)
+	}
+	order, err := solveOrder(ctx, client, normalized, defaultChallengeRecord, solver)
+	if err != nil {
+		return nil, nil, time.Time{}, err
+	}
+	return i.finalizeOrder(ctx, client, order, normalized)
+}
+
+func (i *DNS01Issuer) IssueDelegatedDNS01(ctx context.Context, hostname, target string, solver dns.ChallengeSolver) ([]byte, []byte, time.Time, error) {
+	hostname, err := normalizeHostname(hostname)
+	if err != nil {
+		return nil, nil, time.Time{}, err
+	}
+	target = strings.ToLower(strings.TrimSpace(strings.TrimSuffix(target, ".")))
+	if target == "" {
+		return nil, nil, time.Time{}, fmt.Errorf("delegation target is required")
+	}
+	client, err := i.acmeClient()
+	if err != nil {
+		return nil, nil, time.Time{}, err
+	}
+	if _, err := client.Register(ctx, &acme.Account{Contact: []string{"mailto:" + i.config.Email}}, acme.AcceptTOS); err != nil {
+		return nil, nil, time.Time{}, fmt.Errorf("register acme account: %w", err)
+	}
+	order, err := solveOrder(ctx, client, []string{hostname}, func(string) string { return target }, solver)
+	if err != nil {
+		return nil, nil, time.Time{}, err
+	}
+	return i.finalizeOrder(ctx, client, order, []string{hostname})
+}
+
+func (i *DNS01Issuer) IssueBundleDelegatedDNS01(ctx context.Context, hostnames []string, target string, solver dns.ChallengeSolver) ([]byte, []byte, time.Time, error) {
+	normalized := make([]string, 0, len(hostnames))
+	for _, hostname := range hostnames {
+		name, err := normalizeHostname(hostname)
+		if err != nil {
+			return nil, nil, time.Time{}, err
+		}
+		normalized = append(normalized, name)
+	}
+	if len(normalized) == 0 {
+		return nil, nil, time.Time{}, fmt.Errorf("hostnames are required")
+	}
+	target = strings.ToLower(strings.TrimSpace(strings.TrimSuffix(target, ".")))
+	if target == "" {
+		return nil, nil, time.Time{}, fmt.Errorf("delegation target is required")
+	}
+	client, err := i.acmeClient()
+	if err != nil {
+		return nil, nil, time.Time{}, err
+	}
+	if _, err := client.Register(ctx, &acme.Account{Contact: []string{"mailto:" + i.config.Email}}, acme.AcceptTOS); err != nil {
+		return nil, nil, time.Time{}, fmt.Errorf("register acme account: %w", err)
+	}
+	order, err := solveOrder(ctx, client, normalized, func(string) string { return target }, solver)
+	if err != nil {
+		return nil, nil, time.Time{}, err
+	}
+	return i.finalizeOrder(ctx, client, order, normalized)
 }
