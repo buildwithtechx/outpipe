@@ -213,9 +213,14 @@ func (s *AIAgentService) InvestigateStream(ctx context.Context, orgID, userID st
 		systemPrompt += "\n\nCollected Telemetry Evidence:\n" + string(evidenceBytes)
 	}
 
-	providerMessages := make([]map[string]string, 0, len(existingThread.Messages)+2)
+	const maxContextMessages = 20
+	history := existingThread.Messages
+	if len(history) > maxContextMessages {
+		history = history[len(history)-maxContextMessages:]
+	}
+	providerMessages := make([]map[string]string, 0, len(history)+2)
 	providerMessages = append(providerMessages, map[string]string{"role": "system", "content": systemPrompt})
-	for _, m := range existingThread.Messages {
+	for _, m := range history {
 		if m.Content != "" {
 			providerMessages = append(providerMessages, map[string]string{"role": m.Role, "content": m.Content})
 		}

@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"strings"
@@ -160,12 +161,23 @@ func (s *AIAgentService) streamAnthropic(ctx context.Context, key, model, system
 		}
 		var parsed struct {
 			Type  string `json:"type"`
+			Error *struct {
+				Type    string `json:"type"`
+				Message string `json:"message"`
+			} `json:"error,omitempty"`
 			Delta struct {
 				Type string `json:"type"`
 				Text string `json:"text"`
 			} `json:"delta"`
 		}
 		if err := json.Unmarshal([]byte(strings.TrimPrefix(line, "data: ")), &parsed); err == nil {
+			if parsed.Type == "error" {
+				errMsg := "anthropic stream error"
+				if parsed.Error != nil && parsed.Error.Message != "" {
+					errMsg = fmt.Sprintf("anthropic stream error: %s", parsed.Error.Message)
+				}
+				return fullText, errors.New(errMsg)
+			}
 			if parsed.Type == "content_block_delta" && parsed.Delta.Text != "" {
 				delta := parsed.Delta.Text
 				fullText += delta

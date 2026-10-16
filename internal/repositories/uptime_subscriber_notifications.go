@@ -95,7 +95,9 @@ func (r *GormUptimeRepository) CountSubscriberNotificationsByStatus(ctx context.
 		Joins("JOIN uptime_subscribers ON uptime_subscribers.id = uptime_subscriber_notifications.subscriber_id").
 		Where("uptime_subscribers.status_page_id = ? AND uptime_subscriber_notifications.status IN ?", pageID, activeStatuses).
 		Select("MIN(uptime_subscriber_notifications.created_at)").
-		Scan(&oldestTime).Error; err == nil && !oldestTime.IsZero() {
+		Scan(&oldestTime).Error; err != nil {
+		return nil, nil, fmt.Errorf("find oldest subscriber notification: %w", err)
+	} else if !oldestTime.IsZero() {
 		oldest = &oldestTime
 	}
 	return counts, oldest, nil

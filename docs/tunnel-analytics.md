@@ -18,8 +18,10 @@ and Secrets; Redis remains the live tunnel state and telemetry delivery queue.
    - API / Cron: `OUTPIPE_TINYBIRD_URL` (or `analytics.tinybird_url`), `OUTPIPE_TINYBIRD_TOKEN`, and optional `OUTPIPE_TINYBIRD_DATASOURCE` (or ClickHouse equivalents).
    - Relay: `OUTPIPE_INTERNAL_API_URL` and `OUTPIPE_INTERNAL_API_SECRET` to forward captured requests to the API (`/internal/captures`), which queues them for delivery to Tinybird/ClickHouse.
    - Frontend / Dashboard: `TINYBIRD_API_HOST` and `TINYBIRD_QUERY_TOKEN` for reading from the `tunnel_*` endpoints.
-4. Tinybird append scopes for the ingest token must include `outpipe_telemetry`, `tunnel_events`, `tunnel_request_captures`,
-   `tunnel_protocol_events`, `tunnel_active_snapshots`, `otel_logs`, `otel_spans`, and `otel_metrics`. Query scopes for the dashboard token must
+4. Tinybird append scopes for the API/Cron analytics exporter token (`OUTPIPE_TINYBIRD_TOKEN`)
+   must include `outpipe_telemetry`, `tunnel_events`, `tunnel_request_captures`, `tunnel_protocol_events`,
+   and `tunnel_active_snapshots`. The separate observability ingestion gateway token holds append grants for
+   `otel_logs`, `otel_spans`, and `otel_metrics`. Query scopes for the dashboard token must
    include the 13 `tunnel_*` endpoints and observability pipes. Never give runtime services a
    workspace-admin or deployment token.
 5. Promote the new runtimes together after verification.

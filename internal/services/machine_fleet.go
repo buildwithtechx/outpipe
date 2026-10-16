@@ -106,10 +106,14 @@ func (s *MachineFleetService) Status(ctx context.Context, orgID, fleetID string)
 	if err != nil {
 		return status, err
 	}
+	desiredIDs := make(map[string]struct{}, len(desired))
+	for _, want := range desired {
+		desiredIDs[want.TunnelID] = struct{}{}
+	}
 	byTunnel := make(map[string]models.Tunnel, len(live))
 	for _, tunnel := range live {
 		byTunnel[tunnel.ID] = tunnel
-		if tunnel.MachineOwned {
+		if _, ok := desiredIDs[tunnel.ID]; ok && tunnel.MachineOwned {
 			status.LiveTunnels = append(status.LiveTunnels, tunnel)
 		}
 	}

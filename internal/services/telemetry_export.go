@@ -180,14 +180,20 @@ func (e *HTTPAnalyticsExporter) ExportItems(ctx context.Context, signal string, 
 		return err
 	}
 	if e.config.TinybirdURL != "" {
-		ds := analyticsDestinationName(signal, e.config.TinybirdDatasource)
+		ds := e.config.TinybirdDatasource
+		if ds == "" {
+			ds = "outpipe_telemetry"
+		}
 		endpoint := strings.TrimRight(e.config.TinybirdURL, "/") + "/v0/events?" + url.Values{"name": {ds}, "wait": {"true"}}.Encode()
 		if err := e.send(ctx, endpoint, body, true, len(items)); err != nil {
 			return err
 		}
 	}
 	if e.config.ClickHouseURL != "" {
-		table := analyticsDestinationName(signal, e.config.ClickHouseTable)
+		table := e.config.ClickHouseTable
+		if table == "" {
+			table = "outpipe_telemetry"
+		}
 		query := "INSERT INTO " + e.config.ClickHouseDatabase + "." + table + " FORMAT JSONEachRow"
 		endpoint := strings.TrimRight(e.config.ClickHouseURL, "/") + "/?" + url.Values{"query": {query}, "date_time_input_format": {"best_effort"}, "wait_end_of_query": {"1"}}.Encode()
 		if err := e.send(ctx, endpoint, body, false, len(items)); err != nil {
@@ -195,60 +201,6 @@ func (e *HTTPAnalyticsExporter) ExportItems(ctx context.Context, signal string, 
 		}
 	}
 	return nil
-}
-
-func analyticsDestinationName(signal, fallback string) string {
-	if fallback != "" {
-		return fallback
-	}
-	switch strings.ToLower(strings.TrimSpace(signal)) {
-	case "captures":
-		return "tunnel_request_captures"
-	case "logs":
-		return "otel_logs"
-	case "spans":
-		return "otel_spans"
-	case "metrics":
-		return "otel_metrics"
-	default:
-		return "outpipe_telemetry"
-	}
-}
-
-func buildAnalyticsBody(signal string, items []map[string]json.RawMessage) ([]byte, error) {
-	var body bytes.Buffer
-	encoder := json.NewEncoder(&body)
-	for _, item := range items {
-		payload, err := json.Marshal(item)
-		if err != nil {
-			return nil, fmt.Errorf("encode analytics event: %w", err)
-		}
-		event := make(map[string]any, len(item)+8)
-		for k, raw := range item {
-			var v any
-			if err := json.Unmarshal(raw, &v); err == nil {
-				event[k] = v
-			} else {
-				event[k] = string(raw)
-			}
-		}
-		event["payload"] = string(payload)
-		if _, ok := event["signal"]; !ok {
-			event["signal"] = signal
-		}
-		if _, ok := event["timestamp"]; !ok {
-			event["timestamp"] = analyticsEventTime(item).Format(time.RFC3339Nano)
-		}
-		if idVal, ok := event["id"]; ok {
-			if _, hasEventID := event["event_id"]; !hasEventID {
-				event["event_id"] = idVal
-			}
-		}
-		if err := encoder.Encode(event); err != nil {
-			return nil, fmt.Errorf("encode analytics row: %w", err)
-		}
-	}
-	return body.Bytes(), nil
 }
 
 func (e *HTTPAnalyticsExporter) send(ctx context.Context, endpoint string, body []byte, tinybird bool, count int) error {

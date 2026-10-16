@@ -2,6 +2,7 @@ package repositories
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -106,6 +107,8 @@ func (r *GormAlertRepository) OpenIncident(ctx context.Context, link *models.Ale
 	var existing models.AlertIncident
 	if err := r.db.WithContext(ctx).Where("alert_id = ? AND resolved_at IS NULL", link.AlertID).First(&existing).Error; err == nil {
 		return fmt.Errorf("alert %s already has an open incident %s", link.AlertID, existing.IncidentID)
+	} else if !errors.Is(err, gorm.ErrRecordNotFound) {
+		return fmt.Errorf("find open alert incident: %w", err)
 	}
 	return wrap(r.db.WithContext(ctx).Create(link).Error, "link alert incident")
 }
