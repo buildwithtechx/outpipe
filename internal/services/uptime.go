@@ -311,4 +311,3 @@ func (s *UptimeService) UpsertStatusPage(ctx context.Context, orgID, slug, title
 	}
 	return *page, nil
 }
-

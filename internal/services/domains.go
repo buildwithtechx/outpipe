@@ -59,13 +59,15 @@ type DNS01Issuer interface {
 	IssueBundleDelegatedDNS01(context.Context, []string, string, dns.ChallengeSolver) ([]byte, []byte, time.Time, error)
 }
 
-func (s *DomainService) SetBilling(billing *BillingService)                  { s.billing = billing }
-func (s *DomainService) SetCertificateIssuer(issuer CertificateIssuer)       { s.issuer = issuer }
+func (s *DomainService) SetBilling(billing *BillingService)            { s.billing = billing }
+func (s *DomainService) SetCertificateIssuer(issuer CertificateIssuer) { s.issuer = issuer }
 func (s *DomainService) SetCertificateCacheDir(dir string) {
 	s.certCacheDir = strings.TrimSpace(dir)
 }
-func (s *DomainService) SetDNSCredentials(credentials *DNSCredentialService) { s.dnsCredentials = credentials }
-func (s *DomainService) SetDNS01Issuer(issuer DNS01Issuer)                    { s.dnsIssuer = issuer }
+func (s *DomainService) SetDNSCredentials(credentials *DNSCredentialService) {
+	s.dnsCredentials = credentials
+}
+func (s *DomainService) SetDNS01Issuer(issuer DNS01Issuer) { s.dnsIssuer = issuer }
 func (s *DomainService) SetDNSProtector(protector dnsSecretProtector) {
 	if s.dnsCredentials != nil {
 		s.dnsCredentials.SetProtector(protector)
@@ -606,9 +608,7 @@ func (s *DomainService) renewAutomated(ctx context.Context, domain *models.Domai
 }
 
 func validHostname(hostname string) bool {
-	if strings.HasPrefix(hostname, "*.") {
-		hostname = hostname[2:]
-	}
+	hostname = strings.TrimPrefix(hostname, "*.")
 
 	if len(hostname) > 253 || !strings.Contains(hostname, ".") || strings.Contains(hostname, "..") || strings.Contains(hostname, "*") || net.ParseIP(hostname) != nil {
 		return false

@@ -1,9 +1,9 @@
 package validation
 
 import (
-	"slices"
 	"encoding/json"
 	"fmt"
+	"slices"
 	"strings"
 )
 

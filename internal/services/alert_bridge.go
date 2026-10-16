@@ -12,8 +12,8 @@ import (
 )
 
 type AlertBridgeService struct {
-	alerts repositories.AlertRepository
-	uptime repositories.UptimeRepository
+	alerts    repositories.AlertRepository
+	uptime    repositories.UptimeRepository
 	incidents *UptimeService
 	now       func() time.Time
 }

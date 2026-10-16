@@ -21,14 +21,14 @@ var (
 )
 
 const (
-	subscriberConfirmTTL      = 24 * time.Hour
-	subscriberUnsubscribeTTL  = 365 * 24 * time.Hour
-	maxConfirmedSubscribers   = 1000
-	maxPendingSubscribers     = 2000
-	maxSignupsPerIPPerHour    = 5
-	maxSignupsPerEmailPer15m  = 1
-	maxSendsPerSubscriberDay  = 20
-	subscriberNotifyMaxTries  = 5
+	subscriberConfirmTTL     = 24 * time.Hour
+	subscriberUnsubscribeTTL = 365 * 24 * time.Hour
+	maxConfirmedSubscribers  = 1000
+	maxPendingSubscribers    = 2000
+	maxSignupsPerIPPerHour   = 5
+	maxSignupsPerEmailPer15m = 1
+	maxSendsPerSubscriberDay = 20
+	subscriberNotifyMaxTries = 5
 )
 
 type SubscriberMailer interface {

@@ -14,7 +14,9 @@ import (
 type stubDNSProtector struct{}
 
 func (stubDNSProtector) Seal(value string) (string, error) { return "sealed:" + value, nil }
-func (stubDNSProtector) Open(value string) (string, error) { return strings.TrimPrefix(value, "sealed:"), nil }
+func (stubDNSProtector) Open(value string) (string, error) {
+	return strings.TrimPrefix(value, "sealed:"), nil
+}
 
 type stubChallengeSolver struct {
 	records map[string]string

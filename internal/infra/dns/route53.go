@@ -128,8 +128,8 @@ func (p *Route53Provider) call(ctx context.Context, method, path, query string, 
 }
 
 type route53ZoneList struct {
-	XMLName     xml.Name `xml:"ListHostedZonesResponse"`
-	Zones       []struct {
+	XMLName xml.Name `xml:"ListHostedZonesResponse"`
+	Zones   []struct {
 		ID   string `xml:"Id"`
 		Name string `xml:"Name"`
 	} `xml:"HostedZones>HostedZone"`
@@ -177,8 +177,8 @@ type route53RecordSet struct {
 }
 
 type route53RecordSets struct {
-	XMLName xml.Name            `xml:"ListResourceRecordSetsResponse"`
-	Sets    []route53RecordSet  `xml:"ResourceRecordSets>ResourceRecordSet"`
+	XMLName xml.Name           `xml:"ListResourceRecordSetsResponse"`
+	Sets    []route53RecordSet `xml:"ResourceRecordSets>ResourceRecordSet"`
 }
 
 func quoteTXT(value string) string {

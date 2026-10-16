@@ -78,27 +78,27 @@ type BackupConfig struct {
 }
 
 type AppConfig struct {
-	Port                  string        `json:"port" yaml:"port" env:"PORT" envDefault:"8080"`
-	InternalListenAddress string        `json:"internalListenAddress" yaml:"internal_listen_address" env:"INTERNAL_LISTEN_ADDRESS" envDefault:"127.0.0.1:9090"`
-	Name                  string        `json:"name" yaml:"name" env:"APP_NAME" envDefault:"outpipe"`
-	Environment           string        `json:"environment" yaml:"environment" env:"ENV" envDefault:"development"`
-	LogLevel              string        `json:"logLevel" yaml:"log_level" env:"LOG_LEVEL" envDefault:"info"`
-	ShutdownTimeout       time.Duration `json:"shutdownTimeout" yaml:"shutdown_timeout" env:"SHUTDOWN_TIMEOUT" envDefault:"10s"`
-	AllowedOrigins        string        `json:"allowedOrigins" yaml:"allowed_origins" env:"ALLOWED_ORIGINS" envDefault:"http://localhost:3000,http://localhost:3001"`
-	CORSOrigin            string        `json:"corsOrigin" yaml:"cors_origin" env:"CORS_ORIGIN" envDefault:"http://localhost:3000"`
-	PublicAPIURL          string        `json:"publicApiUrl" yaml:"public_api_url" env:"PUBLIC_API_URL" envDefault:"http://localhost:8080"`
-	DashboardURL          string        `json:"dashboardUrl" yaml:"dashboard_url" env:"DASHBOARD_URL" envDefault:"http://localhost:3000"`
-	StatusBaseURL         string        `json:"statusBaseUrl" yaml:"status_base_url" env:"STATUS_BASE_URL" envDefault:"https://status.outpipe.dev"`
-	ACMEEnabled           bool          `json:"acmeEnabled" yaml:"acme_enabled" env:"ACME_ENABLED" envDefault:"false"`
-	ACMEEmail             string        `json:"acmeEmail" yaml:"acme_email" env:"ACME_EMAIL"`
-	ACMEDirectory         string        `json:"acmeDirectory" yaml:"acme_directory" env:"ACME_DIRECTORY"`
-	CertificateCache      string        `json:"certificateCacheDir" yaml:"certificate_cache_dir" env:"CERTIFICATE_CACHE_DIR" envDefault:".data/acme"`
-	ChallengeZone         string        `json:"challengeZone" yaml:"challenge_zone" env:"CHALLENGE_ZONE"`
-	ChallengeDNSProvider  string        `json:"challengeDnsProvider" yaml:"challenge_dns_provider" env:"CHALLENGE_DNS_PROVIDER"`
-	ChallengeDNSCredential string       `json:"-" yaml:"challenge_dns_credential" env:"CHALLENGE_DNS_CREDENTIAL"`
-	RequireTLS            bool          `json:"requireTls" yaml:"require_tls" env:"REQUIRE_TLS" envDefault:"false"`
-	TLSCertFile           string        `json:"tlsCertFile" yaml:"tls_cert_file" env:"TLS_CERT_FILE"`
-	TLSKeyFile            string        `json:"tlsKeyFile" yaml:"tls_key_file" env:"TLS_KEY_FILE"`
+	Port                   string        `json:"port" yaml:"port" env:"PORT" envDefault:"8080"`
+	InternalListenAddress  string        `json:"internalListenAddress" yaml:"internal_listen_address" env:"INTERNAL_LISTEN_ADDRESS" envDefault:"127.0.0.1:9090"`
+	Name                   string        `json:"name" yaml:"name" env:"APP_NAME" envDefault:"outpipe"`
+	Environment            string        `json:"environment" yaml:"environment" env:"ENV" envDefault:"development"`
+	LogLevel               string        `json:"logLevel" yaml:"log_level" env:"LOG_LEVEL" envDefault:"info"`
+	ShutdownTimeout        time.Duration `json:"shutdownTimeout" yaml:"shutdown_timeout" env:"SHUTDOWN_TIMEOUT" envDefault:"10s"`
+	AllowedOrigins         string        `json:"allowedOrigins" yaml:"allowed_origins" env:"ALLOWED_ORIGINS" envDefault:"http://localhost:3000,http://localhost:3001"`
+	CORSOrigin             string        `json:"corsOrigin" yaml:"cors_origin" env:"CORS_ORIGIN" envDefault:"http://localhost:3000"`
+	PublicAPIURL           string        `json:"publicApiUrl" yaml:"public_api_url" env:"PUBLIC_API_URL" envDefault:"http://localhost:8080"`
+	DashboardURL           string        `json:"dashboardUrl" yaml:"dashboard_url" env:"DASHBOARD_URL" envDefault:"http://localhost:3000"`
+	StatusBaseURL          string        `json:"statusBaseUrl" yaml:"status_base_url" env:"STATUS_BASE_URL" envDefault:"https://status.outpipe.dev"`
+	ACMEEnabled            bool          `json:"acmeEnabled" yaml:"acme_enabled" env:"ACME_ENABLED" envDefault:"false"`
+	ACMEEmail              string        `json:"acmeEmail" yaml:"acme_email" env:"ACME_EMAIL"`
+	ACMEDirectory          string        `json:"acmeDirectory" yaml:"acme_directory" env:"ACME_DIRECTORY"`
+	CertificateCache       string        `json:"certificateCacheDir" yaml:"certificate_cache_dir" env:"CERTIFICATE_CACHE_DIR" envDefault:".data/acme"`
+	ChallengeZone          string        `json:"challengeZone" yaml:"challenge_zone" env:"CHALLENGE_ZONE"`
+	ChallengeDNSProvider   string        `json:"challengeDnsProvider" yaml:"challenge_dns_provider" env:"CHALLENGE_DNS_PROVIDER"`
+	ChallengeDNSCredential string        `json:"-" yaml:"challenge_dns_credential" env:"CHALLENGE_DNS_CREDENTIAL"`
+	RequireTLS             bool          `json:"requireTls" yaml:"require_tls" env:"REQUIRE_TLS" envDefault:"false"`
+	TLSCertFile            string        `json:"tlsCertFile" yaml:"tls_cert_file" env:"TLS_CERT_FILE"`
+	TLSKeyFile             string        `json:"tlsKeyFile" yaml:"tls_key_file" env:"TLS_KEY_FILE"`
 }
 
 type AuthConfig struct {
