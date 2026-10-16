@@ -87,7 +87,7 @@ func newVersionCommand() *cobra.Command {
 		Use:   "version",
 		Short: "print the outpipe version",
 		Args:  cobra.NoArgs,
-		RunE: func(cmd *cobra.Command, args []string) error {
+		RunE: func(cmd *cobra.Command, _ []string) error {
 			cmd.Println(version)
 			return nil
 		},

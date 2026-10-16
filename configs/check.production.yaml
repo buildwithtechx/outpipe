@@ -9,6 +9,7 @@ app:
   cors_origin: "https://app.outpipe.dev"
   public_api_url: "https://api.outpipe.dev"
   dashboard_url: "https://app.outpipe.dev"
+  status_base_url: "https://status.outpipe.dev"
   require_tls: true
 
 service:

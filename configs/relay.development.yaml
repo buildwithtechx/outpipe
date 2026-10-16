@@ -5,11 +5,14 @@ app:
   environment: "development"
   log_level: "debug"
   shutdown_timeout: 10s
-  allowed_origins: "http://localhost:3000,http://localhost:3001"
+  allowed_origins: "http://localhost:3000,http://localhost:3001,http://localhost:4322"
   cors_origin: "http://localhost:3000"
   public_api_url: "http://localhost:8080"
   dashboard_url: "http://localhost:3000"
+  status_base_url: "http://localhost:4322"
   require_tls: false
+  tls_cert_file: "data/tls/localhost.crt"
+  tls_key_file: "data/tls/localhost.key"
 
 relay_id: "relay-local"
 
@@ -30,6 +33,7 @@ tunnel:
   drain_timeout: 10s
   agent_inactivity_timeout: 90s
   max_frame_bytes: 16777216
+  capture_spool_dir: "data/capture-spool"
   require_tls: false
 
 service:

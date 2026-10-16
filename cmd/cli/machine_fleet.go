@@ -97,7 +97,7 @@ func newMachineFleetListCommand(cfg config.CLIConfig) *cobra.Command {
 		Use:   "list",
 		Short: "list machine fleets",
 		Args:  cobra.NoArgs,
-		RunE: func(cmd *cobra.Command, args []string) error {
+		RunE: func(cmd *cobra.Command, _ []string) error {
 			api, err := fleetAPIClient(cfg)
 			if err != nil {
 				return err

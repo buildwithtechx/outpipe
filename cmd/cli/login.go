@@ -16,7 +16,7 @@ func newLoginCommand(cfg config.CLIConfig) *cobra.Command {
 		Use:   "login",
 		Short: "save an agent token issued by the dashboard",
 		Args:  cobra.NoArgs,
-		RunE: func(cmd *cobra.Command, args []string) error {
+		RunE: func(cmd *cobra.Command, _ []string) error {
 			token, err := cmd.Flags().GetString("agent-token")
 
 			if err != nil {

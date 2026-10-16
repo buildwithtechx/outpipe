@@ -14,7 +14,7 @@ func newHealthCommand(cfg config.CLIConfig) *cobra.Command {
 		Use:   "health",
 		Short: "check API readiness",
 		Args:  cobra.NoArgs,
-		RunE: func(cmd *cobra.Command, args []string) error {
+		RunE: func(cmd *cobra.Command, _ []string) error {
 			apiURL, err := cmd.Flags().GetString("api-url")
 
 			if err != nil {

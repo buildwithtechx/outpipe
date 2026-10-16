@@ -12,7 +12,7 @@ import (
 )
 
 func fakeBackupRunner(record *[]string, failOn string) func(context.Context, string, ...string) ([]byte, error) {
-	return func(ctx context.Context, executable string, args ...string) ([]byte, error) {
+	return func(_ context.Context, executable string, args ...string) ([]byte, error) {
 		joined := strings.Join(args, " ")
 		*record = append(*record, executable+" "+joined)
 

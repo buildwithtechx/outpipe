@@ -9,6 +9,7 @@ app:
   cors_origin: "https://app.outpipe.dev"
   public_api_url: "https://api.outpipe.dev"
   dashboard_url: "https://app.outpipe.dev"
+  status_base_url: "https://status.outpipe.dev"
   require_tls: true
   tls_cert_file: "/etc/outpipe/certs/fullchain.pem"
   tls_key_file: "/etc/outpipe/certs/privkey.pem"
@@ -32,6 +33,7 @@ tunnel:
   drain_timeout: 15s
   agent_inactivity_timeout: 90s
   max_frame_bytes: 16777216
+  capture_spool_dir: "/var/lib/outpipe/capture-spool"
   require_tls: true
 
 service:

@@ -5,10 +5,11 @@ app:
   environment: "development"
   log_level: "info"
   shutdown_timeout: 10s
-  allowed_origins: "http://localhost:3000,http://localhost:3001"
+  allowed_origins: "http://localhost:3000,http://localhost:3001,http://localhost:4322"
   cors_origin: "http://localhost:3000"
   public_api_url: "http://localhost:8080"
   dashboard_url: "http://localhost:3000"
+  status_base_url: "http://localhost:4322"
   require_tls: false
 
 service:

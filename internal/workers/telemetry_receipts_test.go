@@ -14,7 +14,7 @@ type stubReceiptStore struct {
 	err     error
 }
 
-func (s *stubReceiptStore) DeleteExpiredReceipts(ctx context.Context, cutoff time.Time) (int64, error) {
+func (s *stubReceiptStore) DeleteExpiredReceipts(_ context.Context, cutoff time.Time) (int64, error) {
 	s.cutoff = cutoff
 	return s.removed, s.err
 }
