@@ -177,8 +177,6 @@ func (r *GormUptimeRepository) ListNotificationTargets(ctx context.Context, page
 	return subscribers, nil
 }
 
-
-
 func (r *GormUptimeRepository) MarkSubscriberSent(ctx context.Context, subscriberID string, sentAt time.Time) error {
 	return wrap(r.db.WithContext(ctx).Model(&models.UptimeSubscriber{}).Where("id = ?", subscriberID).Updates(map[string]any{"last_sent_at": sentAt}).Error, "mark subscriber sent")
 }

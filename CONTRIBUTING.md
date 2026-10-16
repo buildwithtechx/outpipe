@@ -16,7 +16,7 @@ Multi-language SDKs live in `buildwithtechx/outpipe-sdks`.
 
 Requirements:
 
-- Go 1.26.8 or newer.
+- Go 1.26.9 or newer.
 - Docker & Docker Compose (for Postgres and Timescale integration testing).
 
 Compile and test all core binaries:
