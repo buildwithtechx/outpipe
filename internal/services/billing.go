@@ -64,7 +64,7 @@ type BillingTransition struct {
 	InvoiceURL            string
 	Status                models.SubscriptionStatus
 	CurrentPeriodEnd      *time.Time
-	CancelAtPeriodEnd     bool
+	CancelAtPeriodEnd     *bool
 	ProviderAuthorization string
 	EventType             string
 	AmountMinor           int64

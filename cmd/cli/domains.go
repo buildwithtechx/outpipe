@@ -18,6 +18,7 @@ type DomainDTO struct {
 	Status             string `json:"status"`
 	VerificationMethod string `json:"verificationMethod"`
 	CertificateStatus  string `json:"certificateStatus"`
+	DelegationTarget   string `json:"delegationTarget,omitempty"`
 }
 
 type DNSProviderDTO struct {
@@ -118,7 +119,11 @@ func runDomainAction(cmd *cobra.Command, cfg config.CLIConfig, action string, ar
 			enc.SetIndent("", "  ")
 			return enc.Encode(result)
 		}
-		fmt.Printf("domain %s registered (%s)\nverification token (shown once): %s\n", result.Domain.Hostname, result.Domain.VerificationMethod, result.VerificationToken)
+		if result.Domain.DelegationTarget != "" {
+			fmt.Printf("domain %s registered (%s)\ndelegation target: %s\n", result.Domain.Hostname, result.Domain.VerificationMethod, result.Domain.DelegationTarget)
+		} else {
+			fmt.Printf("domain %s registered (%s)\nverification token (shown once): %s\n", result.Domain.Hostname, result.Domain.VerificationMethod, result.VerificationToken)
+		}
 	case "add-bundle":
 		if organizationID == "" {
 			return fmt.Errorf("organization is required")
@@ -149,7 +154,11 @@ func runDomainAction(cmd *cobra.Command, cfg config.CLIConfig, action string, ar
 			return enc.Encode(bundle)
 		}
 		for _, domain := range bundle {
-			fmt.Printf("domain %s registered (%s)\n", domain.Hostname, domain.VerificationMethod)
+			if domain.DelegationTarget != "" {
+				fmt.Printf("domain %s registered (%s)\ndelegation target: %s\n", domain.Hostname, domain.VerificationMethod, domain.DelegationTarget)
+			} else {
+				fmt.Printf("domain %s registered (%s)\n", domain.Hostname, domain.VerificationMethod)
+			}
 		}
 	case "verify":
 		token, err := cmd.Flags().GetString("token")

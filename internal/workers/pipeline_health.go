@@ -81,7 +81,7 @@ func NewOrganizationListAdapter(organizations repositories.OrganizationRepositor
 }
 
 func (a *OrganizationListAdapter) ListOrganizations(ctx context.Context) ([]string, error) {
-	orgs, err := a.organizations.List(ctx)
+	orgs, err := a.organizations.ListAll(ctx)
 	if err != nil {
 		return nil, err
 	}

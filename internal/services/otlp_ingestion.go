@@ -98,10 +98,15 @@ func (s *ObservabilityService) IngestTraces(ctx context.Context, orgID string, r
 			return 0, err
 		}
 		if duplicate {
-			return 0, nil
+			if err := s.exportTelemetry(ctx, "spans", rows); err != nil {
+				return 0, err
+			}
+			return len(rows), nil
 		}
 		if err := s.repo.CreateSpans(ctx, rows); err != nil {
-			s.refundTelemetry(ctx, orgID, "traces", raw)
+			if refErr := s.refundTelemetry(ctx, orgID, "traces", raw); refErr != nil {
+				return 0, fmt.Errorf("create spans: %w; refund: %v", err, refErr)
+			}
 			return 0, &TelemetryUnavailableError{Cause: err}
 		}
 	} else if err := s.repo.CreateSpans(ctx, rows); err != nil {
@@ -192,10 +197,15 @@ func (s *ObservabilityService) IngestLogs(ctx context.Context, orgID string, raw
 			return 0, err
 		}
 		if duplicate {
-			return 0, nil
+			if err := s.exportTelemetry(ctx, "logs", rows); err != nil {
+				return 0, err
+			}
+			return len(rows), nil
 		}
 		if err := s.repo.CreateLogs(ctx, rows); err != nil {
-			s.refundTelemetry(ctx, orgID, "logs", raw)
+			if refErr := s.refundTelemetry(ctx, orgID, "logs", raw); refErr != nil {
+				return 0, fmt.Errorf("create logs: %w; refund: %v", err, refErr)
+			}
 			return 0, &TelemetryUnavailableError{Cause: err}
 		}
 	} else if err := s.repo.CreateLogs(ctx, rows); err != nil {

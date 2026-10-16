@@ -129,7 +129,7 @@ func TestAIAgentServiceInvestigateStream(t *testing.T) {
 	}
 
 	threadID := threads[0].ID
-	if err := svc.DeleteThread(ctx, orgID, threadID); err != nil {
+	if err := svc.DeleteThread(ctx, orgID, threadID, userID); err != nil {
 		t.Fatalf("delete thread failed: %v", err)
 	}
 

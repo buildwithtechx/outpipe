@@ -60,18 +60,15 @@ Investigation completed. The primary timing bottleneck is concentrated in the up
 	return fullText, nil
 }
 
-func (s *AIAgentService) streamOpenAI(ctx context.Context, key, model, prompt string, emit func(models.AIStreamEvent) error) (string, error) {
-	return s.streamOpenAICompat(ctx, "https://api.openai.com/v1/chat/completions", key, model, prompt, emit)
+func (s *AIAgentService) streamOpenAI(ctx context.Context, key, model string, messages []map[string]string, emit func(models.AIStreamEvent) error) (string, error) {
+	return s.streamOpenAICompat(ctx, "https://api.openai.com/v1/chat/completions", key, model, messages, emit)
 }
 
-func (s *AIAgentService) streamOpenAICompat(ctx context.Context, url, key, model, prompt string, emit func(models.AIStreamEvent) error) (string, error) {
+func (s *AIAgentService) streamOpenAICompat(ctx context.Context, url, key, model string, messages []map[string]string, emit func(models.AIStreamEvent) error) (string, error) {
 	bodyData := map[string]interface{}{
-		"model": model,
-		"messages": []map[string]string{
-			{"role": "system", "content": "You are Outpipe Agent, an expert read-only observability and tunneling investigator. Provide structured Markdown conclusions with ### Diagnostic Summary, ### Key Observations, ### Unconfirmed Possibilities, ### Recommended Next Checks."},
-			{"role": "user", "content": prompt},
-		},
-		"stream": true,
+		"model":    model,
+		"messages": messages,
+		"stream":   true,
 	}
 	bodyBytes, err := json.Marshal(bodyData)
 	if err != nil {
@@ -119,6 +116,65 @@ func (s *AIAgentService) streamOpenAICompat(ctx context.Context, url, key, model
 	}
 	if err := scanner.Err(); err != nil {
 		return fullText, fmt.Errorf("read ai stream: %w", err)
+	}
+	return fullText, nil
+}
+
+func (s *AIAgentService) streamAnthropic(ctx context.Context, key, model, systemPrompt string, messages []map[string]string, emit func(models.AIStreamEvent) error) (string, error) {
+	bodyData := map[string]interface{}{
+		"model":      model,
+		"max_tokens": 4096,
+		"system":     systemPrompt,
+		"messages":   messages,
+		"stream":     true,
+	}
+	bodyBytes, err := json.Marshal(bodyData)
+	if err != nil {
+		return "", fmt.Errorf("marshal anthropic request: %w", err)
+	}
+
+	httpReq, err := http.NewRequestWithContext(ctx, http.MethodPost, "https://api.anthropic.com/v1/messages", bytes.NewReader(bodyBytes))
+	if err != nil {
+		return "", fmt.Errorf("create anthropic request: %w", err)
+	}
+	httpReq.Header.Set("Content-Type", "application/json")
+	httpReq.Header.Set("x-api-key", key)
+	httpReq.Header.Set("anthropic-version", "2023-06-01")
+
+	resp, err := http.DefaultClient.Do(httpReq)
+	if err != nil {
+		return "", fmt.Errorf("do anthropic request: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return "", fmt.Errorf("anthropic provider error with status %d", resp.StatusCode)
+	}
+
+	scanner := bufio.NewScanner(resp.Body)
+	var fullText string
+	for scanner.Scan() {
+		line := strings.TrimSpace(scanner.Text())
+		if !strings.HasPrefix(line, "data: ") {
+			continue
+		}
+		var parsed struct {
+			Type  string `json:"type"`
+			Delta struct {
+				Type string `json:"type"`
+				Text string `json:"text"`
+			} `json:"delta"`
+		}
+		if err := json.Unmarshal([]byte(strings.TrimPrefix(line, "data: ")), &parsed); err == nil {
+			if parsed.Type == "content_block_delta" && parsed.Delta.Text != "" {
+				delta := parsed.Delta.Text
+				fullText += delta
+				_ = emit(models.AIStreamEvent{Type: "text", Delta: delta})
+			}
+		}
+	}
+	if err := scanner.Err(); err != nil {
+		return fullText, fmt.Errorf("read anthropic stream: %w", err)
 	}
 	return fullText, nil
 }

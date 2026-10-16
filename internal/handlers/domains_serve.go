@@ -53,6 +53,12 @@ func (h *DomainHandler) ServeCertificate(c *fiber.Ctx) error {
 	if err != nil {
 		return writeError(c, fiber.StatusNotFound, errCertificateUnavailable)
 	}
+	if reqOrgID := strings.TrimSpace(c.Query("organizationId")); reqOrgID != "" && !strings.EqualFold(domain.OrganizationID, reqOrgID) {
+		return writeError(c, fiber.StatusForbidden, errCertificateUnavailable)
+	}
+	if reqOrgHeader := strings.TrimSpace(c.Get("X-Organization-Id")); reqOrgHeader != "" && !strings.EqualFold(domain.OrganizationID, reqOrgHeader) {
+		return writeError(c, fiber.StatusForbidden, errCertificateUnavailable)
+	}
 	certificate, err := h.domains.ServeCertificate(c.UserContext(), domain.OrganizationID, hostname)
 	if err != nil {
 		return certificateError(c, err)

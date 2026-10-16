@@ -36,10 +36,16 @@ func (s *ObservabilityService) admitTelemetry(ctx context.Context, orgID, signal
 	limit := models.DefaultTelemetryBytesMonthly
 	if s.quotaBilling != nil {
 		if subscription, err := s.quotaBilling.FindSubscription(ctx, orgID); err == nil {
-			if plan, err := s.quotaBilling.FindPlanByID(ctx, subscription.PlanID); err == nil {
-				limit = plan.TelemetryBytes
-				if limit == 0 {
-					limit = models.DefaultTelemetryBytesMonthly
+			entitled := subscription.Status == models.SubscriptionStatusActive || subscription.Status == models.SubscriptionStatusTrialing
+			if !entitled && subscription.CurrentPeriodEnd != nil {
+				entitled = (subscription.Status == models.SubscriptionStatusPastDue || subscription.Status == models.SubscriptionStatusCanceled) && time.Now().UTC().Before(subscription.CurrentPeriodEnd.Add(3*24*time.Hour))
+			}
+			if entitled {
+				if plan, err := s.quotaBilling.FindPlanByID(ctx, subscription.PlanID); err == nil && plan.Active {
+					limit = plan.TelemetryBytes
+					if limit == 0 {
+						limit = models.DefaultTelemetryBytesMonthly
+					}
 				}
 			}
 		} else if !errors.Is(err, repositories.ErrNotFound) {
@@ -56,12 +62,12 @@ func (s *ObservabilityService) admitTelemetry(ctx context.Context, orgID, signal
 	return duplicate, nil
 }
 
-func (s *ObservabilityService) refundTelemetry(ctx context.Context, orgID, signal string, raw []byte) {
+func (s *ObservabilityService) refundTelemetry(ctx context.Context, orgID, signal string, raw []byte) error {
 	if s.quota == nil || orgID == "" {
-		return
+		return nil
 	}
 	month, _, _ := models.TelemetryUsagePeriod(time.Now().UTC())
-	_ = s.quota.RefundBatch(ctx, orgID, month, telemetryReceiptKey(signal, raw), int64(len(raw)))
+	return s.quota.RefundBatch(ctx, orgID, month, telemetryReceiptKey(signal, raw), int64(len(raw)))
 }
 
 func telemetryReceiptKey(signal string, raw []byte) string {

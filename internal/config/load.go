@@ -124,14 +124,14 @@ func migrateCLIFile(cfg *CLIConfig) CLIConfig {
 }
 
 func parse[T any](cfg *T, defaultPaths ...string) error {
+	if err := godotenv.Load(); err != nil && !errors.Is(err, os.ErrNotExist) {
+		return fmt.Errorf("load .env: %w", err)
+	}
 	if err := env.Parse(cfg); err != nil {
 		return fmt.Errorf("parse defaults: %w", err)
 	}
 	if err := loadYAMLConfig(cfg, defaultPaths...); err != nil {
 		return err
-	}
-	if err := godotenv.Load(); err != nil && !errors.Is(err, os.ErrNotExist) {
-		return fmt.Errorf("load .env: %w", err)
 	}
 	if err := env.ParseWithOptions(cfg, env.Options{
 		DefaultValueTagName: "-",

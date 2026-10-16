@@ -83,6 +83,7 @@ services:
       OUTPIPE_REDIS_HOST: redis
       OUTPIPE_INTERNAL_API_URL: http://api:9090
       OUTPIPE_INTERNAL_API_SECRET: local-internal-secret
+      OUTPIPE_BACKUP_DIRECTORY: /var/backups/outpipe
     depends_on:
       api: { condition: service_healthy }
       postgres: { condition: service_healthy }

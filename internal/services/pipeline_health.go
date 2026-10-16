@@ -2,10 +2,12 @@ package services
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 	"time"
 
+	"gorm.io/gorm"
 	"outpipe.dev/outpipe/internal/models"
 	"outpipe.dev/outpipe/internal/repositories"
 )
@@ -141,16 +143,23 @@ func (s *PipelineHealthService) notificationHealth(ctx context.Context, orgID st
 	health := QueueHealth{Queue: "subscriber-notifications", Healthy: true}
 	page, err := s.uptime.GetStatusPageByOrg(ctx, orgID)
 	if err != nil {
-		health.Healthy = true
-		return health, nil
+		if errors.Is(err, gorm.ErrRecordNotFound) || errors.Is(err, repositories.ErrNotFound) {
+			return health, nil
+		}
+		return QueueHealth{}, fmt.Errorf("get status page for org %s: %w", orgID, err)
 	}
-	counts, err := s.uptime.CountSubscribersByStatus(ctx, page.ID)
+	counts, oldest, err := s.uptime.CountSubscriberNotificationsByStatus(ctx, page.ID)
 	if err != nil {
-		return QueueHealth{}, fmt.Errorf("count subscribers: %w", err)
+		return QueueHealth{}, fmt.Errorf("count subscriber notifications: %w", err)
 	}
-	health.Depth = counts[models.SubscriberStatusPending]
-	if !page.SubscriptionsEnabled && health.Depth > 0 {
-		health.Healthy = false
+	depth := counts[models.SubscriberNotificationPending] + counts[models.SubscriberNotificationSending] + counts[models.SubscriberNotificationFailed]
+	dead := counts[models.SubscriberNotificationDeadLetter]
+	health.Depth = depth
+	health.DeadLettered = dead
+	health.Healthy = dead == 0 && !s.stale(oldest)
+	if oldest != nil {
+		age := int64(s.now().UTC().Sub(*oldest).Seconds())
+		health.OldestAgeSecs = &age
 	}
 	return health, nil
 }

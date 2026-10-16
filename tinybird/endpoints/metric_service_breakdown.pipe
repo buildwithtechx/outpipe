@@ -88,6 +88,7 @@ SQL >
     SELECT
         service,
         type,
+        temporality,
         max(series_last_seen) AS last_seen,
         sum(raw_point_count) AS count,
         multiIf(
@@ -101,14 +102,14 @@ SQL >
         ) AS value,
         multiIf(
             type = 'gauge', 'latest',
-            type = 'sum' AND max(temporality) = 1, 'delta_sum',
+            type = 'sum' AND temporality = 1, 'delta_sum',
             type = 'sum', 'cumulative',
             type IN ('histogram', 'exponential_histogram') AND sum(missing_sum_count) > 0, 'count',
             type IN ('histogram', 'exponential_histogram', 'summary'), 'mean',
             'value'
         ) AS aggregation
     FROM service_values
-    GROUP BY service, type
+    GROUP BY service, type, temporality
     ORDER BY value DESC, service ASC
     LIMIT {{Int32(limit, 250)}}
 

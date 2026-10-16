@@ -16,7 +16,8 @@ RUN CGO_ENABLED=0 go build -ldflags="-s -w -X main.version=${VERSION}" -o /out/t
 FROM alpine:3.22
 
 RUN apk --no-cache add ca-certificates tzdata && \
-    addgroup -S outpipe && adduser -S -G outpipe outpipe
+    addgroup -S outpipe && adduser -S -G outpipe outpipe && \
+    mkdir -p /var/lib/outpipe/capture-spool && chown -R outpipe:outpipe /var/lib/outpipe
 
 WORKDIR /app
 COPY --from=build /out/tunnel /app/tunnel

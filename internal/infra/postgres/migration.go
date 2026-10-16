@@ -155,6 +155,14 @@ func migrations() []migration {
 		return db.AutoMigrate(&models.CapturePolicy{})
 	}}, {version: 29, name: "domain_dns_bundle_delegation", up: func(db *gorm.DB) error {
 		return db.AutoMigrate(&models.Domain{}, &models.DNSProviderCredential{})
+	}}, {version: 30, name: "billing_plans_telemetry_quota", up: func(db *gorm.DB) error {
+		if err := db.AutoMigrate(&models.Plan{}, &models.Domain{}, &models.ObservabilityAlert{}, &models.AlertIncident{}); err != nil {
+			return err
+		}
+		if err := db.Model(&models.Domain{}).Where("delegation_target IS NULL").Update("delegation_target", "").Error; err != nil {
+			return err
+		}
+		return seedDefaultBillingPlans(db)
 	}}}
 }
 
@@ -175,6 +183,9 @@ func seedDefaultBillingPlans(db *gorm.DB) error {
 		}
 
 		if count > 0 {
+			if plan.TelemetryBytes > 0 {
+				_ = db.Model(&models.Plan{}).Where("key = ? AND (telemetry_bytes IS NULL OR telemetry_bytes = 0)", plan.Key).Update("telemetry_bytes", plan.TelemetryBytes).Error
+			}
 			continue
 		}
 

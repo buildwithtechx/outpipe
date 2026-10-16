@@ -99,9 +99,6 @@ func (h *MachineFleetHandler) RotateTokens(c *fiber.Ctx) error {
 		return writeError(c, fiber.StatusUnauthorized, err)
 	}
 	rotated, err := h.fleets.RotateFleetTokens(c.UserContext(), strings.TrimSpace(c.Params("organizationID")), strings.TrimSpace(c.Params("fleetID")), userID)
-	if err != nil {
-		return writeError(c, fiber.StatusBadRequest, err)
-	}
 	type rotatedToken struct {
 		ID     string `json:"id"`
 		Name   string `json:"name"`
@@ -111,6 +108,12 @@ func (h *MachineFleetHandler) RotateTokens(c *fiber.Ctx) error {
 	out := make([]rotatedToken, 0, len(rotated))
 	for _, item := range rotated {
 		out = append(out, rotatedToken{ID: item.Token.ID, Name: item.Token.Name, Prefix: item.Token.Prefix, Raw: item.Raw})
+	}
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error":   err.Error(),
+			"rotated": out,
+		})
 	}
 	return c.JSON(fiber.Map{"rotated": out})
 }

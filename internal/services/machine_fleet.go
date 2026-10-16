@@ -229,6 +229,12 @@ func (s *MachineFleetService) AttachToken(ctx context.Context, orgID, fleetID, m
 	if found.RevokedAt != nil {
 		return models.MachineFleetToken{}, fmt.Errorf("machine token is revoked")
 	}
+	if found.ExpiresAt != nil && found.ExpiresAt.Before(time.Now()) {
+		return models.MachineFleetToken{}, fmt.Errorf("machine token is expired")
+	}
+	if !strings.Contains(found.Scopes, "tunnels:write") {
+		return models.MachineFleetToken{}, fmt.Errorf("machine token must have tunnels:write scope")
+	}
 	attachment := models.MachineFleetToken{OrganizationID: orgID, FleetID: fleetID, Name: found.Name, MachineTokenID: found.ID, Label: strings.TrimSpace(label)}
 	if err := s.fleets.AttachToken(ctx, &attachment); err != nil {
 		return models.MachineFleetToken{}, fmt.Errorf("attach fleet token: %w", err)

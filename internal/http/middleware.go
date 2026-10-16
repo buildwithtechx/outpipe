@@ -42,6 +42,7 @@ func sessionRequired(auth *services.AuthService, apiKeys *services.APIKeyService
 			}
 
 			c.Locals("session", session)
+			c.Locals("userID", session.UserID)
 			return c.Next()
 		}
 
@@ -51,6 +52,7 @@ func sessionRequired(auth *services.AuthService, apiKeys *services.APIKeyService
 		}
 
 		c.Locals("apiKeyUserID", credential.Key.UserID)
+		c.Locals("userID", credential.Key.UserID)
 		c.Locals("apiKeyCredential", credential)
 
 		if err := auth.EnsureUserActive(c.UserContext(), credential.Key.UserID); err != nil {

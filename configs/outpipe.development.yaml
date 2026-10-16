@@ -72,9 +72,9 @@ mail:
   zepto_url: "https://api.zeptomail.com/v1.1/email"
 
 analytics:
-  tinybird_url: "https://api.europe-west2.gcp.tinybird.co"
+  tinybird_url: ""
   tinybird_datasource: "outpipe_telemetry"
-  clickhouse_url: "http://localhost:8123"
+  clickhouse_url: ""
   clickhouse_user: "default"
   clickhouse_database: "default"
   clickhouse_table: "outpipe_telemetry"

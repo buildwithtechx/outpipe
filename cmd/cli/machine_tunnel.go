@@ -61,7 +61,7 @@ func newMachineTunnelCommand(cfg config.CLIConfig) *cobra.Command {
 				if err != nil {
 					return err
 				}
-				if cmd.Context().Err() != nil {
+				if cmd.Context().Err() != nil || time.Now().Before(refreshAt) {
 					return nil
 				}
 			}

@@ -46,7 +46,9 @@ type UptimeRepository interface {
 	ClaimPendingSubscriberNotifications(ctx context.Context, now time.Time, limit int) ([]models.UptimeSubscriberNotification, error)
 	MarkSubscriberNotificationSent(ctx context.Context, id string, sentAt time.Time) error
 	MarkSubscriberNotificationFailed(ctx context.Context, id, message string, availableAt time.Time) error
+	MarkSubscriberNotificationDeadLetter(ctx context.Context, id, message string) error
 	RequeueSubscriberNotification(ctx context.Context, id string, availableAt time.Time) error
+	CountSubscriberNotificationsByStatus(ctx context.Context, pageID string) (map[models.SubscriberNotificationStatus]int64, *time.Time, error)
 	MarkSubscriberSent(ctx context.Context, subscriberID string, sentAt time.Time) error
 	CountSubscriberSendsSince(ctx context.Context, subscriberID string, since time.Time) (int64, error)
 	RecordSubscriptionAttempt(ctx context.Context, attempt *models.UptimeSubscriptionAttempt) error

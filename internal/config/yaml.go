@@ -78,12 +78,13 @@ func loadYAMLConfig[T any](cfg *T, defaultPaths ...string) error {
 		for _, candidate := range environmentCandidates(basePath) {
 			if resolved := resolveConfigPath(candidate); resolved != "" {
 				contents, err := os.ReadFile(resolved)
-				if err == nil {
-					if err := yaml.Unmarshal(contents, cfg); err != nil {
-						return fmt.Errorf("decode config file %q: %w", resolved, err)
-					}
-					return nil
+				if err != nil {
+					return fmt.Errorf("read config file %q: %w", resolved, err)
 				}
+				if err := yaml.Unmarshal(contents, cfg); err != nil {
+					return fmt.Errorf("decode config file %q: %w", resolved, err)
+				}
+				return nil
 			}
 		}
 	}

@@ -7,6 +7,7 @@ import (
 	"outpipe.dev/outpipe/internal/config"
 	"outpipe.dev/outpipe/internal/infra/billing"
 	"outpipe.dev/outpipe/internal/infra/certificates"
+	"outpipe.dev/outpipe/internal/infra/storage"
 	"outpipe.dev/outpipe/internal/infra/telemetry"
 	"outpipe.dev/outpipe/internal/repositories"
 	"outpipe.dev/outpipe/internal/services"
@@ -125,6 +126,13 @@ func configureDomainService(
 	dnsCredentialService, err := services.NewDNSCredentialService(dnsCredentials)
 	if err != nil {
 		return nil, err
+	}
+	if cfg.Auth.EncryptionKey != "" {
+		secretBox, err := storage.NewSecretBox([]byte(cfg.Auth.EncryptionKey))
+		if err != nil {
+			return nil, err
+		}
+		dnsCredentialService.SetProtector(secretBox)
 	}
 	domainService.SetDNSCredentials(dnsCredentialService)
 	domainService.SetCertificateCacheDir(cfg.App.CertificateCache)

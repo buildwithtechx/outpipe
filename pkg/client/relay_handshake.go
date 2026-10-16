@@ -3,7 +3,6 @@ package client
 import (
 	"context"
 	"fmt"
-	"time"
 
 	"github.com/gorilla/websocket"
 	"outpipe.dev/outpipe/pkg/protocol"
@@ -16,10 +15,6 @@ func negotiate(ctx context.Context, connection *websocket.Conn, token string) er
 	if deadline, ok := ctx.Deadline(); ok {
 		_ = connection.SetWriteDeadline(deadline)
 		_ = connection.SetReadDeadline(deadline)
-		defer func() {
-			_ = connection.SetWriteDeadline(time.Time{})
-			_ = connection.SetReadDeadline(time.Time{})
-		}()
 	}
 	versionPayload, err := protocol.EncodePayload(protocol.MessageTypeVersionNegotiate, "version", protocol.VersionNegotiate{MinVersion: protocol.MinSupportedVersion, MaxVersion: protocol.MaxSupportedVersion, ClientName: "outpipe-cli", ClientVersion: "0.1.0"})
 	if err != nil {

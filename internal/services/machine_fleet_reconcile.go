@@ -2,8 +2,10 @@ package services
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
+	"time"
 
 	"outpipe.dev/outpipe/internal/models"
 )
@@ -94,7 +96,19 @@ func (s *MachineFleetService) Reconcile(ctx context.Context, orgID, fleetID stri
 	}
 	var tokenID string
 	if len(attachments) > 0 {
-		tokenID = attachments[0].MachineTokenID
+		tokens, _ := s.secrets.ListMachineTokens(ctx, orgID)
+		activeTokens := make(map[string]bool, len(tokens))
+		for _, tok := range tokens {
+			if tok.RevokedAt == nil && (tok.ExpiresAt == nil || tok.ExpiresAt.After(time.Now())) && strings.Contains(tok.Scopes, "tunnels:write") {
+				activeTokens[tok.ID] = true
+			}
+		}
+		for _, att := range attachments {
+			if activeTokens[att.MachineTokenID] {
+				tokenID = att.MachineTokenID
+				break
+			}
+		}
 	}
 	for _, drift := range status.Drift {
 		tunnel, ok := byID[drift.TunnelID]
@@ -167,6 +181,7 @@ func (s *MachineFleetService) ReconcileAll(ctx context.Context) (map[string]Flee
 	}
 	seen := make(map[string]bool, len(desired))
 	results := make(map[string]FleetReconcileResult)
+	var errs []error
 	for _, item := range desired {
 		if seen[item.FleetID] {
 			continue
@@ -174,15 +189,20 @@ func (s *MachineFleetService) ReconcileAll(ctx context.Context) (map[string]Flee
 		seen[item.FleetID] = true
 		fleet, err := s.fleets.FindFleetByID(ctx, item.FleetID)
 		if err != nil {
+			errs = append(errs, fmt.Errorf("find fleet %s: %w", item.FleetID, err))
 			continue
 		}
 		result, err := s.Reconcile(ctx, fleet.OrganizationID, fleet.ID)
 		if err != nil {
+			errs = append(errs, fmt.Errorf("reconcile fleet %s: %w", fleet.ID, err))
 			continue
 		}
 		if result.Reactivated > 0 || result.Recreated > 0 || len(result.Errors) > 0 {
 			results[fleet.ID] = result
 		}
+	}
+	if len(errs) > 0 {
+		return results, errors.Join(errs...)
 	}
 	return results, nil
 }

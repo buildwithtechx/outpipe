@@ -47,7 +47,7 @@ func (s *DomainService) verifyManual(ctx context.Context, domain *models.Domain,
 
 		if err == nil {
 			for _, txt := range txts {
-				if auth.EqualHash(domain.VerificationToken, strings.TrimSpace(txt)) || txt == token {
+				if auth.EqualHash(domain.VerificationToken, strings.TrimSpace(txt)) {
 					verified = true
 					break
 				}
@@ -64,7 +64,7 @@ func (s *DomainService) verifyManual(ctx context.Context, domain *models.Domain,
 				_ = response.Body.Close()
 				content := strings.TrimSpace(string(body))
 
-				if auth.EqualHash(domain.VerificationToken, content) || content == token {
+				if auth.EqualHash(domain.VerificationToken, content) {
 					verified = true
 				}
 			}

@@ -103,9 +103,15 @@ func (s *BillingService) applyTransition(subscription *models.Subscription, tran
 		subscription.ProviderCustomerID = encrypted
 	}
 
-	subscription.ProviderProductID = transition.ProviderProduct
-	subscription.CurrentPeriodEnd = transition.CurrentPeriodEnd
-	subscription.CancelAtPeriodEnd = transition.CancelAtPeriodEnd
+	if transition.ProviderProduct != "" {
+		subscription.ProviderProductID = transition.ProviderProduct
+	}
+	if transition.CurrentPeriodEnd != nil {
+		subscription.CurrentPeriodEnd = transition.CurrentPeriodEnd
+	}
+	if transition.CancelAtPeriodEnd != nil {
+		subscription.CancelAtPeriodEnd = *transition.CancelAtPeriodEnd
+	}
 
 	if transition.Status == models.SubscriptionStatusCanceled || transition.Status == models.SubscriptionStatusExpired {
 		now := s.now()

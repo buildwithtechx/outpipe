@@ -50,9 +50,13 @@ func (h *Handler) writeMessage(connection *websocket.Conn, messageType int, data
 
 func (h *Handler) CloseAll() {
 	for _, session := range h.sessions.Snapshot() {
-		h.sessions.Remove(session.TunnelID, session.ID)
-		h.router.RemoveTunnel(session.TunnelID)
-		h.tcp.CloseTunnel(session.TunnelID)
-		h.udp.CloseTunnel(session.TunnelID)
+		if h.sessions.Remove(session.TunnelID, session.ID) {
+			if h.affinity != nil {
+				_ = h.affinity.Release(context.Background(), session.TunnelID, h.relayID)
+			}
+			h.router.RemoveTunnel(session.TunnelID)
+			h.tcp.CloseTunnel(session.TunnelID)
+			h.udp.CloseTunnel(session.TunnelID)
+		}
 	}
 }

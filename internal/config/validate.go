@@ -80,8 +80,20 @@ func validateAPIApp(cfg AppConfig) error {
 			return fmt.Errorf("%s must use an https URL in production", name)
 		}
 	}
-	if strings.Contains(strings.ToLower(cfg.AllowedOrigins), "localhost") || strings.Contains(strings.ToLower(cfg.AllowedOrigins), "127.0.0.1") {
-		return fmt.Errorf("localhost origins are not allowed in production")
+	if cfg.AllowedOrigins != "" {
+		for _, origin := range strings.Split(cfg.AllowedOrigins, ",") {
+			origin = strings.TrimSpace(origin)
+			if origin == "" {
+				continue
+			}
+			if strings.Contains(strings.ToLower(origin), "localhost") || strings.Contains(strings.ToLower(origin), "127.0.0.1") {
+				return fmt.Errorf("localhost origins are not allowed in production")
+			}
+			parsed, err := url.Parse(origin)
+			if err != nil || parsed.Scheme != "https" || parsed.Host == "" {
+				return fmt.Errorf("allowed origin %q must use an https URL in production", origin)
+			}
+		}
 	}
 	return nil
 }
@@ -98,7 +110,7 @@ func validateService(cfg ServiceConfig, app AppConfig) error {
 
 func isDevelopmentSecret(value string) bool {
 	value = strings.ToLower(strings.TrimSpace(value))
-	return value == "development-secret" || value == "change-me" || strings.Contains(value, "changeme")
+	return value == "development-secret" || value == "change-me" || strings.Contains(value, "changeme") || strings.Contains(value, "generate_a_secure_random_string_here")
 }
 
 func isDevelopmentDatabase(raw string) bool {

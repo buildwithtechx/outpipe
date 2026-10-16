@@ -2,10 +2,13 @@ package services
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
+	"gorm.io/gorm"
 	"outpipe.dev/outpipe/internal/models"
+	"outpipe.dev/outpipe/internal/repositories"
 )
 
 func (s *UptimeService) ProcessPendingSubscriberNotifications(ctx context.Context, limit int) error {
@@ -20,12 +23,15 @@ func (s *UptimeService) ProcessPendingSubscriberNotifications(ctx context.Contex
 		notification := notifications[i]
 		if err := s.sendSubscriberNotification(ctx, &notification); err != nil {
 			now := time.Now().UTC()
-			availableAt := now
-			if notification.Attempts < subscriberNotifyMaxTries {
-				availableAt = now.Add(webhookRetryDelay(notification.Attempts))
-			}
-			if markErr := s.repo.MarkSubscriberNotificationFailed(ctx, notification.ID, err.Error(), availableAt); markErr != nil {
-				return fmt.Errorf("mark subscriber notification %s failed: %w", notification.ID, markErr)
+			if notification.Attempts >= subscriberNotifyMaxTries {
+				if markErr := s.repo.MarkSubscriberNotificationDeadLetter(ctx, notification.ID, err.Error()); markErr != nil {
+					return fmt.Errorf("mark subscriber notification %s dead-letter: %w", notification.ID, markErr)
+				}
+			} else {
+				availableAt := now.Add(webhookRetryDelay(notification.Attempts))
+				if markErr := s.repo.MarkSubscriberNotificationFailed(ctx, notification.ID, err.Error(), availableAt); markErr != nil {
+					return fmt.Errorf("mark subscriber notification %s failed: %w", notification.ID, markErr)
+				}
 			}
 		}
 	}
@@ -40,24 +46,40 @@ func (s *UptimeService) sendSubscriberNotification(ctx context.Context, notifica
 		}
 		return nil
 	}
+	isNotFound := func(err error) bool {
+		return errors.Is(err, gorm.ErrRecordNotFound) || errors.Is(err, repositories.ErrNotFound)
+	}
+
 	subscriber, err := s.repo.GetSubscriber(ctx, notification.SubscriberID)
 	if err != nil {
-		return drop()
+		if isNotFound(err) {
+			return drop()
+		}
+		return err
 	}
 	if subscriber.Status != models.SubscriberStatusConfirmed {
 		return drop()
 	}
 	update, err := s.repo.GetIncidentUpdate(ctx, notification.UpdateID)
 	if err != nil {
-		return drop()
+		if isNotFound(err) {
+			return drop()
+		}
+		return err
 	}
 	incident, err := s.repo.GetIncident(ctx, update.IncidentID)
 	if err != nil {
-		return drop()
+		if isNotFound(err) {
+			return drop()
+		}
+		return err
 	}
 	page, err := s.repo.GetStatusPageByOrg(ctx, incident.OrganizationID)
 	if err != nil {
-		return drop()
+		if isNotFound(err) {
+			return drop()
+		}
+		return err
 	}
 	if !page.Published || !page.SubscriptionsEnabled {
 		return drop()

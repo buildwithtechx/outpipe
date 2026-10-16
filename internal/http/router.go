@@ -116,7 +116,7 @@ func RegisterRoutes(app *fiber.App, handlers Handlers, options RouterOptions) er
 	webhookWriteLimiter := requestRateLimitDistributed(options.RateLimiter, 10, time.Minute, authenticatedRateLimitKey)
 	billingWriteLimiter := requestRateLimitDistributed(options.RateLimiter, 5, time.Minute, authenticatedRateLimitKey)
 	protected.Post("/auth/device/complete", handlers.Auth.CompleteDeviceLogin)
-	protected.Get("/account", handlers.Account.Profile)
+	protected.Get("/account", apiKeyScopeRequired("account:read"), handlers.Account.Profile)
 	protected.Get("/organizations", handlers.Organizations.List)
 	protected.Get("/organizations/slug-availability", handlers.Organizations.CheckSlug)
 	protected.Post("/organizations", organizationWriteLimiter, handlers.Organizations.Create)
@@ -126,7 +126,7 @@ func RegisterRoutes(app *fiber.App, handlers Handlers, options RouterOptions) er
 	protected.Delete("/organizations/:organizationID/members/:memberID", organizationRoleRequired(handlers.organizationService, models.MemberRoleAdmin), handlers.Organizations.RemoveMember)
 	protected.Post("/organizations/:organizationID/invitations", organizationRoleRequired(handlers.organizationService, models.MemberRoleAdmin), handlers.Invitations.Create)
 	protected.Post("/invitations/accept", handlers.Invitations.Accept)
-	protected.Delete("/account", handlers.Account.Delete)
+	protected.Delete("/account", apiKeyScopeRequired("account:write"), handlers.Account.Delete)
 	protected.Post("/organizations/:organizationID/transfer", organizationRoleRequired(handlers.organizationService, models.MemberRoleOwner), handlers.Account.TransferOwnership)
 	protected.Post("/organizations/:organizationID/tunnels", tunnelWriteLimiter, organizationRoleRequired(handlers.organizationService, models.MemberRoleMember), handlers.Tunnels.Create)
 	protected.Get("/organizations/:organizationID/tunnels", organizationRoleRequired(handlers.organizationService, models.MemberRoleViewer), handlers.Tunnels.List)
@@ -252,18 +252,7 @@ func RegisterRoutes(app *fiber.App, handlers Handlers, options RouterOptions) er
 		protected.Post("/organizations/:organizationID/agent/chat", writeLimiter, organizationRoleRequired(handlers.organizationService, models.MemberRoleViewer), handlers.AIAgent.ChatStream)
 	}
 
-	admin := protected.Group("/admin", platformAdminRequired(handlers.authService))
-	admin.Get("/overview", handlers.Admin.Overview)
-	admin.Get("/users", handlers.Admin.Users)
-	admin.Get("/users/:userID", handlers.Admin.User)
-	admin.Patch("/users/:userID/status", handlers.Admin.SetUserStatus)
-	admin.Get("/organizations", handlers.Admin.Organizations)
-	admin.Get("/organizations/:organizationID", handlers.Admin.Organization)
-	admin.Get("/tunnels", handlers.Admin.Tunnels)
-	admin.Get("/subscriptions", handlers.Admin.Subscriptions)
-	admin.Get("/usage", handlers.Admin.Usage)
-	admin.Get("/audit-logs", handlers.Admin.AuditLogs)
-	admin.Post("/tunnels/:tunnelID/revoke", handlers.Tunnels.Revoke)
+	registerAdminRoutes(protected, handlers)
 
 	return nil
 }

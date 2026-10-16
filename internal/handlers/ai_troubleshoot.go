@@ -26,6 +26,9 @@ func NewAIAgentHandler(svc *services.AIAgentService) (*AIAgentHandler, error) {
 func (h *AIAgentHandler) ListThreads(c *fiber.Ctx) error {
 	orgID := c.Params("organizationID")
 	userID, _ := c.Locals("userID").(string)
+	if userID == "" {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "unauthorized"})
+	}
 
 	threads, err := h.svc.ListThreads(c.Context(), orgID, userID)
 	if err != nil {
@@ -46,8 +49,12 @@ func (h *AIAgentHandler) ListThreads(c *fiber.Ctx) error {
 func (h *AIAgentHandler) DeleteThread(c *fiber.Ctx) error {
 	orgID := c.Params("organizationID")
 	threadID := c.Params("threadID")
+	userID, _ := c.Locals("userID").(string)
+	if userID == "" {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "unauthorized"})
+	}
 
-	if err := h.svc.DeleteThread(c.Context(), orgID, threadID); err != nil {
+	if err := h.svc.DeleteThread(c.Context(), orgID, threadID, userID); err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": fmt.Sprintf("delete ai thread: %v", err),
 		})

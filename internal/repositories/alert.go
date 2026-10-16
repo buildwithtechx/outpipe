@@ -103,6 +103,10 @@ func (r *GormAlertRepository) OpenIncident(ctx context.Context, link *models.Ale
 	if link == nil {
 		return fmt.Errorf("alert incident link is required")
 	}
+	var existing models.AlertIncident
+	if err := r.db.WithContext(ctx).Where("alert_id = ? AND resolved_at IS NULL", link.AlertID).First(&existing).Error; err == nil {
+		return fmt.Errorf("alert %s already has an open incident %s", link.AlertID, existing.IncidentID)
+	}
 	return wrap(r.db.WithContext(ctx).Create(link).Error, "link alert incident")
 }
 

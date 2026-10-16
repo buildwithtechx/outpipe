@@ -55,6 +55,10 @@ func TestAIAgentHandlerListThreads(t *testing.T) {
 	defer cleanup()
 
 	app := fiber.New()
+	app.Use(func(c *fiber.Ctx) error {
+		c.Locals("userID", "user-test")
+		return c.Next()
+	})
 	app.Get("/organizations/:organizationID/agent/threads", h.ListThreads)
 
 	req := httptest.NewRequest("GET", "/organizations/org-test/agent/threads", nil)

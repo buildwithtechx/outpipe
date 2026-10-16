@@ -102,40 +102,51 @@ func (s *ObservabilityService) ProcessPendingExports(ctx context.Context, limit 
 	if s.exporter == nil {
 		return fmt.Errorf("telemetry exporter is required")
 	}
-	jobs, err := s.exports.ClaimPending(ctx, time.Now().UTC(), limit)
-	if err != nil {
-		return err
+	if limit <= 0 {
+		limit = 100
 	}
-	grouped := map[string][]int{}
-	for i := range jobs {
-		grouped[jobs[i].Signal] = append(grouped[jobs[i].Signal], i)
-	}
-	for signal, indexes := range grouped {
-		items := make([]map[string]json.RawMessage, 0, len(indexes))
-		for _, i := range indexes {
-			var item map[string]json.RawMessage
-			if err := json.Unmarshal([]byte(jobs[i].Payload), &item); err != nil {
-				return fmt.Errorf("decode queued telemetry export: %w", err)
-			}
-			items = append(items, item)
+	for {
+		jobs, err := s.exports.ClaimPending(ctx, time.Now().UTC(), limit)
+		if err != nil {
+			return err
 		}
-		if err := s.exporter.ExportItems(ctx, signal, items); err != nil {
+		if len(jobs) == 0 {
+			break
+		}
+		grouped := map[string][]int{}
+		for i := range jobs {
+			grouped[jobs[i].Signal] = append(grouped[jobs[i].Signal], i)
+		}
+		for signal, indexes := range grouped {
+			items := make([]map[string]json.RawMessage, 0, len(indexes))
 			for _, i := range indexes {
-				availableAt := time.Now().UTC()
-				if jobs[i].Attempts < repositories.TelemetryExportMaxAttempts {
-					availableAt = availableAt.Add(webhookRetryDelay(jobs[i].Attempts))
+				var item map[string]json.RawMessage
+				if err := json.Unmarshal([]byte(jobs[i].Payload), &item); err != nil {
+					return fmt.Errorf("decode queued telemetry export: %w", err)
 				}
-				if markErr := s.exports.MarkFailed(ctx, jobs[i].ID, err.Error(), availableAt); markErr != nil {
-					return fmt.Errorf("mark telemetry export %s failed: %w", jobs[i].ID, markErr)
+				items = append(items, item)
+			}
+			if err := s.exporter.ExportItems(ctx, signal, items); err != nil {
+				for _, i := range indexes {
+					availableAt := time.Now().UTC()
+					if jobs[i].Attempts < repositories.TelemetryExportMaxAttempts {
+						availableAt = availableAt.Add(webhookRetryDelay(jobs[i].Attempts))
+					}
+					if markErr := s.exports.MarkFailed(ctx, jobs[i].ID, err.Error(), availableAt); markErr != nil {
+						return fmt.Errorf("mark telemetry export %s failed: %w", jobs[i].ID, markErr)
+					}
+				}
+				continue
+			}
+			now := time.Now().UTC()
+			for _, i := range indexes {
+				if markErr := s.exports.MarkSent(ctx, jobs[i].ID, now); markErr != nil {
+					return fmt.Errorf("mark telemetry export %s sent: %w", jobs[i].ID, markErr)
 				}
 			}
-			continue
 		}
-		now := time.Now().UTC()
-		for _, i := range indexes {
-			if markErr := s.exports.MarkSent(ctx, jobs[i].ID, now); markErr != nil {
-				return fmt.Errorf("mark telemetry export %s sent: %w", jobs[i].ID, markErr)
-			}
+		if len(jobs) < limit {
+			break
 		}
 	}
 	now := time.Now().UTC()
@@ -161,24 +172,47 @@ func (e *HTTPAnalyticsExporter) ExportItems(ctx context.Context, signal string, 
 	if len(items) == 0 {
 		return nil
 	}
+	if e.config.TinybirdURL == "" && e.config.ClickHouseURL == "" {
+		return fmt.Errorf("no analytics export destination configured")
+	}
 	body, err := buildAnalyticsBody(signal, items)
 	if err != nil {
 		return err
 	}
 	if e.config.TinybirdURL != "" {
-		endpoint := strings.TrimRight(e.config.TinybirdURL, "/") + "/v0/events?" + url.Values{"name": {e.config.TinybirdDatasource}, "wait": {"true"}}.Encode()
+		ds := analyticsDestinationName(signal, e.config.TinybirdDatasource)
+		endpoint := strings.TrimRight(e.config.TinybirdURL, "/") + "/v0/events?" + url.Values{"name": {ds}, "wait": {"true"}}.Encode()
 		if err := e.send(ctx, endpoint, body, true, len(items)); err != nil {
 			return err
 		}
 	}
 	if e.config.ClickHouseURL != "" {
-		query := "INSERT INTO " + e.config.ClickHouseDatabase + "." + e.config.ClickHouseTable + " FORMAT JSONEachRow"
+		table := analyticsDestinationName(signal, e.config.ClickHouseTable)
+		query := "INSERT INTO " + e.config.ClickHouseDatabase + "." + table + " FORMAT JSONEachRow"
 		endpoint := strings.TrimRight(e.config.ClickHouseURL, "/") + "/?" + url.Values{"query": {query}, "date_time_input_format": {"best_effort"}, "wait_end_of_query": {"1"}}.Encode()
 		if err := e.send(ctx, endpoint, body, false, len(items)); err != nil {
 			return err
 		}
 	}
 	return nil
+}
+
+func analyticsDestinationName(signal, fallback string) string {
+	if fallback != "" {
+		return fallback
+	}
+	switch strings.ToLower(strings.TrimSpace(signal)) {
+	case "captures":
+		return "tunnel_request_captures"
+	case "logs":
+		return "otel_logs"
+	case "spans":
+		return "otel_spans"
+	case "metrics":
+		return "otel_metrics"
+	default:
+		return "outpipe_telemetry"
+	}
 }
 
 func buildAnalyticsBody(signal string, items []map[string]json.RawMessage) ([]byte, error) {
@@ -189,8 +223,27 @@ func buildAnalyticsBody(signal string, items []map[string]json.RawMessage) ([]by
 		if err != nil {
 			return nil, fmt.Errorf("encode analytics event: %w", err)
 		}
-		timestamp := analyticsEventTime(item).Format(time.RFC3339Nano)
-		event := map[string]any{"id": item["id"], "organization_id": item["organization_id"], "signal": signal, "payload": string(payload), "timestamp": timestamp}
+		event := make(map[string]any, len(item)+8)
+		for k, raw := range item {
+			var v any
+			if err := json.Unmarshal(raw, &v); err == nil {
+				event[k] = v
+			} else {
+				event[k] = string(raw)
+			}
+		}
+		event["payload"] = string(payload)
+		if _, ok := event["signal"]; !ok {
+			event["signal"] = signal
+		}
+		if _, ok := event["timestamp"]; !ok {
+			event["timestamp"] = analyticsEventTime(item).Format(time.RFC3339Nano)
+		}
+		if idVal, ok := event["id"]; ok {
+			if _, hasEventID := event["event_id"]; !hasEventID {
+				event["event_id"] = idVal
+			}
+		}
 		if err := encoder.Encode(event); err != nil {
 			return nil, fmt.Errorf("encode analytics row: %w", err)
 		}

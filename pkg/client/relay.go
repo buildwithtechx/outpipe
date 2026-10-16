@@ -74,6 +74,20 @@ func OpenRelay(ctx context.Context, cfg RelayConfig, open protocol.OpenTunnel) (
 		return nil, fmt.Errorf("connect relay: %w", err)
 	}
 
+	if deadline, ok := ctx.Deadline(); ok {
+		_ = connection.SetWriteDeadline(deadline)
+		_ = connection.SetReadDeadline(deadline)
+	}
+	handshakeDone := make(chan struct{})
+	defer close(handshakeDone)
+	go func() {
+		select {
+		case <-ctx.Done():
+			_ = connection.Close()
+		case <-handshakeDone:
+		}
+	}()
+
 	if err := negotiate(ctx, connection, cfg.Token); err != nil {
 		_ = connection.Close()
 		return nil, err
@@ -120,6 +134,9 @@ func OpenRelay(ctx context.Context, cfg RelayConfig, open protocol.OpenTunnel) (
 		_ = connection.Close()
 		return nil, err
 	}
+
+	_ = connection.SetWriteDeadline(time.Time{})
+	_ = connection.SetReadDeadline(time.Time{})
 
 	return &RelayConnection{conn: connection, TunnelID: ack.TunnelID, PublicURL: ack.PublicURL, PublicPort: ack.PublicPort, Protocol: open.Protocol, tcpConns: make(map[string]net.Conn)}, nil
 }

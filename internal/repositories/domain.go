@@ -64,7 +64,7 @@ func (r *GormDomainRepository) FindByHostname(ctx context.Context, hostname stri
 func (r *GormDomainRepository) FindExpiringCertificates(ctx context.Context, before time.Time) ([]models.Domain, error) {
 	var domains []models.Domain
 
-	if err := r.db.WithContext(ctx).Where("status = ? AND certificate_expires_at IS NOT NULL AND certificate_expires_at <= ?", models.DomainStatusActive, before).Order("certificate_expires_at ASC").Limit(DefaultListLimit).Find(&domains).Error; err != nil {
+	if err := r.db.WithContext(ctx).Where("status = ? AND certificate_expires_at IS NOT NULL AND certificate_expires_at <= ?", models.DomainStatusActive, before).Order("certificate_expires_at ASC").Find(&domains).Error; err != nil {
 		return nil, fmt.Errorf("list expiring certificates: %w", err)
 	}
 

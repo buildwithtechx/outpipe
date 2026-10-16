@@ -15,6 +15,7 @@ type OrganizationRepository interface {
 	FindBySlug(context.Context, string) (models.Organization, error)
 	IsSlugAvailable(context.Context, string) (bool, error)
 	List(context.Context) ([]models.Organization, error)
+	ListAll(context.Context) ([]models.Organization, error)
 	Update(context.Context, *models.Organization) error
 	AddMember(context.Context, *models.OrganizationMember) error
 	AddMemberWithLimit(context.Context, *models.OrganizationMember, int64) error
@@ -84,6 +85,16 @@ func (r *GormOrganizationRepository) List(ctx context.Context) ([]models.Organiz
 
 	if err := r.db.WithContext(ctx).Order("created_at ASC").Limit(DefaultListLimit).Find(&organizations).Error; err != nil {
 		return nil, fmt.Errorf("list organizations: %w", err)
+	}
+
+	return organizations, nil
+}
+
+func (r *GormOrganizationRepository) ListAll(ctx context.Context) ([]models.Organization, error) {
+	var organizations []models.Organization
+
+	if err := r.db.WithContext(ctx).Order("created_at ASC").Find(&organizations).Error; err != nil {
+		return nil, fmt.Errorf("list all organizations: %w", err)
 	}
 
 	return organizations, nil

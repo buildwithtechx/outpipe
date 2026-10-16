@@ -14,14 +14,13 @@ and Secrets; Redis remains the live tunnel state and telemetry delivery queue.
 2. Deploy the same definitions to the intended production workspace before
    deploying any new tunnel, cron, or dashboard runtime. This is an additive
    change; it does not migrate relational schemas.
-3. Configure `TINYBIRD_API_HOST` and scoped credentials in each runtime:
-   - Tunnel: `TINYBIRD_TUNNEL_INGEST_TOKEN` or fallback `TINYBIRD_INGEST_TOKEN`.
-   - Cron: the same append-token choice and `TINYBIRD_QUERY_TOKEN` (alerts).
-   - Dashboard: `TINYBIRD_QUERY_TOKEN`.
-   - Observability ingest: its existing `TINYBIRD_INGEST_TOKEN`.
-4. Append scopes must include `tunnel_events`, `tunnel_request_captures`,
-   `tunnel_protocol_events`, and `tunnel_active_snapshots`. Query scopes must
-   include the 13 `tunnel_*` endpoints. Never give runtime services a
+3. Configure analytics endpoints and credentials in each runtime:
+   - API / Cron: `OUTPIPE_TINYBIRD_URL` (or `analytics.tinybird_url`), `OUTPIPE_TINYBIRD_TOKEN`, and optional `OUTPIPE_TINYBIRD_DATASOURCE` (or ClickHouse equivalents).
+   - Relay: `OUTPIPE_INTERNAL_API_URL` and `OUTPIPE_INTERNAL_API_SECRET` to forward captured requests to the API (`/internal/captures`), which queues them for delivery to Tinybird/ClickHouse.
+   - Frontend / Dashboard: `TINYBIRD_API_HOST` and `TINYBIRD_QUERY_TOKEN` for reading from the `tunnel_*` endpoints.
+4. Tinybird append scopes for the ingest token must include `outpipe_telemetry`, `tunnel_events`, `tunnel_request_captures`,
+   `tunnel_protocol_events`, `tunnel_active_snapshots`, `otel_logs`, `otel_spans`, and `otel_metrics`. Query scopes for the dashboard token must
+   include the 13 `tunnel_*` endpoints and observability pipes. Never give runtime services a
    workspace-admin or deployment token.
 5. Promote the new runtimes together after verification.
 

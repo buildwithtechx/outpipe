@@ -89,29 +89,34 @@ func buildProductJobs(
 	if err != nil {
 		log.Fatal(err)
 	}
-	secretService, err := services.NewSecretService(secretRepository, cfg.Auth.EncryptionKey)
-	if err != nil {
-		log.Fatal(err)
-	}
-	tunnelRepository, err := repositories.NewTunnelRepository(db)
-	if err != nil {
-		log.Fatal(err)
-	}
-	tunnelService, err := services.NewTunnelService(tunnelRepository)
-	if err != nil {
-		log.Fatal(err)
-	}
-	fleetRepository, err := repositories.NewMachineFleetRepository(db)
-	if err != nil {
-		log.Fatal(err)
-	}
-	fleetService, err := services.NewMachineFleetService(fleetRepository, secretService, tunnelService)
-	if err != nil {
-		log.Fatal(err)
-	}
-	fleetJob, err := workers.NewMachineFleetJob(fleetService)
-	if err != nil {
-		log.Fatal(err)
+	var fleetJob *workers.MachineFleetJob
+	if cfg.Auth.EncryptionKey != "" {
+		secretService, err := services.NewSecretService(secretRepository, cfg.Auth.EncryptionKey)
+		if err != nil {
+			log.Fatal(err)
+		}
+		tunnelRepository, err := repositories.NewTunnelRepository(db)
+		if err != nil {
+			log.Fatal(err)
+		}
+		tunnelService, err := services.NewTunnelService(tunnelRepository)
+		if err != nil {
+			log.Fatal(err)
+		}
+		fleetRepository, err := repositories.NewMachineFleetRepository(db)
+		if err != nil {
+			log.Fatal(err)
+		}
+		fleetService, err := services.NewMachineFleetService(fleetRepository, secretService, tunnelService)
+		if err != nil {
+			log.Fatal(err)
+		}
+		fleetJob, err = workers.NewMachineFleetJob(fleetService)
+		if err != nil {
+			log.Fatal(err)
+		}
+	} else {
+		log.Print("warning: OUTPIPE_AUTH_ENCRYPTION_KEY is empty; machine fleet reconciliation job disabled")
 	}
 
 	uptimeRepository, err := repositories.NewUptimeRepository(db)

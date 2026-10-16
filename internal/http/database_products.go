@@ -8,7 +8,7 @@ import (
 	"outpipe.dev/outpipe/internal/services"
 )
 
-func productServices(db *gorm.DB, cfg config.APIConfig) (*services.SecretService, *services.ShareService, *services.UptimeService, *services.ObservabilityService, *services.AIAgentService, error) {
+func productServices(db *gorm.DB, cfg config.APIConfig, billingRepo repositories.BillingRepository) (*services.SecretService, *services.ShareService, *services.UptimeService, *services.ObservabilityService, *services.AIAgentService, error) {
 	secretRepo, err := repositories.NewSecretRepository(db)
 	if err != nil {
 		return nil, nil, nil, nil, nil, err
@@ -32,6 +32,11 @@ func productServices(db *gorm.DB, cfg config.APIConfig) (*services.SecretService
 	obsRepo := repositories.NewGormObservabilityRepository(db)
 	obsService := services.NewObservabilityService(obsRepo)
 	obsService.SetExportQueue(repositories.NewGormTelemetryExportRepository(db))
+	quotaRepo, err := repositories.NewTelemetryQuotaRepository(db)
+	if err != nil {
+		return nil, nil, nil, nil, nil, fmt.Errorf("configure telemetry quota: %w", err)
+	}
+	obsService.SetQuota(quotaRepo, billingRepo)
 	exporter, err := services.NewHTTPAnalyticsExporter(cfg.Analytics)
 	if err != nil {
 		return nil, nil, nil, nil, nil, fmt.Errorf("configure telemetry analytics: %w", err)

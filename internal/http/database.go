@@ -194,7 +194,7 @@ func NewDatabaseDependencies(db *gorm.DB, cfg config.APIConfig) (Dependencies, e
 	}
 	tunnelService.SetWebhooks(webhookService)
 
-	secretService, shareService, uptimeService, obsService, aiService, err := productServices(db, cfg)
+	secretService, shareService, uptimeService, obsService, aiService, err := productServices(db, cfg, billingRepository)
 	if err != nil {
 		return Dependencies{}, err
 	}

@@ -47,8 +47,8 @@ func (s *AIAgentService) GetThread(ctx context.Context, orgID, threadID string) 
 	return thread, nil
 }
 
-func (s *AIAgentService) DeleteThread(ctx context.Context, orgID, threadID string) error {
-	if err := s.repo.DeleteThread(ctx, orgID, threadID); err != nil {
+func (s *AIAgentService) DeleteThread(ctx context.Context, orgID, threadID, userID string) error {
+	if err := s.repo.DeleteThread(ctx, orgID, threadID, userID); err != nil {
 		return fmt.Errorf("delete thread: %w", err)
 	}
 	return nil
@@ -124,6 +124,7 @@ func (s *AIAgentService) GetConfig() models.AIAgentConfig {
 
 func (s *AIAgentService) InvestigateStream(ctx context.Context, orgID, userID string, req models.AIChatRequest, emit func(models.AIStreamEvent) error) error {
 	threadID := req.ThreadID
+	var existingThread *models.AIAgentThread
 	if threadID == "" {
 		threadID = uuid.NewString()
 		title := req.Message
@@ -142,6 +143,16 @@ func (s *AIAgentService) InvestigateStream(ctx context.Context, orgID, userID st
 		if err := s.repo.CreateThread(ctx, newThread); err != nil {
 			return fmt.Errorf("create initial thread: %w", err)
 		}
+		existingThread = newThread
+	} else {
+		loaded, err := s.repo.GetThread(ctx, orgID, threadID)
+		if err != nil {
+			return fmt.Errorf("load thread %s: %w", threadID, err)
+		}
+		if loaded.OrganizationID != orgID || (userID != "" && loaded.UserID != "" && loaded.UserID != userID) {
+			return fmt.Errorf("unauthorized access to thread %s", threadID)
+		}
+		existingThread = loaded
 	}
 
 	userMsg := &models.AIAgentMessage{
@@ -196,19 +207,46 @@ func (s *AIAgentService) InvestigateStream(ctx context.Context, orgID, userID st
 		provider = req.Provider
 	}
 
+	systemPrompt := "You are Outpipe Agent, an expert read-only observability and tunneling investigator. Provide structured Markdown conclusions with ### Diagnostic Summary, ### Key Observations, ### Unconfirmed Possibilities, ### Recommended Next Checks."
+	if len(evidenceList) > 0 {
+		evidenceBytes, _ := json.Marshal(evidenceList)
+		systemPrompt += "\n\nCollected Telemetry Evidence:\n" + string(evidenceBytes)
+	}
+
+	providerMessages := make([]map[string]string, 0, len(existingThread.Messages)+2)
+	providerMessages = append(providerMessages, map[string]string{"role": "system", "content": systemPrompt})
+	for _, m := range existingThread.Messages {
+		if m.Content != "" {
+			providerMessages = append(providerMessages, map[string]string{"role": m.Role, "content": m.Content})
+		}
+	}
+	providerMessages = append(providerMessages, map[string]string{"role": "user", "content": req.Message})
+
 	var fullResponse string
 	var execErr error
 
 	switch provider {
 	case "openai":
 		if key := s.providerKey("openai"); key != "" {
-			fullResponse, execErr = s.streamOpenAI(ctx, key, cfg.Model, req.Message, emit)
+			fullResponse, execErr = s.streamOpenAI(ctx, key, cfg.Model, providerMessages, emit)
 		} else {
 			fullResponse, execErr = s.streamMock(ctx, req, emit)
 		}
 	case "xai":
 		if key := s.providerKey("xai"); key != "" {
-			fullResponse, execErr = s.streamOpenAICompat(ctx, "https://api.x.ai/v1/chat/completions", key, cfg.Model, req.Message, emit)
+			fullResponse, execErr = s.streamOpenAICompat(ctx, "https://api.x.ai/v1/chat/completions", key, cfg.Model, providerMessages, emit)
+		} else {
+			fullResponse, execErr = s.streamMock(ctx, req, emit)
+		}
+	case "anthropic":
+		if key := s.providerKey("anthropic"); key != "" {
+			anthropicMessages := make([]map[string]string, 0, len(providerMessages))
+			for _, pm := range providerMessages {
+				if pm["role"] != "system" {
+					anthropicMessages = append(anthropicMessages, pm)
+				}
+			}
+			fullResponse, execErr = s.streamAnthropic(ctx, key, cfg.Model, systemPrompt, anthropicMessages, emit)
 		} else {
 			fullResponse, execErr = s.streamMock(ctx, req, emit)
 		}

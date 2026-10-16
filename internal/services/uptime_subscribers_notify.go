@@ -6,6 +6,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	"gorm.io/gorm"
@@ -91,7 +92,11 @@ func (s *UptimeService) NotifyIncidentUpdate(ctx context.Context, incidentID, up
 			UpdatedAt:    now,
 		}
 		if err := s.repo.CreateSubscriberNotification(ctx, &notification); err != nil {
-			continue
+			msg := strings.ToLower(err.Error())
+			if strings.Contains(msg, "duplicate") || strings.Contains(msg, "unique") || strings.Contains(msg, "primary") {
+				continue
+			}
+			return enqueued, fmt.Errorf("create subscriber notification for %s: %w", target.ID, err)
 		}
 		enqueued++
 	}

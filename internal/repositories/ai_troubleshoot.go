@@ -14,7 +14,7 @@ type AIAgentRepository interface {
 	CreateThread(ctx context.Context, thread *models.AIAgentThread) error
 	GetThread(ctx context.Context, orgID, threadID string) (*models.AIAgentThread, error)
 	ListThreads(ctx context.Context, orgID, userID string) ([]models.AIAgentThread, error)
-	DeleteThread(ctx context.Context, orgID, threadID string) error
+	DeleteThread(ctx context.Context, orgID, threadID, userID string) error
 	CreateMessage(ctx context.Context, msg *models.AIAgentMessage) error
 	UpdateMessage(ctx context.Context, msg *models.AIAgentMessage) error
 }
@@ -73,10 +73,17 @@ func (r *GormAIAgentRepository) ListThreads(ctx context.Context, orgID, userID s
 	return threads, nil
 }
 
-func (r *GormAIAgentRepository) DeleteThread(ctx context.Context, orgID, threadID string) error {
-	result := r.db.WithContext(ctx).Where("id = ? AND organization_id = ?", threadID, orgID).Delete(&models.AIAgentThread{})
+func (r *GormAIAgentRepository) DeleteThread(ctx context.Context, orgID, threadID, userID string) error {
+	query := r.db.WithContext(ctx).Where("id = ? AND organization_id = ?", threadID, orgID)
+	if userID != "" {
+		query = query.Where("user_id = ?", userID)
+	}
+	result := query.Delete(&models.AIAgentThread{})
 	if result.Error != nil {
 		return fmt.Errorf("delete ai agent thread: %w", result.Error)
+	}
+	if result.RowsAffected == 0 {
+		return ErrNotFound
 	}
 	return nil
 }

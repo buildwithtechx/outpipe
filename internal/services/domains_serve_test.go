@@ -205,7 +205,11 @@ func TestHostCertificatePaths(t *testing.T) {
 		t.Fatalf("paths = %s %s", certFile, keyFile)
 	}
 	wildCert, wildKey := certificates.HostCertificatePaths(dir, "*.example.com")
-	if wildCert != filepath.Join(dir, "wildcard_example_com.crt") || wildKey != filepath.Join(dir, "wildcard_example_com.key") {
+	if wildCert != filepath.Join(dir, "_wildcard_example_com.crt") || wildKey != filepath.Join(dir, "_wildcard_example_com.key") {
 		t.Fatalf("wildcard paths = %s %s", wildCert, wildKey)
+	}
+	regularCert, _ := certificates.HostCertificatePaths(dir, "wildcard.example.com")
+	if regularCert == wildCert {
+		t.Fatalf("wildcard path collided with regular hostname: %s", wildCert)
 	}
 }

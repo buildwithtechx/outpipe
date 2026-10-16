@@ -167,7 +167,9 @@ func (s *AlertBridgeService) SetStatusPageLink(ctx context.Context, orgID, id, t
 		if err != nil {
 			return models.ObservabilityAlert{}, err
 		}
-		alert.MonitorIDs = encoded
+		alert.StatusPageComponentIDs = encoded
+	} else {
+		alert.StatusPageComponentIDs = ""
 	}
 	if strings.TrimSpace(title) != "" {
 		alert.StatusPageTitle = strings.TrimSpace(title)

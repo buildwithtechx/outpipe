@@ -103,7 +103,11 @@ func (s *AlertBridgeService) fire(ctx context.Context, alert *models.Observabili
 		severity = models.IncidentSeverityMajor
 	}
 	var monitorIDs []string
-	_ = json.Unmarshal([]byte(alert.MonitorIDs), &monitorIDs)
+	componentsJSON := alert.StatusPageComponentIDs
+	if componentsJSON == "" {
+		componentsJSON = alert.MonitorIDs
+	}
+	_ = json.Unmarshal([]byte(componentsJSON), &monitorIDs)
 	incident, err := s.incidents.CreateIncident(ctx, alert.OrganizationID, CreateIncidentInput{
 		Title:        title,
 		Severity:     severity,

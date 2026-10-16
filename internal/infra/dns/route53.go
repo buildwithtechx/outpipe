@@ -38,15 +38,18 @@ func (p *Route53Provider) Name() string { return "route53" }
 type route53ZoneList struct {
 	XMLName xml.Name `xml:"ListHostedZonesResponse"`
 	Zones   []struct {
-		ID   string `xml:"Id"`
-		Name string `xml:"Name"`
+		ID     string `xml:"Id"`
+		Name   string `xml:"Name"`
+		Config struct {
+			PrivateZone bool `xml:"PrivateZone"`
+		} `xml:"Config"`
 	} `xml:"HostedZones>HostedZone"`
 	Truncated bool `xml:"IsTruncated"`
 }
 
 func (p *Route53Provider) zoneID(ctx context.Context, fqdn string) (string, error) {
-	name := strings.TrimSuffix(strings.ToLower(strings.TrimSpace(fqdn)), ".") + "."
-	if !validRecordName(strings.TrimSuffix(name, ".")) {
+	name := strings.TrimSuffix(strings.ToLower(strings.TrimSpace(fqdn)), ".")
+	if !validRecordName(name) {
 		return "", fmt.Errorf("dns record name is required")
 	}
 	raw, err := p.call(ctx, http.MethodGet, "/2013-04-01/hostedzone", "", nil)
@@ -63,8 +66,14 @@ func (p *Route53Provider) zoneID(ctx context.Context, fqdn string) (string, erro
 	best := ""
 	bestLen := -1
 	for _, zone := range zones.Zones {
-		zoneName := strings.ToLower(zone.Name)
-		if !strings.HasSuffix(name, zoneName) || len(zoneName) <= bestLen {
+		if zone.Config.PrivateZone {
+			continue
+		}
+		zoneName := strings.TrimSuffix(strings.ToLower(strings.TrimSpace(zone.Name)), ".")
+		if name != zoneName && !strings.HasSuffix(name, "."+zoneName) {
+			continue
+		}
+		if len(zoneName) <= bestLen {
 			continue
 		}
 		best = strings.TrimPrefix(zone.ID, "/hostedzone/")

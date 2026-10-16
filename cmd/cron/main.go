@@ -215,12 +215,18 @@ func main() {
 		mustWrapJob(reconciliation, retryConfig, dlh, tracker),
 		mustWrapJob(webhookJob, retryConfig, dlh, tracker),
 		mustWrapJob(telemetryJob, retryConfig, dlh, tracker),
-		mustWrapJob(telemetryExportJob, retryConfig, dlh, tracker),
 		mustWrapJob(subscriberJob, retryConfig, dlh, tracker),
 		mustWrapJob(domainCertificateJob, retryConfig, dlh, tracker),
-		mustWrapJob(fleetJob, retryConfig, dlh, tracker),
 		mustWrapJob(pipelineJob, retryConfig, dlh, tracker),
 		mustWrapJob(alertBridgeJob, retryConfig, dlh, tracker),
+	}
+	if cfg.Analytics.TinybirdURL != "" || cfg.Analytics.ClickHouseURL != "" {
+		jobs = append(jobs, mustWrapJob(telemetryExportJob, retryConfig, dlh, tracker))
+	} else {
+		log.Print("warning: analytics destination URLs are empty; telemetry export job disabled")
+	}
+	if fleetJob != nil {
+		jobs = append(jobs, mustWrapJob(fleetJob, retryConfig, dlh, tracker))
 	}
 	if emailJob != nil {
 		jobs = append(jobs, mustWrapJob(emailJob, retryConfig, dlh, tracker))

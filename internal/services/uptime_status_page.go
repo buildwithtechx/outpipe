@@ -18,10 +18,16 @@ func (s *UptimeService) GetStatusPageByOrg(ctx context.Context, orgID string) (*
 	return s.repo.GetStatusPageByOrg(ctx, orgID)
 }
 
+type PublicMonitorDTO struct {
+	ID     string `json:"id"`
+	Name   string `json:"name"`
+	Status string `json:"status"`
+}
+
 type PublicStatusData struct {
 	Page            models.UptimeStatusPage `json:"page"`
 	OverallStatus   string                  `json:"overallStatus"`
-	Monitors        []models.UptimeMonitor  `json:"monitors"`
+	Monitors        []PublicMonitorDTO      `json:"monitors"`
 	ActiveIncidents []models.UptimeIncident `json:"activeIncidents"`
 	PastIncidents   []models.UptimeIncident `json:"pastIncidents"`
 }
@@ -68,10 +74,19 @@ func (s *UptimeService) GetPublicStatusData(ctx context.Context, slug string) (P
 		}
 	}
 
+	publicMonitors := make([]PublicMonitorDTO, 0, len(monitors))
+	for _, m := range monitors {
+		publicMonitors = append(publicMonitors, PublicMonitorDTO{
+			ID:     m.ID,
+			Name:   m.Name,
+			Status: string(m.Status),
+		})
+	}
+
 	return PublicStatusData{
 		Page:            *page,
 		OverallStatus:   overall,
-		Monitors:        monitors,
+		Monitors:        publicMonitors,
 		ActiveIncidents: active,
 		PastIncidents:   past,
 	}, nil

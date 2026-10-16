@@ -155,10 +155,11 @@ func (UptimeSubscriberComponent) TableName() string {
 type SubscriberNotificationStatus string
 
 const (
-	SubscriberNotificationPending SubscriberNotificationStatus = "pending"
-	SubscriberNotificationSending SubscriberNotificationStatus = "sending"
-	SubscriberNotificationSent    SubscriberNotificationStatus = "sent"
-	SubscriberNotificationFailed  SubscriberNotificationStatus = "failed"
+	SubscriberNotificationPending    SubscriberNotificationStatus = "pending"
+	SubscriberNotificationSending    SubscriberNotificationStatus = "sending"
+	SubscriberNotificationSent       SubscriberNotificationStatus = "sent"
+	SubscriberNotificationFailed     SubscriberNotificationStatus = "failed"
+	SubscriberNotificationDeadLetter SubscriberNotificationStatus = "dead_letter"
 )
 
 type UptimeSubscriberNotification struct {

@@ -28,17 +28,18 @@ type ObservabilityAlert struct {
 	FailureStreak        int         `json:"failureStreak" gorm:"not null;default:0"`
 	RecoveryStreak       int         `json:"recoveryStreak" gorm:"not null;default:0"`
 	Enabled              bool        `json:"enabled" gorm:"not null;default:true;index"`
-	StatusPageTitle      string      `json:"statusPageTitle,omitempty" gorm:"size:255"`
-	StatusPageImpact     AlertImpact `json:"statusPageImpact,omitempty" gorm:"size:16"`
-	LastEvaluatedAt      *time.Time  `json:"lastEvaluatedAt,omitempty"`
-	LastStateChangedAt   *time.Time  `json:"lastStateChangedAt,omitempty"`
-	NextEvaluationAt     time.Time   `json:"nextEvaluationAt" gorm:"not null;index"`
+	StatusPageTitle        string      `json:"statusPageTitle,omitempty" gorm:"size:255"`
+	StatusPageImpact       AlertImpact `json:"statusPageImpact,omitempty" gorm:"size:16"`
+	StatusPageComponentIDs string      `json:"statusPageComponentIds,omitempty" gorm:"type:text"`
+	LastEvaluatedAt        *time.Time  `json:"lastEvaluatedAt,omitempty"`
+	LastStateChangedAt     *time.Time  `json:"lastStateChangedAt,omitempty"`
+	NextEvaluationAt       time.Time   `json:"nextEvaluationAt" gorm:"not null;index"`
 }
 
 type AlertIncident struct {
 	Base
 	OrganizationID string     `json:"organizationId" gorm:"type:uuid;not null;index"`
-	AlertID        string     `json:"alertId" gorm:"type:uuid;not null;uniqueIndex"`
+	AlertID        string     `json:"alertId" gorm:"type:uuid;not null;index"`
 	IncidentID     string     `json:"incidentId" gorm:"size:64;not null"`
 	StartedAt      time.Time  `json:"startedAt" gorm:"not null"`
 	ResolvedAt     *time.Time `json:"resolvedAt,omitempty"`
