@@ -47,9 +47,7 @@ func buildAnalyticsBody(signal string, items []map[string]json.RawMessage) ([]by
 		if _, ok := event["signal"]; !ok {
 			event["signal"] = signal
 		}
-		if _, ok := event["timestamp"]; !ok {
-			event["timestamp"] = analyticsEventTime(item).Format(time.RFC3339Nano)
-		}
+		event["timestamp"] = analyticsEventTime(item).Format(time.RFC3339Nano)
 		if idVal, ok := event["id"]; ok {
 			if _, hasEventID := event["event_id"]; !hasEventID {
 				event["event_id"] = idVal

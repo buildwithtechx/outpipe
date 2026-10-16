@@ -205,6 +205,7 @@ func (s *MachineFleetService) BulkCreateTunnels(ctx context.Context, orgID, flee
 			desired.DesiredStatus = strings.TrimSpace(spec.DesiredStatus)
 		}
 		if err := s.fleets.UpsertFleetTunnel(ctx, &desired); err != nil {
+			_ = s.tunnels.Revoke(ctx, tunnel.ID)
 			return created, fmt.Errorf("record fleet tunnel %q: %w", spec.Name, err)
 		}
 		created = append(created, tunnel)

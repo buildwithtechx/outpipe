@@ -2,6 +2,7 @@ package repositories
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"time"
 
@@ -85,7 +86,7 @@ func (r *GormUptimeRepository) CountSubscriberNotificationsByStatus(ctx context.
 		counts[row.Status] = row.Total
 	}
 	var oldest *time.Time
-	var oldestTime time.Time
+	var oldestTime sql.NullTime
 	activeStatuses := []models.SubscriberNotificationStatus{
 		models.SubscriberNotificationPending,
 		models.SubscriberNotificationFailed,
@@ -97,8 +98,8 @@ func (r *GormUptimeRepository) CountSubscriberNotificationsByStatus(ctx context.
 		Select("MIN(uptime_subscriber_notifications.created_at)").
 		Scan(&oldestTime).Error; err != nil {
 		return nil, nil, fmt.Errorf("find oldest subscriber notification: %w", err)
-	} else if !oldestTime.IsZero() {
-		oldest = &oldestTime
+	} else if oldestTime.Valid && !oldestTime.Time.IsZero() {
+		oldest = &oldestTime.Time
 	}
 	return counts, oldest, nil
 }
