@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"os"
+	"strings"
 	"time"
 
 	"github.com/spf13/cobra"
@@ -46,17 +48,76 @@ func newMachineTunnelCommand(cfg config.CLIConfig) *cobra.Command {
 		if response.Tunnel.ID == "" || response.RelayToken == "" || !response.ExpiresAt.After(time.Now()) {
 			return fmt.Errorf("machine tunnel response is incomplete")
 		}
-		ctx, cancel := context.WithDeadline(cmd.Context(), response.ExpiresAt)
-		defer cancel()
+		tunnelID := response.Tunnel.ID
+		relayToken := response.RelayToken
+		expiresAt := response.ExpiresAt
+		refreshDelay := 2 * time.Second
 		cfg.APIKey = ""
-		if err := openTunnel(ctx, cfg, port, protocolName, "", "", response.RelayToken, response.Tunnel.ID, originClient); err != nil {
-			return fmt.Errorf("connect machine tunnel: %w", err)
+		for {
+			if refreshAt := machineRefreshAt(expiresAt); time.Until(refreshAt) > 0 {
+				ctx, cancel := context.WithDeadline(cmd.Context(), refreshAt)
+				err := openTunnel(ctx, cfg, port, protocolName, "", "", relayToken, tunnelID, originClient)
+				cancel()
+				if err != nil {
+					return err
+				}
+				if cmd.Context().Err() != nil || time.Now().Before(refreshAt) {
+					return nil
+				}
+			}
+			token, next, fatal, err := refreshMachineRelayToken(cmd.Context(), api, tunnelID)
+			if err != nil {
+				if fatal {
+					return err
+				}
+				fmt.Fprintf(os.Stderr, "outpipe: relay credential refresh failed: %v; retrying in %s\n", err, refreshDelay)
+				select {
+				case <-cmd.Context().Done():
+					return nil
+				case <-time.After(refreshDelay):
+				}
+				if refreshDelay < 30*time.Second {
+					refreshDelay *= 2
+				}
+				continue
+			}
+			relayToken = token
+			expiresAt = next
+			refreshDelay = 2 * time.Second
 		}
-		return nil
 	}}
 	command.Flags().IntVar(&port, "port", port, "local port")
 	command.Flags().StringVar(&protocolName, "protocol", protocolName, "tunnel protocol (http, https, tcp, udp)")
 	command.Flags().StringVar(&originTLS.CAFile, "origin-ca", "", "PEM CA certificate file for the local HTTPS service")
 	command.Flags().StringVar(&originTLS.ServerName, "origin-server-name", "", "TLS certificate hostname for the local HTTPS service")
 	return command
+}
+
+func machineRefreshAt(expiresAt time.Time) time.Time {
+	lead := time.Until(expiresAt) / 10
+	if lead < time.Minute {
+		lead = time.Minute
+	}
+	if lead > 2*time.Minute {
+		lead = 2 * time.Minute
+	}
+	return expiresAt.Add(-lead)
+}
+
+func refreshMachineRelayToken(ctx context.Context, api *client.Client, tunnelID string) (string, time.Time, bool, error) {
+	var response struct {
+		RelayToken string    `json:"relayToken"`
+		ExpiresAt  time.Time `json:"expiresAt"`
+	}
+	if err := api.Do(ctx, http.MethodPost, "/api/v1/machines/tunnels/"+tunnelID+"/relay-token", nil, &response); err != nil {
+		fatal := strings.Contains(err.Error(), "status 401") || strings.Contains(err.Error(), "status 403") || strings.Contains(err.Error(), "status 404")
+		if fatal {
+			return "", time.Time{}, true, fmt.Errorf("machine credential is expired, revoked, or unauthorized; rotate OUTPIPE_MACHINE_TOKEN: %w", err)
+		}
+		return "", time.Time{}, false, fmt.Errorf("refresh machine relay credential: %w", err)
+	}
+	if response.RelayToken == "" || !response.ExpiresAt.After(time.Now()) {
+		return "", time.Time{}, true, fmt.Errorf("machine relay credential response is incomplete")
+	}
+	return response.RelayToken, response.ExpiresAt, false, nil
 }

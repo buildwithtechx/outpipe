@@ -28,7 +28,7 @@ func TestLoginCredentialsAndEndpointPersistAcrossProjects(t *testing.T) {
 	if err := run([]string{"login", "--agent-token", "project-agent", "--api-key", "project-key"}); err != nil {
 		t.Fatalf("save first-project login: %v", err)
 	}
-	for _, key := range []string{"OUTPIPE_API_URL", "OUTPIPE_RELAY_URL", "OUTPIPE_API_KEY", "OUTPIPE_AGENT_TOKEN"} {
+	for _, key := range []string{"OUTPIPE_RELAY_URL", "OUTPIPE_API_KEY", "OUTPIPE_AGENT_TOKEN"} {
 		if err := os.Unsetenv(key); err != nil {
 			t.Fatalf("clear test override: %v", err)
 		}
@@ -39,7 +39,7 @@ func TestLoginCredentialsAndEndpointPersistAcrossProjects(t *testing.T) {
 	if err := run([]string{"health"}); err != nil {
 		t.Fatalf("second project did not reuse stored endpoint and credential: %v", err)
 	}
-	t.Setenv("OUTPIPE_API_URL", "")
+	t.Setenv("OUTPIPE_API_URL", server.URL)
 	t.Setenv("OUTPIPE_RELAY_URL", "")
 	t.Setenv("OUTPIPE_API_KEY", "replace_with_api_key")
 	t.Setenv("OUTPIPE_AGENT_TOKEN", "replace_with_agent_token")

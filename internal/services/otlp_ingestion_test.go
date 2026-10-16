@@ -9,7 +9,6 @@ import (
 	metrics "go.opentelemetry.io/proto/otlp/metrics/v1"
 	"google.golang.org/protobuf/proto"
 	"outpipe.dev/outpipe/internal/models"
-	"outpipe.dev/outpipe/internal/repositories"
 	"outpipe.dev/outpipe/internal/services"
 )
 
@@ -19,7 +18,7 @@ func TestOTLPMetricsProtobufAndJSONTenantIsolation(t *testing.T) {
 	if err := db.AutoMigrate(&models.TelemetryMetric{}); err != nil {
 		t.Fatal(err)
 	}
-	svc := services.NewObservabilityService(repositories.NewGormObservabilityRepository(db))
+	svc := setupObservabilityServiceWithQueue(t, db)
 	request := &collector.ExportMetricsServiceRequest{ResourceMetrics: []*metrics.ResourceMetrics{{ScopeMetrics: []*metrics.ScopeMetrics{{Metrics: []*metrics.Metric{{Name: "requests", Unit: "1", Data: &metrics.Metric_Sum{Sum: &metrics.Sum{IsMonotonic: true, DataPoints: []*metrics.NumberDataPoint{{TimeUnixNano: 1000000000, Value: &metrics.NumberDataPoint_AsInt{AsInt: 7}}}}}}}}}}}}
 	wire, err := proto.Marshal(request)
 	if err != nil {

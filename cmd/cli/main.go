@@ -72,6 +72,10 @@ func newRootCommand(cfg config.CLIConfig) *cobra.Command {
 		newTunnelCommand(cfg, "revoke", "revoke a managed tunnel", cobra.ExactArgs(1)),
 		newSecretsCommand(cfg),
 		newMachineTunnelCommand(cfg),
+		newCapturePolicyCommand(cfg),
+		newMachineFleetCommand(cfg),
+		newDomainsCommand(cfg),
+		newDNSProvidersCommand(cfg),
 	)
 
 	root.SetVersionTemplate("outpipe {{.Version}}\n")
@@ -83,7 +87,7 @@ func newVersionCommand() *cobra.Command {
 		Use:   "version",
 		Short: "print the outpipe version",
 		Args:  cobra.NoArgs,
-		RunE: func(cmd *cobra.Command, args []string) error {
+		RunE: func(cmd *cobra.Command, _ []string) error {
 			cmd.Println(version)
 			return nil
 		},

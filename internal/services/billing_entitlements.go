@@ -77,7 +77,7 @@ func (s *BillingService) ensureFreePlan(ctx context.Context) (models.Plan, error
 		return models.Plan{}, fmt.Errorf("find free plan: %w", err)
 	}
 
-	plan := models.Plan{Key: "free", Name: "Free", Currency: "USD", MaxTunnels: 2, MaxDomains: 0, MaxMembers: 1, MaxConnections: 10, BandwidthBytes: 2 * 1024 * 1024 * 1024, RetentionDays: 3, Features: `{}`, Active: true}
+	plan := models.Plan{Key: "free", Name: "Free", Currency: "USD", MaxTunnels: 2, MaxDomains: 0, MaxMembers: 1, MaxConnections: 10, BandwidthBytes: 2 * 1024 * 1024 * 1024, TelemetryBytes: 1024 * 1024 * 1024, RetentionDays: 3, Features: `{}`, Active: true}
 	if err := s.billing.CreatePlan(ctx, &plan); err != nil {
 		if current, retryErr := s.billing.FindPlan(ctx, "free"); retryErr == nil {
 			return current, nil

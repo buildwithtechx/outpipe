@@ -13,27 +13,43 @@ import (
 
 	"outpipe.dev/outpipe/internal/engine"
 	"outpipe.dev/outpipe/internal/relay"
+	"outpipe.dev/outpipe/internal/validation"
 )
 
 type captureRecorder struct {
-	resolver    *relay.InternalTunnelResolver
-	baseURL     string
-	secret      string
-	client      *http.Client
-	mu          sync.Mutex
-	policies    map[string]capturePolicy
-	policyQueue chan capturePolicyRequest
-	queue       chan engine.RequestCapture
-	wait        sync.WaitGroup
-	dropped     atomic.Uint64
+	resolver      *relay.InternalTunnelResolver
+	baseURL       string
+	secret        string
+	client        *http.Client
+	mu            sync.Mutex
+	policies      map[string]capturePolicy
+	policyQueue   chan capturePolicyRequest
+	queue         chan captureUpload
+	wait          sync.WaitGroup
+	dropped       atomic.Uint64
+	spoolDir      string
+	spool         *captureSpool
+	sweepInterval time.Duration
 }
 
-func (r *captureRecorder) enabledPolicy(ctx context.Context, tunnelID, orgID string) (bool, error) {
+func (r *captureRecorder) queued() int64 {
+	queued := int64(len(r.queue))
+	if r.spool != nil {
+		queued += r.spool.count.Load()
+	}
+	return queued
+}
+
+func (r *captureRecorder) resolveCapturePolicy(ctx context.Context, tunnelID, orgID string) (bool, []validation.CaptureRule, error) {
 	policy, err := r.resolver.Resolve(ctx, tunnelID)
 	if err != nil {
-		return false, fmt.Errorf("resolve capture policy: %w", err)
+		return false, nil, fmt.Errorf("resolve capture policy: %w", err)
 	}
-	return policy.OrganizationID == orgID && policy.Status != "revoked" && policy.CaptureEnabled, nil
+	rules, err := validation.ParseCaptureRules(policy.CapturePolicy)
+	if err != nil {
+		return false, nil, fmt.Errorf("decode capture policy: %w", err)
+	}
+	return policy.OrganizationID == orgID && policy.Status != "revoked" && policy.CaptureEnabled, rules, nil
 }
 
 func (r *captureRecorder) sendCapture(ctx context.Context, capture engine.RequestCapture) error {

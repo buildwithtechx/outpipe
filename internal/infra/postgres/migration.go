@@ -141,16 +141,38 @@ func migrations() []migration {
 		return db.AutoMigrate(&models.TelemetryMetric{}, &models.TelemetrySpan{}, &models.TelemetryLog{}, &models.UptimeMonitor{}, &models.Tunnel{})
 	}}, {version: 20, name: "scheduled_uptime_and_status_privacy", up: func(db *gorm.DB) error {
 		return db.AutoMigrate(&models.UptimeMonitor{}, &models.UptimeStatusPage{}, &models.TelemetrySpan{}, &models.TelemetryLog{})
-	}}, {version: 21, name: "unique_active_secrets_and_versions", up: migrateSecretUniqueness}}
+	}}, {version: 21, name: "unique_active_secrets_and_versions", up: migrateSecretUniqueness}, {version: 22, name: "telemetry_monthly_usage_and_receipts", up: func(db *gorm.DB) error {
+		return db.AutoMigrate(&models.OrganizationMonthlyUsage{}, &models.OrganizationTelemetryReceipt{})
+	}}, {version: 23, name: "telemetry_export_queue", up: func(db *gorm.DB) error {
+		return db.AutoMigrate(&models.TelemetryExport{})
+	}}, {version: 24, name: "dns_provider_credentials", up: func(db *gorm.DB) error {
+		return db.AutoMigrate(&models.DNSProviderCredential{})
+	}}, {version: 25, name: "uptime_subscriber_management", up: migrateSubscriberManagement}, {version: 26, name: "machine_fleets", up: func(db *gorm.DB) error {
+		return db.AutoMigrate(&models.MachineFleet{}, &models.MachineFleetToken{}, &models.MachineFleetTunnel{})
+	}}, {version: 27, name: "observability_alerts", up: func(db *gorm.DB) error {
+		return db.AutoMigrate(&models.ObservabilityAlert{}, &models.AlertIncident{})
+	}}, {version: 28, name: "capture_policies", up: func(db *gorm.DB) error {
+		return db.AutoMigrate(&models.CapturePolicy{})
+	}}, {version: 29, name: "domain_dns_bundle_delegation", up: func(db *gorm.DB) error {
+		return db.AutoMigrate(&models.Domain{}, &models.DNSProviderCredential{})
+	}}, {version: 30, name: "billing_plans_telemetry_quota", up: func(db *gorm.DB) error {
+		if err := db.AutoMigrate(&models.Plan{}, &models.Domain{}, &models.ObservabilityAlert{}, &models.AlertIncident{}); err != nil {
+			return err
+		}
+		if err := db.Model(&models.Domain{}).Where("delegation_target IS NULL").Update("delegation_target", "").Error; err != nil {
+			return err
+		}
+		return seedDefaultBillingPlans(db)
+	}}}
 }
 
 func seedDefaultBillingPlans(db *gorm.DB) error {
 
 	plans := []models.Plan{
-		{Key: "free", Name: "Free", Currency: "USD", MaxTunnels: 2, MaxDomains: 0, MaxMembers: 1, MaxConnections: 10, BandwidthBytes: 2 * 1024 * 1024 * 1024, RetentionDays: 3, Features: `{}`, Active: true},
-		{Key: "link", Name: "Link", PriceMinor: 700, Currency: "USD", MaxTunnels: 3, MaxDomains: 1, MaxMembers: 3, MaxConnections: 50, BandwidthBytes: 25 * 1024 * 1024 * 1024, RetentionDays: 14, Features: `{"customDomains":true}`, Active: true},
-		{Key: "route", Name: "Route", PriceMinor: 1500, Currency: "USD", MaxTunnels: 5, MaxDomains: 5, MaxMembers: 5, MaxConnections: 100, BandwidthBytes: 100 * 1024 * 1024 * 1024, RetentionDays: 30, Features: `{"customDomains":true,"prioritySupport":true}`, Active: true},
-		{Key: "edge", Name: "Edge", PriceMinor: 12000, Currency: "USD", MaxTunnels: 20, MaxDomains: 25, MaxMembers: -1, MaxConnections: 500, BandwidthBytes: 1024 * 1024 * 1024 * 1024, RetentionDays: 90, Features: `{"customDomains":true,"prioritySupport":true}`, Active: true},
+		{Key: "free", Name: "Free", Currency: "USD", MaxTunnels: 2, MaxDomains: 0, MaxMembers: 1, MaxConnections: 10, BandwidthBytes: 2 * 1024 * 1024 * 1024, TelemetryBytes: 1024 * 1024 * 1024, RetentionDays: 3, Features: `{}`, Active: true},
+		{Key: "link", Name: "Link", PriceMinor: 700, Currency: "USD", MaxTunnels: 3, MaxDomains: 1, MaxMembers: 3, MaxConnections: 50, BandwidthBytes: 25 * 1024 * 1024 * 1024, TelemetryBytes: 5 * 1024 * 1024 * 1024, RetentionDays: 14, Features: `{"customDomains":true}`, Active: true},
+		{Key: "route", Name: "Route", PriceMinor: 1500, Currency: "USD", MaxTunnels: 5, MaxDomains: 5, MaxMembers: 5, MaxConnections: 100, BandwidthBytes: 100 * 1024 * 1024 * 1024, TelemetryBytes: 20 * 1024 * 1024 * 1024, RetentionDays: 30, Features: `{"customDomains":true,"prioritySupport":true}`, Active: true},
+		{Key: "edge", Name: "Edge", PriceMinor: 12000, Currency: "USD", MaxTunnels: 20, MaxDomains: 25, MaxMembers: -1, MaxConnections: 500, BandwidthBytes: 1024 * 1024 * 1024 * 1024, TelemetryBytes: 100 * 1024 * 1024 * 1024, RetentionDays: 90, Features: `{"customDomains":true,"prioritySupport":true}`, Active: true},
 	}
 
 	for _, plan := range plans {
@@ -161,6 +183,9 @@ func seedDefaultBillingPlans(db *gorm.DB) error {
 		}
 
 		if count > 0 {
+			if plan.TelemetryBytes > 0 {
+				_ = db.Model(&models.Plan{}).Where("key = ? AND (telemetry_bytes IS NULL OR telemetry_bytes = 0)", plan.Key).Update("telemetry_bytes", plan.TelemetryBytes).Error
+			}
 			continue
 		}
 
@@ -169,6 +194,28 @@ func seedDefaultBillingPlans(db *gorm.DB) error {
 		}
 	}
 
+	return nil
+}
+
+func migrateSubscriberManagement(db *gorm.DB) error {
+	if err := db.Exec("DELETE FROM uptime_subscribers AS dup USING uptime_subscribers AS kept WHERE dup.status_page_id = kept.status_page_id AND dup.email = kept.email AND (dup.created_at > kept.created_at OR (dup.created_at = kept.created_at AND dup.id > kept.id))").Error; err != nil {
+		return fmt.Errorf("dedupe subscribers: %w", err)
+	}
+	if err := db.AutoMigrate(
+		&models.UptimeStatusPage{},
+		&models.UptimeSubscriber{},
+		&models.UptimeSubscriberComponent{},
+		&models.UptimeSubscriberNotification{},
+		&models.UptimeSubscriptionAttempt{},
+	); err != nil {
+		return err
+	}
+	if err := db.Exec("UPDATE uptime_status_pages SET subscriptions_enabled = TRUE WHERE subscriptions_enabled IS NULL").Error; err != nil {
+		return fmt.Errorf("backfill subscriptions_enabled: %w", err)
+	}
+	if err := db.Exec("UPDATE uptime_subscribers SET status = 'confirmed' WHERE confirmed = TRUE AND (status IS NULL OR status = '' OR status = 'pending')").Error; err != nil {
+		return fmt.Errorf("backfill subscriber status: %w", err)
+	}
 	return nil
 }
 

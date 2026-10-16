@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1
 
 # Build the public tunnel relay and data plane.
-FROM golang:1.26.8-alpine AS build
+FROM golang:1.26.9-alpine AS build
 
 WORKDIR /workspace
 
@@ -15,10 +15,13 @@ RUN CGO_ENABLED=0 go build -ldflags="-s -w -X main.version=${VERSION}" -o /out/t
 # Run as a non-root user.
 FROM alpine:3.22
 
-RUN addgroup -S outpipe && adduser -S -G outpipe outpipe
+RUN apk --no-cache add ca-certificates tzdata && \
+    addgroup -S outpipe && adduser -S -G outpipe outpipe && \
+    mkdir -p /var/lib/outpipe/capture-spool && chown -R outpipe:outpipe /var/lib/outpipe
 
 WORKDIR /app
 COPY --from=build /out/tunnel /app/tunnel
+COPY --from=build /workspace/configs /app/configs
 
 USER outpipe
 

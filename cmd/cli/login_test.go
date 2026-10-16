@@ -9,7 +9,7 @@ import (
 
 func TestRunLoginSavesAgentToken(t *testing.T) {
 	configPath := filepath.Join(t.TempDir(), "config.json")
-	cliTestEnv(t, "http://api.test")
+	cliTestEnv(t, "https://api.test")
 	t.Setenv("OUTPIPE_CONFIG_PATH", configPath)
 
 	if err := run([]string{"login", "--agent-token", "token-1", "--api-key", "key-1"}); err != nil {
@@ -33,7 +33,7 @@ func TestRunLoginSavesAgentToken(t *testing.T) {
 
 func TestRunLoginSavesApiKeyOnly(t *testing.T) {
 	configPath := filepath.Join(t.TempDir(), "config.json")
-	cliTestEnv(t, "http://api.test")
+	cliTestEnv(t, "https://api.test")
 	t.Setenv("OUTPIPE_CONFIG_PATH", configPath)
 
 	if err := run([]string{"login", "--agent-token", "token-1"}); err != nil {

@@ -44,5 +44,10 @@ func writeOTLPError(c *fiber.Ctx, err error) error {
 		c.Set("Retry-After", "5")
 		return c.Status(fiber.StatusServiceUnavailable).JSON(fiber.Map{"error": "telemetry backend unavailable"})
 	}
+	var quota *services.TelemetryQuotaExceededError
+	if errors.As(err, &quota) {
+		c.Set("Retry-After", "3600")
+		return c.Status(fiber.StatusTooManyRequests).JSON(fiber.Map{"error": "monthly telemetry allowance exceeded"})
+	}
 	return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "invalid telemetry batch"})
 }

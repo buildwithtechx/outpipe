@@ -26,7 +26,7 @@ func TestHTTPProxyWithRealLocalTarget(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	session := engine.Session{ID: "http-session", OrganizationID: "org", TunnelID: "http-tunnel", Send: func(ctx context.Context, message protocol.Envelope) error {
+	session := engine.Session{ID: "http-session", OrganizationID: "org", TunnelID: "http-tunnel", Send: func(_ context.Context, message protocol.Envelope) error {
 		var request protocol.HTTPRequest
 
 		if err := protocol.DecodePayload(message, &request); err != nil {
@@ -88,7 +88,7 @@ func TestTCPManagerRoundTripWithRealLocalTarget(t *testing.T) {
 	manager := relay.NewTCPManager()
 	manager.SetMaxConnections(4)
 	ready := make(chan protocol.TCPData, 1)
-	port, err := manager.Open("tcp-integration", func(ctx context.Context, envelope protocol.Envelope) error {
+	port, err := manager.Open("tcp-integration", func(_ context.Context, envelope protocol.Envelope) error {
 		var data protocol.TCPData
 
 		if err := protocol.DecodePayload(envelope, &data); err != nil {
@@ -148,7 +148,7 @@ func TestUDPManagerRoundTripWithRealLocalTarget(t *testing.T) {
 
 	defer target.Close()
 	manager := relay.NewUDPManager()
-	port, err := manager.Open("udp-integration", func(ctx context.Context, envelope protocol.Envelope) error {
+	port, err := manager.Open("udp-integration", func(_ context.Context, envelope protocol.Envelope) error {
 		var data protocol.UDPData
 
 		if err := protocol.DecodePayload(envelope, &data); err != nil {

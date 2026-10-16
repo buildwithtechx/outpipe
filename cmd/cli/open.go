@@ -35,7 +35,7 @@ func openTunnelCommand(cfg config.CLIConfig, name, short string) *cobra.Command 
 		Use:   name,
 		Short: short,
 		Args:  cobra.NoArgs,
-		RunE: func(cmd *cobra.Command, args []string) error {
+		RunE: func(cmd *cobra.Command, _ []string) error {
 			port, err := cmd.Flags().GetInt("port")
 
 			if err != nil {

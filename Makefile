@@ -1,74 +1,45 @@
-.PHONY: dev dev-api dev-tunnel dev-cron dev-check dev-cli dev-web dev-desktop build fmt format typecheck test clean build-binaries install-cli docker-build docker-images docker-api docker-tunnel docker-cron docker-check docker-compose-up docker-compose-down
+.PHONY: all build build-api build-tunnel build-cron build-check build-cli test fmt tidy clean docker-api docker-tunnel docker-cron docker-check
 
-dev:
-	npm run dev
+all: build
 
-dev-api:
-	npm run dev:api
+build: build-api build-tunnel build-cron build-check build-cli
 
-dev-tunnel:
-	npm run dev:tunnel
+build-api:
+	go build -ldflags="-s -w" -o bin/outpipe-api ./cmd/server
 
-dev-cron:
-	npm run dev:cron
+build-tunnel:
+	go build -ldflags="-s -w" -o bin/outpipe-server ./cmd/tunnel
 
-dev-check:
-	npm run dev:check
+build-cron:
+	go build -ldflags="-s -w" -o bin/tunnel-cron ./cmd/cron
 
-dev-cli:
-	npm run dev:cli
+build-check:
+	go build -ldflags="-s -w" -o bin/tunnel-check ./cmd/check
 
-dev-web:
-	npm run dev:web
-
-dev-desktop:
-	npm run dev:desktop
-
-build:
-	npm run build
-
-fmt:
-	npm run fmt
-
-format:
-	npm run format
-
-typecheck:
-	npm run typecheck
+build-cli:
+	go build -ldflags="-s -w" -o bin/outpipe ./cmd/cli
 
 test:
-	npm run test
+	go test -count=1 ./...
+
+fmt:
+	go fmt ./...
+
+tidy:
+	go mod tidy
+	go mod vendor
 
 clean:
-	npm run clean
-
-build-binaries:
-	bash scripts/build-binaries.sh
-
-install-cli:
-	bash scripts/install-cli.sh
-
-docker-build:
-	docker build -f docker/Dockerfile.api -t outpipe-api:dev .
-
-docker-images:
-	bash scripts/build-images.sh
+	rm -rf bin
 
 docker-api:
-	docker build -f docker/Dockerfile.api -t outpipe-api:dev .
+	docker build -f docker/Dockerfile.api -t outpipe-api:latest .
 
 docker-tunnel:
-	docker build -f docker/Dockerfile.tunnel -t outpipe-server:dev .
+	docker build -f docker/Dockerfile.tunnel -t outpipe-tunnel:latest .
 
 docker-cron:
-	docker build -f docker/Dockerfile.cron -t outpipe-cron:dev .
+	docker build -f docker/Dockerfile.cron -t outpipe-cron:latest .
 
 docker-check:
-	docker build -f docker/Dockerfile.check -t outpipe-check:dev .
-
-docker-compose-up:
-	docker compose -f docker/docker-compose.yml up
-
-docker-compose-down:
-	docker compose -f docker/docker-compose.yml down
-
+	docker build -f docker/Dockerfile.check -t outpipe-check:latest .

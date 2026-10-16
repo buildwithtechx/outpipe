@@ -12,12 +12,19 @@ import (
 )
 
 type ObservabilityService struct {
-	repo     repositories.ObservabilityRepository
-	exporter TelemetryExporter
+	repo         repositories.ObservabilityRepository
+	exporter     TelemetryExporter
+	exports      repositories.TelemetryExportRepository
+	quota        repositories.TelemetryQuotaRepository
+	quotaBilling repositories.BillingRepository
 }
 
 func NewObservabilityService(repo repositories.ObservabilityRepository) *ObservabilityService {
 	return &ObservabilityService{repo: repo}
+}
+
+func (s *ObservabilityService) SetExportQueue(exports repositories.TelemetryExportRepository) {
+	s.exports = exports
 }
 
 func (s *ObservabilityService) IngestCapture(ctx context.Context, capture *models.RequestCapture) error {

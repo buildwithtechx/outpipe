@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 
 	"gorm.io/gorm"
 	"outpipe.dev/outpipe/internal/models"
@@ -26,9 +27,35 @@ type UptimeRepository interface {
 
 	GetStatusPageByOrg(ctx context.Context, orgID string) (*models.UptimeStatusPage, error)
 	GetStatusPageBySlug(ctx context.Context, slug string) (*models.UptimeStatusPage, error)
+	GetStatusPageByID(ctx context.Context, id string) (*models.UptimeStatusPage, error)
 	UpsertStatusPage(ctx context.Context, page *models.UptimeStatusPage) error
+	SetSubscriptionsEnabled(ctx context.Context, pageID string, enabled bool) (*models.UptimeStatusPage, error)
 	AddSubscriber(ctx context.Context, subscriber *models.UptimeSubscriber) error
 	ListSubscribers(ctx context.Context, statusPageID string) ([]models.UptimeSubscriber, error)
+	GetSubscriber(ctx context.Context, id string) (*models.UptimeSubscriber, error)
+	GetSubscriberByEmail(ctx context.Context, pageID, email string) (*models.UptimeSubscriber, error)
+	GetSubscriberByTokenHash(ctx context.Context, tokenHash string) (*models.UptimeSubscriber, error)
+	SaveSubscriber(ctx context.Context, subscriber *models.UptimeSubscriber) error
+	DeleteSubscriber(ctx context.Context, id string) error
+	ListSubscribersFiltered(ctx context.Context, pageID, query string, status models.SubscriberStatus, limit int, before time.Time, beforeID string) ([]models.UptimeSubscriber, error)
+	CountSubscribersByStatus(ctx context.Context, pageID string) (map[models.SubscriberStatus]int64, error)
+	SetSubscriberComponents(ctx context.Context, subscriberID string, monitorIDs []string) error
+	ListSubscriberComponents(ctx context.Context, subscriberID string) ([]string, error)
+	ListNotificationTargets(ctx context.Context, pageID string, monitorIDs []string) ([]models.UptimeSubscriber, error)
+	CreateSubscriberNotification(ctx context.Context, notification *models.UptimeSubscriberNotification) error
+	ClaimPendingSubscriberNotifications(ctx context.Context, now time.Time, limit int) ([]models.UptimeSubscriberNotification, error)
+	MarkSubscriberNotificationSent(ctx context.Context, id string, sentAt time.Time) error
+	MarkSubscriberNotificationFailed(ctx context.Context, id, message string, availableAt time.Time) error
+	MarkSubscriberNotificationDeadLetter(ctx context.Context, id, message string) error
+	RequeueSubscriberNotification(ctx context.Context, id string, availableAt time.Time) error
+	CountSubscriberNotificationsByStatus(ctx context.Context, pageID string) (map[models.SubscriberNotificationStatus]int64, *time.Time, error)
+	MarkSubscriberSent(ctx context.Context, subscriberID string, sentAt time.Time) error
+	CountSubscriberSendsSince(ctx context.Context, subscriberID string, since time.Time) (int64, error)
+	RecordSubscriptionAttempt(ctx context.Context, attempt *models.UptimeSubscriptionAttempt) error
+	CountRecentAttempts(ctx context.Context, pageID, ipHash, emailHash string, since time.Time) (int64, int64, error)
+	PruneSubscriptionAttempts(ctx context.Context, before time.Time) (int64, error)
+	DeleteExpiredPendingSubscribers(ctx context.Context, pageID string, now time.Time) (int64, error)
+	GetIncidentUpdate(ctx context.Context, id string) (*models.UptimeIncidentUpdate, error)
 }
 
 type GormUptimeRepository struct {

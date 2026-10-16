@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1
 
 # Build one-shot domain and relay readiness checks.
-FROM golang:1.26.8-alpine AS build
+FROM golang:1.26.9-alpine AS build
 
 WORKDIR /workspace
 
@@ -15,10 +15,12 @@ RUN CGO_ENABLED=0 go build -ldflags="-s -w -X main.version=${VERSION}" -o /out/c
 # Run this image from cron, CI, or an orchestrator health workflow.
 FROM alpine:3.22
 
-RUN addgroup -S outpipe && adduser -S -G outpipe outpipe
+RUN apk --no-cache add ca-certificates tzdata && \
+    addgroup -S outpipe && adduser -S -G outpipe outpipe
 
 WORKDIR /app
 COPY --from=build /out/check /app/check
+COPY --from=build /workspace/configs /app/configs
 
 USER outpipe
 

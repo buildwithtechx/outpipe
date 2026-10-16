@@ -102,6 +102,22 @@ func (m *OutboxMailer) SendContact(ctx context.Context, name, email, topic, mess
 	return m.enqueue(ctx, Message{To: m.support, Subject: "Outpipe contact: " + topic, HTML: body})
 }
 
+func (m *OutboxMailer) SendSubscriberConfirm(ctx context.Context, email, pageTitle, confirmURL string) error {
+	html, err := m.renderer.render("subscriber-confirm", SubscriberConfirmData{PageTitle: pageTitle, ConfirmURL: confirmURL})
+	if err != nil {
+		return err
+	}
+	return m.enqueue(ctx, Message{To: email, Subject: "Confirm your " + pageTitle + " subscription", HTML: html})
+}
+
+func (m *OutboxMailer) SendSubscriberIncident(ctx context.Context, email, pageTitle, incidentTitle, status, message, unsubscribeURL string) error {
+	html, err := m.renderer.render("subscriber-incident", SubscriberIncidentData{PageTitle: pageTitle, IncidentTitle: incidentTitle, Status: status, Message: message, UnsubscribeURL: unsubscribeURL})
+	if err != nil {
+		return err
+	}
+	return m.enqueue(ctx, Message{To: email, Subject: "[" + pageTitle + "] " + incidentTitle, HTML: html})
+}
+
 func (m *OutboxMailer) SendBugReport(ctx context.Context, name, email, category, summary, reproduction, expected, actual string) error {
 	body := fmt.Sprintf("<p>Bug report from <strong>%s</strong> (%s).</p><p>Category: %s</p><h2>%s</h2><h3>Steps to reproduce</h3><p>%s</p><h3>Expected</h3><p>%s</p><h3>Actual</h3><p>%s</p>", html.EscapeString(name), html.EscapeString(email), html.EscapeString(category), html.EscapeString(summary), html.EscapeString(reproduction), html.EscapeString(expected), html.EscapeString(actual))
 	return m.enqueue(ctx, Message{To: m.support, Subject: "Outpipe bug report: " + summary, HTML: body})

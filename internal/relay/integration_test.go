@@ -26,7 +26,7 @@ func TestLocalHTTPTargetIntegration(t *testing.T) {
 		t.Fatalf("create router: %v", err)
 	}
 
-	dummySend := func(ctx context.Context, envelope protocol.Envelope) error {
+	dummySend := func(_ context.Context, envelope protocol.Envelope) error {
 
 		if envelope.Type == protocol.MessageTypeHTTPRequest {
 			resp := protocol.HTTPResponse{StatusCode: 200, Body: "b2staHR0cC10YXJnZXQ="}
@@ -82,7 +82,7 @@ func TestLocalTCPTargetIntegration(t *testing.T) {
 
 	tcpMgr := NewTCPManager()
 	tunnelID := "tunnel-tcp"
-	dummySend := func(ctx context.Context, envelope protocol.Envelope) error { return nil }
+	dummySend := func(_ context.Context, _ protocol.Envelope) error { return nil }
 
 	port, err := tcpMgr.Open(tunnelID, dummySend)
 
@@ -113,7 +113,7 @@ func TestLocalUDPTargetIntegration(t *testing.T) {
 	defer conn.Close()
 
 	udpMgr := NewUDPManager()
-	dummySend := func(ctx context.Context, envelope protocol.Envelope) error { return nil }
+	dummySend := func(_ context.Context, _ protocol.Envelope) error { return nil }
 
 	port, err := udpMgr.Open("tunnel-udp", dummySend)
 

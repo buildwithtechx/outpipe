@@ -1,0 +1,28 @@
+app:
+  port: "8082"
+  internal_listen_address: "127.0.0.1:9090"
+  name: "outpipe-check"
+  environment: "production"
+  log_level: "info"
+  shutdown_timeout: 10s
+  allowed_origins: "https://app.outpipe.dev,https://outpipe.dev"
+  cors_origin: "https://app.outpipe.dev"
+  public_api_url: "https://api.outpipe.dev"
+  dashboard_url: "https://app.outpipe.dev"
+  status_base_url: "https://status.outpipe.dev"
+  require_tls: true
+
+service:
+  internal_api_url: "http://127.0.0.1:9090"
+
+database:
+  max_conns: 10
+  max_lifetime: 30m
+  max_idle_time: 5m
+
+redis:
+  host: "redis"
+  port: "6379"
+  db: 0
+
+relay_url: "https://relay.outpipe.app"

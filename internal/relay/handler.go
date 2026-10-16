@@ -44,6 +44,8 @@ type ManagedTunnelPasswordVerifier interface {
 
 type ManagedTunnelPolicy struct {
 	CaptureEnabled    bool    `json:"captureEnabled"`
+	CapturePolicy     string  `json:"capturePolicy"`
+	CaptureVersion    int     `json:"captureVersion"`
 	MachineTokenID    *string `json:"machineTokenId,omitempty"`
 	TargetHost        string  `json:"targetHost"`
 	TargetPort        int     `json:"targetPort"`
@@ -115,31 +117,24 @@ func NewHandler(authenticator AgentAuthenticator, sessions *engine.SessionRegist
 }
 
 func NewHandlerWithOptions(authenticator AgentAuthenticator, sessions *engine.SessionRegistry, router *engine.RequestRouter, tcp *TCPManager, udp *UDPManager, options HandlerOptions) (*Handler, error) {
-
 	if authenticator == nil || sessions == nil || router == nil || options.MaxConnections < 1 || options.MaxTunnels < 1 || options.Heartbeat <= 0 || options.ReadTimeout <= options.Heartbeat || options.MaxFrameBytes < 1 {
 		return nil, fmt.Errorf("authenticator, session registry, router, and positive session limit are required")
 	}
-
 	if tcp == nil || udp == nil {
 		return nil, fmt.Errorf("tcp and udp managers are required")
 	}
-
 	if options.Logger == nil {
 		options.Logger = slog.Default()
 	}
-
 	if options.Metrics == nil {
 		options.Metrics = NewMetrics()
 	}
-
 	if options.DrainTimeout < 0 {
 		return nil, fmt.Errorf("drain timeout cannot be negative")
 	}
-
 	if options.Affinity != nil && (options.RelayID == "" || options.AffinityTTL <= 0) {
 		return nil, fmt.Errorf("relay affinity requires relay id and positive ttl")
 	}
-
 	if strings.TrimSpace(options.PublicDomain) == "" {
 		return nil, fmt.Errorf("public tunnel domain is required")
 	}
@@ -150,11 +145,9 @@ func NewHandlerWithOptions(authenticator AgentAuthenticator, sessions *engine.Se
 	tcp.SetAdmissionHook(handler.allowConnection)
 	tcp.SetUsageHook(func(tunnelID, eventType string, connections int) {
 		organizationID, ok := router.OrganizationID(tunnelID)
-
 		if !ok {
 			return
 		}
-
 		switch eventType {
 		case "tcp_connection_close":
 			handler.updateOrganizationConnections(organizationID, connections)
@@ -173,12 +166,10 @@ func (h *Handler) Upgrade(c *fiber.Ctx) error {
 }
 
 func (h *Handler) Connect(connection *websocket.Conn) {
-
 	if !h.originAllowed(connection.Headers("Origin")) {
 		_ = connection.Close()
 		return
 	}
-
 	if !h.acquireConnection() {
 		_ = connection.WriteJSON(protocol.Envelope{Version: protocol.Version, Type: protocol.MessageTypeError, Payload: []byte(`{"code":"capacity","message":"relay capacity reached"}`)})
 		_ = connection.Close()
@@ -196,13 +187,11 @@ func (h *Handler) Connect(connection *websocket.Conn) {
 
 	if token := bearerToken(connection.Headers("Authorization")); token != "" {
 		authenticatedIdentity, err := h.authenticator.Authenticate(ctx, token)
-
 		if err != nil {
 			h.writeJSON(connection, protocol.Envelope{Version: protocol.Version, Type: protocol.MessageTypeError, Payload: []byte(`{"code":"unauthorized","message":"invalid agent token"}`)})
 			_ = connection.Close()
 			return
 		}
-
 		identity = authenticatedIdentity
 		h.logger.Info("relay connection authenticated", slog.String("agent_id", identity.AgentID), slog.String("organization_id", identity.OrganizationID))
 		h.setOrganizationLimit(identity.OrganizationID, identity.MaxConnections)
@@ -235,7 +224,6 @@ func (h *Handler) Connect(connection *websocket.Conn) {
 
 	for {
 		messageType, data, err := connection.ReadMessage()
-
 		if err != nil {
 			return
 		}
@@ -248,7 +236,6 @@ func (h *Handler) Connect(connection *websocket.Conn) {
 		}
 
 		message, err := protocol.Decode(data)
-
 		if err != nil {
 			h.metrics.AddError()
 			h.writeError(connection, "protocol", err.Error())
@@ -272,58 +259,5 @@ func (h *Handler) Connect(connection *websocket.Conn) {
 		watchExpiry()
 
 		h.recordMessageUsage(ctx, state.identity.OrganizationID, message)
-	}
-}
-
-func (h *Handler) closeOwnedSessions(ctx context.Context, identity AgentIdentity, owned map[string]string) {
-
-	for tunnelID, sessionID := range owned {
-
-		if h.sessions.Remove(tunnelID, sessionID) {
-
-			if h.affinity != nil {
-				_ = h.affinity.Release(ctx, tunnelID, h.relayID)
-			}
-
-			h.recordUsage(ctx, identity.OrganizationID, tunnelID, "tunnel_close", 0, 0)
-			h.metrics.AddTunnel(-1)
-			h.router.RemoveTunnel(tunnelID)
-			h.tcp.CloseTunnel(tunnelID)
-			h.udp.CloseTunnel(tunnelID)
-		}
-	}
-
-	h.logger.Info("relay connection closed", slog.String("agent_id", identity.AgentID), slog.Int("tunnels", len(owned)))
-}
-
-func (h *Handler) writeError(connection *websocket.Conn, code, message string) {
-	payload, err := protocol.EncodePayload(protocol.MessageTypeError, "", protocol.ErrorMessage{Code: code, Message: message})
-
-	if err == nil {
-		_ = h.writeMessage(connection, websocket.TextMessage, payload)
-	}
-}
-
-func (h *Handler) writeJSON(connection *websocket.Conn, value any) error {
-	h.writeMu.Lock()
-	defer h.writeMu.Unlock()
-	_ = connection.SetWriteDeadline(time.Now().Add(10 * time.Second))
-	return connection.WriteJSON(value)
-}
-
-func (h *Handler) writeMessage(connection *websocket.Conn, messageType int, data []byte) error {
-	h.writeMu.Lock()
-	defer h.writeMu.Unlock()
-	_ = connection.SetWriteDeadline(time.Now().Add(10 * time.Second))
-	return connection.WriteMessage(messageType, data)
-}
-
-func (h *Handler) CloseAll() {
-
-	for _, session := range h.sessions.Snapshot() {
-		h.sessions.Remove(session.TunnelID, session.ID)
-		h.router.RemoveTunnel(session.TunnelID)
-		h.tcp.CloseTunnel(session.TunnelID)
-		h.udp.CloseTunnel(session.TunnelID)
 	}
 }

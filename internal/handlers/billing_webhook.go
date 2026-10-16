@@ -45,7 +45,7 @@ func parseWebhook(provider string, payload []byte) (services.BillingTransition, 
 		InvoiceURL:           stringValue(data, "invoice_url", "receipt_url", "order_url"),
 		Status:               subscriptionStatus(eventType, stringValue(data, "status")),
 		CurrentPeriodEnd:     timeValue(data, "current_period_end", "period_end"),
-		CancelAtPeriodEnd:    boolValue(data, "cancel_at_period_end", "cancelled"),
+		CancelAtPeriodEnd:    boolPointer(data, "cancel_at_period_end", "cancelled"),
 		EventType:            eventType,
 		AmountMinor:          int64Value(data, "amount", "amount_minor", "amountMinor"),
 		Currency:             stringValue(data, "currency"),
@@ -100,12 +100,19 @@ func stringValue(values map[string]any, keys ...string) string {
 }
 
 func boolValue(values map[string]any, keys ...string) bool {
-	for _, key := range keys {
-		if value, ok := values[key].(bool); ok {
-			return value
-		}
+	if p := boolPointer(values, keys...); p != nil {
+		return *p
 	}
 	return false
+}
+
+func boolPointer(values map[string]any, keys ...string) *bool {
+	for _, key := range keys {
+		if value, ok := values[key].(bool); ok {
+			return &value
+		}
+	}
+	return nil
 }
 
 func intValue(values map[string]any, keys ...string) int {

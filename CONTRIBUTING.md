@@ -1,49 +1,45 @@
-# Contributing
+# Contributing to Outpipe Core Engine
 
-Contributions are welcome for the standalone tunnel server, agent, CLI, dashboard, desktop app, SDKs, protocol, documentation, and deployment tooling.
+Contributions are welcome for the standalone tunnel server, relay agent, developer CLI, cron worker, health checker, protocol schemas, and deployment configurations.
+
+Frontend applications live in `buildwithtechx/outpipe-frontend`.
+Multi-language SDKs live in `buildwithtechx/outpipe-sdks`.
 
 ## Before contributing
 
-- Read the project documentation and security policy.
+- Read the project documentation and security policy (`SECURITY.md`).
 - Search existing issues and pull requests.
-- Open an issue for significant design changes before implementation.
+- Open an issue for significant architectural or protocol changes before implementation.
 - Never include credentials, private tunnel URLs, customer data, or production configuration.
 
 ## Development setup
 
 Requirements:
 
-- Go 1.26.8 or newer.
-- Node.js 22 or newer.
-- npm 10 or newer.
-- Rust and Tauri prerequisites for desktop work.
+- Go 1.26.9 or newer.
+- Docker & Docker Compose (for Postgres and Timescale integration testing).
 
-Install dependencies and run the available checks:
+Compile and test all core binaries:
 
 ```sh
-npm install
-npm run fmt
-npm run typecheck
-npm run test
+# Compile all 5 core binaries
+make build
+# Or directly via Go:
+go build -o bin/ ./cmd/server ./cmd/tunnel ./cmd/cron ./cmd/check ./cmd/cli
+
+# Run formatting, vetting, and tests
+gofmt -w .
+go vet ./...
+go test -race ./...
 ```
-
-## Project boundaries
-
-- Keep the tunnel core independent from Outpipe.
-- Put Go server code in the appropriate `internal/` layer.
-- Keep reusable public Go APIs under `pkg/`.
-- Keep reusable TypeScript packages under `packages/`.
-- Treat Outpipe support as an optional integration.
-- Do not edit generated route or protocol files by hand.
 
 ## Pull requests
 
 - Use a focused branch and describe the user-visible or operational impact.
 - Include tests for protocol, authentication, routing, limits, or persistence changes.
 - Update relevant documentation when behavior or architecture changes.
-- Run formatting and relevant checks before requesting review.
-- Keep files within the project size limits.
-- Explain migrations, configuration changes, and rollout requirements.
+- Run `gofmt -w .` and `go vet ./...` before requesting review.
+- Keep files under 350 lines per `AGENTS.md`.
 
 ## Commit guidance
 

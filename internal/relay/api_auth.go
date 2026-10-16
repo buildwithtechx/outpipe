@@ -136,6 +136,8 @@ func (r *InternalTunnelResolver) resolve(ctx context.Context, tunnelID string) (
 
 	var body struct {
 		CaptureEnabled    bool    `json:"captureEnabled"`
+		CapturePolicy     string  `json:"capturePolicy"`
+		CaptureVersion    int     `json:"captureVersion"`
 		MachineTokenID    *string `json:"machineTokenId,omitempty"`
 		TargetHost        string  `json:"targetHost"`
 		TargetPort        int     `json:"targetPort"`
@@ -153,7 +155,7 @@ func (r *InternalTunnelResolver) resolve(ctx context.Context, tunnelID string) (
 		return ManagedTunnelPolicy{}, fmt.Errorf("tunnel policy response is incomplete")
 	}
 
-	return ManagedTunnelPolicy{OrganizationID: body.OrganizationID, PublicHostname: body.PublicHostname, PasswordProtected: body.PasswordProtected, Status: body.Status, CaptureEnabled: body.CaptureEnabled, MachineTokenID: body.MachineTokenID, TargetHost: body.TargetHost, TargetPort: body.TargetPort, Protocol: body.Protocol}, nil
+	return ManagedTunnelPolicy{OrganizationID: body.OrganizationID, PublicHostname: body.PublicHostname, PasswordProtected: body.PasswordProtected, Status: body.Status, CaptureEnabled: body.CaptureEnabled, CapturePolicy: body.CapturePolicy, CaptureVersion: body.CaptureVersion, MachineTokenID: body.MachineTokenID, TargetHost: body.TargetHost, TargetPort: body.TargetPort, Protocol: body.Protocol}, nil
 }
 
 func (r *InternalTunnelResolver) VerifyPassword(ctx context.Context, tunnelID, password string) (bool, error) {

@@ -103,7 +103,17 @@ func (h *TunnelHandler) Policy(c *fiber.Ctx) error {
 		return c.SendStatus(fiber.StatusForbidden)
 	}
 
-	return c.JSON(fiber.Map{"organizationId": tunnel.OrganizationID, "publicHostname": tunnel.PublicHostname, "status": tunnel.Status, "passwordProtected": tunnel.PasswordHash != "", "captureEnabled": tunnel.CaptureEnabled, "machineTokenId": tunnel.MachineTokenID, "targetHost": tunnel.TargetHost, "targetPort": tunnel.TargetPort, "protocol": tunnel.Protocol})
+	rules, version := h.capturePolicy(c, tunnel.ID)
+
+	return c.JSON(fiber.Map{"organizationId": tunnel.OrganizationID, "publicHostname": tunnel.PublicHostname, "status": tunnel.Status, "passwordProtected": tunnel.PasswordHash != "", "captureEnabled": tunnel.CaptureEnabled, "capturePolicy": rules, "captureVersion": version, "machineTokenId": tunnel.MachineTokenID, "targetHost": tunnel.TargetHost, "targetPort": tunnel.TargetPort, "protocol": tunnel.Protocol})
+}
+
+func (h *TunnelHandler) capturePolicy(c *fiber.Ctx, tunnelID string) (string, int) {
+	policy, err := h.tunnels.GetCapturePolicy(c.UserContext(), tunnelID)
+	if err != nil {
+		return "[]", 0
+	}
+	return policy.Rules, policy.Version
 }
 
 func (h *TunnelHandler) VerifyPassword(c *fiber.Ctx) error {

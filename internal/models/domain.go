@@ -23,4 +23,7 @@ type Domain struct {
 	VerifiedAt           *time.Time   `json:"verifiedAt,omitempty"`
 	CertificateStatus    string       `json:"certificateStatus" gorm:"type:varchar(20);not null;default:'pending'"`
 	CertificateExpiresAt *time.Time   `json:"certificateExpiresAt,omitempty"`
+	DNSProvider          string       `json:"dnsProvider,omitempty" gorm:"size:32;not null;default:''"`
+	BundleGroup          string       `json:"bundleGroup,omitempty" gorm:"size:64;index;not null;default:''"`
+	DelegationTarget     string       `json:"delegationTarget,omitempty" gorm:"size:255;not null;default:''"`
 }

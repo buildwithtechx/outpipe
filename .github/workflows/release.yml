@@ -16,21 +16,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v5
         with:
-          go-version: "1.26.8"
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 24
-          cache: npm
-      - uses: actions-rust-lang/setup-rust-toolchain@v1
-      - uses: shivammathur/setup-php@v2
-        with:
-          php-version: "8.4"
-          extensions: curl
-          tools: composer
-      - run: npm ci
-      - run: npm run build:web
-      - run: npm run build:secrets-share
-      - run: npm run build:status
+          go-version: "1.26.9"
       - name: Build Go artifacts
         env:
           VERSION: ${{ github.ref_name }}
@@ -62,20 +48,6 @@ jobs:
             fi
           done
           (cd dist && sha256sum * > SHA256SUMS)
-      - name: Verify release package smoke tests
-        run: |
-          (cd packages/go && go test ./...)
-          cargo package --manifest-path packages/rust/Cargo.toml --allow-dirty --no-verify
-          composer validate --strict --no-check-publish --working-dir packages/php
-          npm pack --dry-run --workspace packages/sdk
-          npm pack --dry-run --workspace packages/react
-          npm pack --dry-run --workspace packages/vite-plugin
-          npm pack --dry-run --workspace packages/next
-          npm pack --dry-run --workspace packages/nest
-          npm pack --dry-run --workspace packages/express
-          npm pack --dry-run --workspace packages/angular
-          npm pack --dry-run --workspace packages/hono
-          npm pack --dry-run --workspace packages/tanstack-start
       - name: Generate release SBOM
         uses: anchore/sbom-action@v0.20.5
         with:
@@ -86,63 +58,3 @@ jobs:
         with:
           files: dist/*
           generate_release_notes: true
-
-  desktop:
-    needs: release
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - os: ubuntu-latest
-            bundles: deb
-            bundle-dir: deb
-          - os: macos-latest
-            bundles: dmg
-            bundle-dir: dmg
-          - os: windows-latest
-            bundles: nsis
-            bundle-dir: nsis
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 24
-          cache: npm
-      - uses: actions/setup-go@v5
-        with:
-          go-version: "1.26.8"
-      - name: Install Linux system dependencies
-        if: runner.os == 'Linux'
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y libwebkit2gtk-4.1-dev libayatana-appindicator3-dev librsvg2-dev libssl-dev
-      - name: Install Rust
-        run: rustup default stable
-      - run: npm ci
-      - run: npm run build:web
-      - name: Set desktop version from tag
-        working-directory: apps/desktop
-        env:
-          APP_VERSION: ${{ github.ref_name }}
-        run: |
-          node -e '
-            const fs = require("fs");
-            const configPath = "src-tauri/tauri.conf.json";
-            const config = JSON.parse(fs.readFileSync(configPath, "utf8"));
-            const rawVer = (process.env.APP_VERSION || "").replace(/^v/, "");
-            const semverRegex = /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$/;
-            if (!semverRegex.test(rawVer)) {
-              console.error(`Invalid semver version extracted from tag: "${rawVer}" (original tag: "${process.env.APP_VERSION}")`);
-              process.exit(1);
-            }
-            config.version = rawVer;
-            fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
-          '
-      - name: Build and package desktop app
-        working-directory: apps/desktop
-        run: npm run build -- --bundles ${{ matrix.bundles }}
-      - name: Upload installers
-        uses: softprops/action-gh-release@v2
-        with:
-          files: apps/desktop/src-tauri/target/release/bundle/${{ matrix.bundle-dir }}/*

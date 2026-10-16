@@ -11,7 +11,7 @@ import (
 	"outpipe.dev/outpipe/internal/models"
 )
 
-func suppressSQLiteUnused(err *sqlite.Error) {}
+func suppressSQLiteUnused(_ *sqlite.Error) {}
 
 func TestGormTimeSeriesUsageRepository(t *testing.T) {
 	db, err := gorm.Open(sqliteGorm.Open(":memory:"), &gorm.Config{})

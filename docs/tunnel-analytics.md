@@ -1,0 +1,76 @@
+# Tunnel Analytics in Tinybird & ClickHouse
+
+The Outpipe analytics runtime uses Tinybird / ClickHouse for HTTP request history,
+captured requests, TCP/UDP events, tunnel metrics, and active-tunnel snapshots.
+Timescale is no longer a runtime dependency. SQLite / PostgreSQL remains the
+source of truth for organizations, permissions, tunnel configuration, Uptime,
+and Secrets; Redis remains the live tunnel state and telemetry delivery queue.
+
+## Rollout order
+
+1. Validate and deploy the committed Tinybird project to an isolated development
+   workspace/branch first. Then test HTTP, TCP, UDP, request capture, filters,
+   dashboard metrics, and recovery after a simulated Tinybird outage.
+2. Deploy the same definitions to the intended production workspace before
+   deploying any new tunnel, cron, or dashboard runtime. This is an additive
+   change; it does not migrate relational schemas.
+3. Configure analytics endpoints and credentials in each runtime:
+   - API / Cron: `OUTPIPE_TINYBIRD_URL` (or `analytics.tinybird_url`), `OUTPIPE_TINYBIRD_TOKEN`, and optional `OUTPIPE_TINYBIRD_DATASOURCE` (or ClickHouse equivalents).
+   - Relay: `OUTPIPE_INTERNAL_API_URL` and `OUTPIPE_INTERNAL_API_SECRET` to forward captured requests to the API (`/internal/captures`), which queues them for delivery to Tinybird/ClickHouse.
+   - Frontend / Dashboard: `TINYBIRD_API_HOST` and `TINYBIRD_QUERY_TOKEN` for reading from the `tunnel_*` endpoints.
+4. Tinybird append scopes for the API/Cron analytics exporter token (`OUTPIPE_TINYBIRD_TOKEN`)
+   must include `outpipe_telemetry`, `tunnel_events`, `tunnel_request_captures`, `tunnel_protocol_events`,
+   and `tunnel_active_snapshots`. The separate observability ingestion gateway token holds append grants for
+   `otel_logs`, `otel_spans`, and `otel_metrics`. Query scopes for the dashboard token must
+   include the 13 `tunnel_*` endpoints and observability pipes. Never give runtime services a
+   workspace-admin or deployment token.
+5. Promote the new runtimes together after verification.
+
+## Existing history
+
+This change switches readers and writers; it does **not** transfer existing
+Timescale history. Old history will not appear in the new dashboard unless it
+is backfilled. Keep existing backups until you have accepted fresh analytics history.
+
+When exporting history:
+
+- Export only unexpired rows, mapping old `request_captures` to `tunnel_request_captures`
+  and `protocol_events` to `tunnel_protocol_events`.
+- Serialize UTC timestamps with millisecond precision and headers as JSON strings.
+- Assign stable event identities before importing so retries are deduplicated.
+
+## Safety and retention
+
+All organization endpoints require an authenticated organization context; tunnel
+detail and capture lookups additionally verify tunnel ownership. Tinybird read
+tokens stay server-side. HTTP/protocol events retain stable identities for
+retry deduplication; query pipes apply per-row retention even before physical
+TTL cleanup. Storage keeps the existing maximum of 90 days.
+
+Captured payloads remain sensitive data: protect the Tinybird workspace and tokens
+appropriately. The relay spool directory also holds sensitive capture payloads
+while delivering or retrying them, so restrict filesystem access and protect
+credentials.
+
+Unsent capture storage is intentionally bounded on both sides. The relay spools every capture to disk (`OUTPIPE_TUNNEL_CAPTURE_SPOOL_DIR`, default `data/capture-spool`, at most 4096 files) and replays the spool after restarts; spool files older than 72 hours are evicted and counted as drops. The intake API rejects bodies larger than 512 KiB and per-field capture payloads stay bounded at 64 KiB. A capture larger than 3 MiB is rejected individually rather than poisoning neighboring captures; ordinary request metadata continues to be recorded. The relay `/healthz` response exposes `captureQueued` alongside `captureDrops` so operators can distinguish backlog from loss.
+
+## Endpoints Summary
+
+### Organization Endpoints
+
+1. `tunnel_overview_stats.pipe`: Organization-wide HTTP & protocol totals compared with preceding window.
+2. `tunnel_overview_chart.pipe`: Time-series aggregate of HTTP requests and protocol traffic.
+3. `tunnel_http_stats.pipe`: HTTP request status counts, error rates, and latency p50/p90/p99.
+4. `tunnel_http_chart.pipe`: Time-bucketed HTTP status codes and response volumes.
+5. `tunnel_protocol_stats.pipe`: Protocol-level metrics (TCP, UDP) for raw streams.
+6. `tunnel_protocol_chart.pipe`: Time-bucketed protocol events and bandwidth.
+7. `tunnel_protocol_recent.pipe`: Recent protocol connection activity log.
+8. `tunnel_requests.pipe`: Paginated and filterable HTTP requests log with substring search.
+9. `tunnel_capture.pipe`: Payloads and header inspection for individual captured requests.
+
+### Administrator Endpoints
+
+10. `tunnel_admin_usage.pipe`: Platform-wide tenant bandwidth and request metrics.
+11. `tunnel_admin_http_chart.pipe`: Global HTTP traffic volume across all active tunnels.
+12. `tunnel_admin_active_series.pipe`: Concurrent tunnel connection snapshots.
+13. `tunnel_admin_active_chart.pipe`: Global active tunnel count time series.

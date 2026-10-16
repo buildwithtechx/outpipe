@@ -12,7 +12,7 @@ import (
 )
 
 func TestRunDispatchesCommands(t *testing.T) {
-	cliTestEnv(t, "http://api.test")
+	cliTestEnv(t, "https://api.test")
 
 	if err := run([]string{"version"}); err != nil {
 		t.Fatalf("version: %v", err)
@@ -65,7 +65,7 @@ func TestRunHealth(t *testing.T) {
 }
 
 func TestRunCompletion(t *testing.T) {
-	cliTestEnv(t, "http://api.test")
+	cliTestEnv(t, "https://api.test")
 
 	for _, shell := range []string{"bash", "zsh", "fish", "powershell"} {
 
@@ -107,9 +107,9 @@ func TestMainEnvIsolation(t *testing.T) {
 		t.Skip("environment already set; skipping isolation check")
 	}
 
-	cliTestEnv(t, "http://isolated.test")
+	cliTestEnv(t, "https://isolated.test")
 
-	if os.Getenv("OUTPIPE_API_URL") != "http://isolated.test" {
+	if os.Getenv("OUTPIPE_API_URL") != "https://isolated.test" {
 		t.Fatal("cliTestEnv did not set the API URL")
 	}
 }

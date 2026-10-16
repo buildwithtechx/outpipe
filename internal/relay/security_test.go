@@ -15,7 +15,7 @@ type mockAuthenticator struct {
 	tokens map[string]AgentIdentity
 }
 
-func (m *mockAuthenticator) Authenticate(ctx context.Context, token string) (AgentIdentity, error) {
+func (m *mockAuthenticator) Authenticate(_ context.Context, token string) (AgentIdentity, error) {
 
 	if id, ok := m.tokens[token]; ok {
 		return id, nil
@@ -24,7 +24,7 @@ func (m *mockAuthenticator) Authenticate(ctx context.Context, token string) (Age
 	return AgentIdentity{}, fmt.Errorf("invalid token")
 }
 
-func dummySend(ctx context.Context, envelope protocol.Envelope) error {
+func dummySend(_ context.Context, _ protocol.Envelope) error {
 	return nil
 }
 

@@ -48,7 +48,7 @@ development environment. They are not requirements for SaaS customers.
 
 Requirements:
 
-- Go 1.26.8 or newer
+- Go 1.26.9 or newer
 - Node.js 22 or newer
 - npm 10 or newer
 - Air 1.67.4, which supports the repository's `build.entrypoint` configuration

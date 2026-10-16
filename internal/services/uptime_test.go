@@ -35,6 +35,9 @@ func TestUptimeServiceLifecycle(t *testing.T) {
 		&models.UptimeIncidentUpdate{},
 		&models.UptimeStatusPage{},
 		&models.UptimeSubscriber{},
+		&models.UptimeSubscriberComponent{},
+		&models.UptimeSubscriberNotification{},
+		&models.UptimeSubscriptionAttempt{},
 	)
 	if err != nil {
 		t.Fatalf("auto migrate: %v", err)

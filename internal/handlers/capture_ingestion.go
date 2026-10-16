@@ -24,6 +24,10 @@ func (h *ObservabilityHandler) IngestCapture(c *fiber.Ctx) error {
 	if err != nil || tunnel.OrganizationID != capture.OrganizationID || !tunnel.CaptureEnabled || tunnel.Status == models.TunnelStatusRevoked {
 		return c.SendStatus(fiber.StatusForbidden)
 	}
+	allowed, err := h.tunnels.CaptureAllowed(c.UserContext(), capture.TunnelID, capture.Method, capture.Path)
+	if err != nil || !allowed {
+		return c.SendStatus(fiber.StatusForbidden)
+	}
 	if capture.ID != "" {
 		if _, err := uuid.Parse(capture.ID); err != nil {
 			return c.SendStatus(fiber.StatusBadRequest)
